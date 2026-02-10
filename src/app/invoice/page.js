@@ -6,6 +6,7 @@ import {
   fetchCompanies,
   generateInvoice,
   fetchInvoices,
+  invoiceExists,
   updateInvoiceStatus,
   isFirebaseConfigured,
 } from "@/lib/api";
@@ -27,6 +28,7 @@ export default function InvoicePage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [expandedInvoice, setExpandedInvoice] = useState(null);
+  const [invoiceAlreadyExists, setInvoiceAlreadyExists] = useState(false);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -66,6 +68,24 @@ export default function InvoicePage() {
 
     loadInvoices();
   }, [selectedCompany]);
+
+  useEffect(() => {
+    const checkInvoiceExists = async () => {
+      if (!selectedCompany || !selectedMonth) {
+        setInvoiceAlreadyExists(false);
+        return;
+      }
+
+      try {
+        const exists = await invoiceExists(selectedCompany, selectedMonth);
+        setInvoiceAlreadyExists(exists);
+      } catch (err) {
+        setInvoiceAlreadyExists(false);
+      }
+    };
+
+    checkInvoiceExists();
+  }, [selectedCompany, selectedMonth]);
 
   const handleGenerateInvoice = async () => {
     if (!selectedCompany || !selectedMonth) {
@@ -162,10 +182,16 @@ export default function InvoicePage() {
           <button
             className={styles.primaryButton}
             onClick={handleGenerateInvoice}
-            disabled={status === "loading"}
+            disabled={status === "loading" || invoiceAlreadyExists}
           >
             {status === "loading" ? "Generating..." : "Generate Invoice"}
           </button>
+
+          {invoiceAlreadyExists && (
+            <p className={styles.warning}>
+              Invoice already exists for this company and month. View it below or select a different month.
+            </p>
+          )}
         </div>
 
         <div className={styles.invoicesList}>

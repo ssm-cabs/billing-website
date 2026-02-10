@@ -337,6 +337,21 @@ export async function createVehicle(payload) {
   return { vehicle_id: docRef.id };
 }
 
+export async function invoiceExists(companyId, month) {
+  if (!companyId || !month) {
+    return false;
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return false;
+  }
+
+  const invoiceId = `${companyId}-${month}`;
+  const invoiceRef = doc(db, "invoices", invoiceId);
+  const invoiceSnap = await getDoc(invoiceRef);
+  return invoiceSnap.exists();
+}
+
 export async function generateInvoice(companyId, month) {
   if (!companyId || !month) {
     throw new Error("companyId and month are required");
@@ -347,6 +362,16 @@ export async function generateInvoice(companyId, month) {
       ok: true,
       invoice_id: `INV-${month}-${companyId}`,
     };
+  }
+
+  // Check if invoice already exists
+  const invoiceId = `${companyId}-${month}`;
+  const invoiceRef = doc(db, "invoices", invoiceId);
+  const invoiceSnap = await getDoc(invoiceRef);
+  if (invoiceSnap.exists()) {
+    throw new Error(
+      `Invoice already exists for this company and month. Current status: ${invoiceSnap.data().status || "draft"}`
+    );
   }
 
   // Fetch company to get its name
@@ -389,8 +414,6 @@ export async function generateInvoice(companyId, month) {
     });
 
   // Create invoice
-  const invoiceId = `${companyId}-${month}`;
-  const invoiceRef = doc(collection(db, "invoices"), invoiceId);
   const taxAmount = Math.round(total * 0.18);
   const invoice = {
     invoice_id: invoiceId,
