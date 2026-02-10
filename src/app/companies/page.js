@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   createCompany,
   createPricing,
+  deletePricing,
   fetchCompanies,
   fetchPricing,
   isFirebaseConfigured,
@@ -125,14 +126,6 @@ export default function CompaniesPage() {
     }));
   };
 
-  const cancelEditPricing = (companyId, pricingId) => {
-    setPricingEditByCompany((prev) => {
-      const companyEdits = { ...(prev[companyId] || {}) };
-      delete companyEdits[pricingId];
-      return { ...prev, [companyId]: companyEdits };
-    });
-  };
-
   const updateEditPricingField = (companyId, pricingId, event) => {
     const { name, value } = event.target;
     setPricingEditByCompany((prev) => ({
@@ -159,7 +152,21 @@ export default function CompaniesPage() {
       });
       const data = await fetchPricing(companyId);
       setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
-      cancelEditPricing(companyId, pricingId);
+      setPricingEditByCompany((prev) => {
+        const companyEdits = { ...(prev[companyId] || {}) };
+        delete companyEdits[pricingId];
+        return { ...prev, [companyId]: companyEdits };
+      });
+    } catch (err) {
+      setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
+    }
+  };
+
+  const handleDeletePricing = async (companyId, pricingId) => {
+    try {
+      await deletePricing(companyId, pricingId);
+      const data = await fetchPricing(companyId);
+      setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
     } catch (err) {
       setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
     }
@@ -464,45 +471,45 @@ export default function CompaniesPage() {
                                 )}
                                 <div className={styles.pricingActions}>
                                   {isEditing ? (
+                                    <button
+                                      type="button"
+                                      className={styles.textButton}
+                                      onClick={() =>
+                                        savePricingEdit(
+                                          company.company_id,
+                                          pricing.pricing_id
+                                        )
+                                      }
+                                    >
+                                      Save
+                                    </button>
+                                  ) : (
                                     <>
                                       <button
                                         type="button"
                                         className={styles.textButton}
                                         onClick={() =>
-                                          savePricingEdit(
+                                          startEditPricing(
                                             company.company_id,
-                                            pricing.pricing_id
+                                            pricing
                                           )
                                         }
                                       >
-                                        Save
+                                        Update
                                       </button>
                                       <button
                                         type="button"
-                                        className={styles.textButton}
+                                        className={styles.deleteButton}
                                         onClick={() =>
-                                          cancelEditPricing(
+                                          handleDeletePricing(
                                             company.company_id,
                                             pricing.pricing_id
                                           )
                                         }
                                       >
-                                        Cancel
+                                        Delete
                                       </button>
                                     </>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      className={styles.textButton}
-                                      onClick={() =>
-                                        startEditPricing(
-                                          company.company_id,
-                                          pricing
-                                        )
-                                      }
-                                    >
-                                      Update
-                                    </button>
                                   )}
                                 </div>
                               </div>

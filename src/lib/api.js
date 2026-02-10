@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   query,
@@ -228,6 +229,20 @@ export async function updatePricing(companyId, pricingId, payload) {
   };
 
   await setDoc(docRef, pricing, { merge: true });
+  return { pricing_id: pricingId };
+}
+
+export async function deletePricing(companyId, pricingId) {
+  if (!companyId || !pricingId) {
+    throw new Error("companyId and pricingId are required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, pricing_id: pricingId };
+  }
+
+  const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);
+  await deleteDoc(docRef);
   return { pricing_id: pricingId };
 }
 

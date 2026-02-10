@@ -247,6 +247,17 @@
   padding: 0;
 }
 
+.deleteButton {
+  border: none;
+  background: none;
+  color: #b93524;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0;
+}
+
 .pricingNotice {
   color: var(--page-muted);
   font-size: 12px;
