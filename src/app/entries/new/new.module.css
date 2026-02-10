@@ -28,13 +28,16 @@
   margin-top: 8px;
 }
 
-.secondaryCta {
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(30, 25, 22, 0.2);
-  font-size: 13px;
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+  margin-bottom: 12px;
 }
 
 .form {

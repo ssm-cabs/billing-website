@@ -95,15 +95,15 @@ export default function NewEntryPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
+          <Link className={styles.backLink} href="/entries">
+            ← Back
+          </Link>
           <p className={styles.eyebrow}>New entry</p>
           <h1>Create Ride Entry</h1>
           <p className={styles.lead}>
             Capture daily rides for corporate clients with slot-based pricing.
           </p>
         </div>
-        <Link className={styles.secondaryCta} href="/entries">
-          Back to Entries
-        </Link>
       </header>
 
       <form className={styles.form} onSubmit={handleSubmit}>
