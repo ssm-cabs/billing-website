@@ -189,14 +189,19 @@ export async function createPricing(companyId, payload) {
     throw new Error("companyId is required");
   }
 
+  if (!payload?.cab_type) {
+    throw new Error("cab_type is required");
+  }
+
   if (!isFirebaseConfigured || !db) {
     return { ok: true, pricing_id: "pricing-new" };
   }
 
-  const docRef = doc(collection(db, "companies", companyId, "pricing"));
+  const pricingId = payload.cab_type;
+  const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);
   const pricing = {
     ...payload,
-    pricing_id: docRef.id,
+    pricing_id: pricingId,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   };
@@ -217,6 +222,7 @@ export async function updatePricing(companyId, pricingId, payload) {
   const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);
   const pricing = {
     ...payload,
+    cab_type: pricingId,
     pricing_id: pricingId,
     updated_at: serverTimestamp(),
   };
