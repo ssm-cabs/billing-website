@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -34,6 +33,27 @@ const mockEntries = [
     driver_name: "Suresh",
     vehicle_number: "TN 10 CD 5678",
     notes: "",
+  },
+];
+
+const mockCompanies = [
+  {
+    company_id: "acme-corp",
+    name: "Acme Corp",
+    billing_cycle: "monthly",
+    contact_name: "Ravi",
+    contact_phone: "+91 90000 00001",
+    address: "T Nagar, Chennai",
+    active: true,
+  },
+  {
+    company_id: "globex",
+    name: "Globex",
+    billing_cycle: "monthly",
+    contact_name: "Meera",
+    contact_phone: "+91 90000 00002",
+    address: "Guindy, Chennai",
+    active: true,
   },
 ];
 
@@ -82,6 +102,36 @@ export async function createEntry(payload) {
 
   await setDoc(docRef, entry);
   return { entry_id: docRef.id };
+}
+
+export async function fetchCompanies() {
+  if (!isFirebaseConfigured || !db) {
+    return mockCompanies;
+  }
+
+  const companiesRef = collection(db, "companies");
+  const snapshot = await getDocs(companiesRef);
+  return snapshot.docs.map((docSnap) => ({
+    company_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+}
+
+export async function createCompany(payload) {
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, company_id: "company-new" };
+  }
+
+  const docRef = doc(collection(db, "companies"));
+  const company = {
+    ...payload,
+    company_id: docRef.id,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, company);
+  return { company_id: docRef.id };
 }
 
 export { isFirebaseConfigured };
