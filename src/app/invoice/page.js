@@ -149,6 +149,16 @@ export default function InvoicePage() {
     const element = document.getElementById(`invoice-content-${invoice.invoice_id}`);
     if (!element) return;
 
+    const previousStyles = {
+      width: element.style.width,
+      maxWidth: element.style.maxWidth,
+      margin: element.style.margin,
+    };
+
+    element.style.width = "794px";
+    element.style.maxWidth = "none";
+    element.style.margin = "0";
+
     try {
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -174,9 +184,7 @@ export default function InvoicePage() {
       const pageHeightPx = maxHeight / scale;
 
       if (imgHeight <= maxHeight) {
-        const offsetX = (pageWidth - imgWidth) / 2;
-        const offsetY = (pageHeight - imgHeight) / 2;
-        pdf.addImage(imgData, "PNG", offsetX, offsetY, imgWidth, imgHeight);
+        pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
       } else {
         let y = 0;
         let pageIndex = 0;
@@ -223,6 +231,10 @@ export default function InvoicePage() {
     } catch (error) {
       console.error("Error generating PDF:", error);
       setError("Failed to generate PDF");
+    } finally {
+      element.style.width = previousStyles.width;
+      element.style.maxWidth = previousStyles.maxWidth;
+      element.style.margin = previousStyles.margin;
     }
   };
 
