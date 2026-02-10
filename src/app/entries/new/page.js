@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createEntry, isFirebaseConfigured } from "@/lib/api";
+import {
+  createEntry,
+  fetchCompanies,
+  isFirebaseConfigured,
+} from "@/lib/api";
 import styles from "./new.module.css";
 
 const getToday = () => {
@@ -29,6 +33,23 @@ export default function NewEntryPage() {
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [companies, setCompanies] = useState([]);
+  const [companyStatus, setCompanyStatus] = useState("idle");
+
+  useEffect(() => {
+    const loadCompanies = async () => {
+      setCompanyStatus("loading");
+      try {
+        const data = await fetchCompanies();
+        setCompanies(data.filter((company) => company.active !== false));
+        setCompanyStatus("success");
+      } catch (err) {
+        setCompanyStatus("error");
+      }
+    };
+
+    loadCompanies();
+  }, []);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -81,14 +102,27 @@ export default function NewEntryPage() {
         </label>
         <label className={styles.field}>
           Company
-          <input
-            type="text"
+          <select
             name="company_name"
             value={form.company_name}
             onChange={updateField}
-            placeholder="Acme Corp"
             required
-          />
+          >
+            <option value="">Select company</option>
+            {companies.map((company) => (
+              <option key={company.company_id} value={company.name}>
+                {company.name}
+              </option>
+            ))}
+          </select>
+          {companyStatus === "loading" && (
+            <span className={styles.helper}>Loading companies...</span>
+          )}
+          {companyStatus === "error" && (
+            <span className={styles.helperError}>
+              Unable to load companies.
+            </span>
+          )}
         </label>
         <label className={styles.field}>
           Cab type
