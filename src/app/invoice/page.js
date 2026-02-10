@@ -153,11 +153,13 @@ export default function InvoicePage() {
       width: element.style.width,
       maxWidth: element.style.maxWidth,
       margin: element.style.margin,
+      minHeight: element.style.minHeight,
     };
 
     element.style.width = "794px";
     element.style.maxWidth = "none";
     element.style.margin = "0";
+    element.style.minHeight = "1122px";
 
     try {
       const canvas = await html2canvas(element, {
@@ -235,6 +237,7 @@ export default function InvoicePage() {
       element.style.width = previousStyles.width;
       element.style.maxWidth = previousStyles.maxWidth;
       element.style.margin = previousStyles.margin;
+      element.style.minHeight = previousStyles.minHeight;
     }
   };
 
