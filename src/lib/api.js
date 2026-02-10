@@ -60,10 +60,11 @@ export async function fetchEntries({ company = "", month = "" } = {}) {
   }
 
   const query = new URLSearchParams();
+  query.set("path", "entries");
   if (company) query.set("company", company);
   if (month) query.set("date", month);
 
-  const { data } = await request(`/entries?${query.toString()}`);
+  const { data } = await request(`?${query.toString()}`);
   return data?.entries || [];
 }
 
@@ -72,9 +73,9 @@ export async function createEntry(payload) {
     return { ok: true, entry_id: "ENT-NEW" };
   }
 
-  const { data } = await request("/entries", {
+  const { data } = await request("", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ path: "entries", ...payload }),
   });
 
   return data;
