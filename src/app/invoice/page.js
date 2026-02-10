@@ -168,13 +168,57 @@ export default function InvoicePage() {
       const margin = 10;
       const maxWidth = pageWidth - margin * 2;
       const maxHeight = pageHeight - margin * 2;
-      const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
+      const scale = maxWidth / canvas.width;
       const imgWidth = canvas.width * scale;
       const imgHeight = canvas.height * scale;
-      const offsetX = (pageWidth - imgWidth) / 2;
-      const offsetY = (pageHeight - imgHeight) / 2;
+      const pageHeightPx = maxHeight / scale;
 
-      pdf.addImage(imgData, "PNG", offsetX, offsetY, imgWidth, imgHeight);
+      if (imgHeight <= maxHeight) {
+        const offsetX = (pageWidth - imgWidth) / 2;
+        const offsetY = (pageHeight - imgHeight) / 2;
+        pdf.addImage(imgData, "PNG", offsetX, offsetY, imgWidth, imgHeight);
+      } else {
+        let y = 0;
+        let pageIndex = 0;
+
+        while (y < canvas.height) {
+          const sliceHeight = Math.min(pageHeightPx, canvas.height - y);
+          const pageCanvas = document.createElement("canvas");
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sliceHeight;
+
+          const pageContext = pageCanvas.getContext("2d");
+          pageContext.drawImage(
+            canvas,
+            0,
+            y,
+            canvas.width,
+            sliceHeight,
+            0,
+            0,
+            canvas.width,
+            sliceHeight
+          );
+
+          const pageData = pageCanvas.toDataURL("image/png");
+          if (pageIndex > 0) {
+            pdf.addPage();
+          }
+
+          pdf.addImage(
+            pageData,
+            "PNG",
+            margin,
+            margin,
+            imgWidth,
+            sliceHeight * scale
+          );
+
+          y += sliceHeight;
+          pageIndex += 1;
+        }
+      }
+
       pdf.save(`${invoice.invoice_id}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
