@@ -466,10 +466,10 @@ export default function InvoicePage() {
                         </div>
                       </div>
 
-                      {invoice.status !== "paid" && (
+                      {invoice.status === "draft" && (
                         <div className={styles.actions} data-html2canvas-ignore="true">
                           <button
-                            className={styles.secondaryButton}
+                            className={styles.primaryButton}
                             onClick={() =>
                               handleUpdateStatus(
                                 invoice.invoice_id,
@@ -479,6 +479,17 @@ export default function InvoicePage() {
                           >
                             Mark as Issued
                           </button>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => handleExportPDF(invoice)}
+                          >
+                            Download PDF
+                          </button>
+                        </div>
+                      )}
+
+                      {invoice.status === "issued" && (
+                        <div className={styles.actions} data-html2canvas-ignore="true">
                           <button
                             className={styles.primaryButton}
                             onClick={() =>
