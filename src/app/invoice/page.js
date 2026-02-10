@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import {
@@ -378,7 +379,7 @@ export default function InvoicePage() {
                     <div id={`invoice-content-${invoice.invoice_id}`} className={styles.invoiceDetails}>
                       <div className={styles.invoiceHeader}>
                         <div className={styles.invoiceAside}>
-                          <img src="/logo.png" alt="Company Logo" className={styles.logo} />
+                          <Image src="/logo.png" alt="Company Logo" className={styles.logo} width={120} height={120} unoptimized />
                           <div className={styles.ourDetails}>
                             <p>{OUR_COMPANY.name}</p>
                             <p>{OUR_COMPANY.address}</p>
