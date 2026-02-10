@@ -235,9 +235,7 @@ export default function NewEntryPage() {
             <option value="">Select slot</option>
             <option value="4hr">4hr</option>
             <option value="6hr">6hr</option>
-            <option value="8hr">8hr</option>
             <option value="12hr">12hr</option>
-            <option value="Full day">Full day</option>
           </select>
         </label>
         {form.vehicle_number && form.slot && (
