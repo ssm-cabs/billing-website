@@ -375,9 +375,9 @@ export async function generateInvoice(companyId, month) {
   const lineItems = entries
     .filter((entry) => entry.rate > 0) // Only include entries with a rate
     .map((entry) => {
-      const rate = entry.rate || 0;
+      const rate = Number(entry.rate) || 0; // Ensure it's a number
       const amount = rate;
-      total += amount;
+      total += amount; // This will now add as numbers
       return {
         entry_id: entry.entry_id,
         cab_type: entry.cab_type || "Unknown",
@@ -399,9 +399,9 @@ export async function generateInvoice(companyId, month) {
     period: month,
     entries_count: lineItems.length,
     line_items: lineItems,
-    subtotal: total,
+    subtotal: Math.round(total),
     tax: taxAmount,
-    total: total + taxAmount,
+    total: Math.round(total) + taxAmount,
     status: "draft",
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
