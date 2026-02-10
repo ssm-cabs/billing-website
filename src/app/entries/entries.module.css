@@ -110,6 +110,16 @@
   color: #c23d2b;
 }
 
+.helper {
+  font-size: 12px;
+  color: var(--page-muted);
+}
+
+.helperError {
+  font-size: 12px;
+  color: #c23d2b;
+}
+
 @media (max-width: 900px) {
   .header {
     flex-direction: column;

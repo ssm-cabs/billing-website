@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { fetchEntries, isFirebaseConfigured } from "@/lib/api";
+import { fetchCompanies, fetchEntries, isFirebaseConfigured } from "@/lib/api";
 import styles from "./entries.module.css";
 
 export default function EntriesPage() {
@@ -16,6 +16,8 @@ export default function EntriesPage() {
   });
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
+  const [companies, setCompanies] = useState([]);
+  const [companyStatus, setCompanyStatus] = useState("idle");
 
   useEffect(() => {
     const load = async () => {
@@ -37,10 +39,20 @@ export default function EntriesPage() {
     load();
   }, [company, month]);
 
-  const companies = useMemo(() => {
-    const names = new Set(entries.map((entry) => entry.company_name));
-    return ["all", ...Array.from(names)];
-  }, [entries]);
+  useEffect(() => {
+    const loadCompanies = async () => {
+      setCompanyStatus("loading");
+      try {
+        const data = await fetchCompanies();
+        setCompanies(data.filter((entry) => entry.active !== false));
+        setCompanyStatus("success");
+      } catch (err) {
+        setCompanyStatus("error");
+      }
+    };
+
+    loadCompanies();
+  }, []);
 
   return (
     <div className={styles.page}>
@@ -74,12 +86,21 @@ export default function EntriesPage() {
             value={company}
             onChange={(event) => setCompany(event.target.value)}
           >
-            {companies.map((name) => (
-              <option key={name} value={name}>
-                {name === "all" ? "All Companies" : name}
+            <option value="all">All Companies</option>
+            {companies.map((companyItem) => (
+              <option key={companyItem.company_id} value={companyItem.name}>
+                {companyItem.name}
               </option>
             ))}
           </select>
+          {companyStatus === "loading" && (
+            <span className={styles.helper}>Loading companies...</span>
+          )}
+          {companyStatus === "error" && (
+            <span className={styles.helperError}>
+              Unable to load companies.
+            </span>
+          )}
         </label>
         <label className={styles.field}>
           Month
