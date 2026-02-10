@@ -326,10 +326,17 @@
 
 .lineItem {
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
   padding: 10px 12px;
   font-size: 13px;
   border-bottom: 1px solid rgba(30, 25, 22, 0.04);
+}
+
+.column {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lineItem:last-child {

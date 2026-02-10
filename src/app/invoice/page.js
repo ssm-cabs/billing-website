@@ -168,6 +168,17 @@ export default function InvoicePage() {
     }
   };
 
+  const groupLineItemsByDate = (lineItems) => {
+    const grouped = {};
+    lineItems?.forEach((item) => {
+      if (!grouped[item.date]) {
+        grouped[item.date] = [];
+      }
+      grouped[item.date].push(item);
+    });
+    return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -297,11 +308,15 @@ export default function InvoicePage() {
                           ) : (
                             <>
                               {invoice.line_items?.map((item, idx) => (
-                                <div key={idx} className={styles.lineItem}>
-                                  <span>
-                                    {item.cab_type} - {item.slot}
-                                  </span>
-                                  <span>₹{item.amount?.toLocaleString()}</span>
+                                <div
+                                  key={idx}
+                                  className={styles.lineItem}
+                                >
+                                  <span className={styles.column}>{item.date}</span>
+                                  <span className={styles.column}>{item.slot}</span>
+                                  <span className={styles.column}>{item.cab_type}</span>
+                                  <span className={styles.column}>{item.vehicle_number}</span>
+                                  <span className={styles.column}>₹{item.rate}</span>
                                 </div>
                               ))}
                             </>

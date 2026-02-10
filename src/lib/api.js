@@ -410,6 +410,7 @@ export async function generateInvoice(companyId, month) {
         rate,
         amount,
         date: entry.entry_date || "",
+        vehicle_number: entry.vehicle_number || "",
       };
     });
 
