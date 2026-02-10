@@ -244,10 +244,11 @@ export default function NewEntryPage() {
           <label className={styles.field}>
             Rate
             <input
-              type="text"
-              value={form.rate > 0 ? `₹${form.rate}` : "Not available"}
-              disabled
-              readOnly
+              type="number"
+              name="rate"
+              value={form.rate}
+              onChange={updateField}
+              placeholder="Enter rate"
             />
           </label>
         )}
