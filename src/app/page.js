@@ -1,24 +1,57 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
 export default function Home() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 8);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className={styles.page}>
       <div className={styles.glow} aria-hidden="true" />
       <div className={styles.grid} aria-hidden="true" />
 
-      <header className={styles.hero}>
-        <nav className={styles.nav}>
-          <div className={styles.brand}>SSM Cabs</div>
-          <div className={styles.navLinks}>
-            <a href="#features">Features</a>
-            <a href="#workflow">Workflow</a>
-            <a href="#pricing">Pricing Model</a>
-          </div>
+      <nav className={`${styles.nav} ${isScrolled ? styles.navScrolled : ""}`}>
+        <div className={styles.brand}>SSM Cabs</div>
+        <div
+          className={`${styles.navLinks} ${
+            isMenuOpen ? styles.navLinksOpen : ""
+          }`}
+        >
+          <a href="#features">Features</a>
+          <a href="#workflow">Workflow</a>
+          <a href="#pricing">Pricing Model</a>
+        </div>
+        <div className={styles.navActions}>
+          <button
+            type="button"
+            className={styles.menuButton}
+            aria-label="Toggle navigation"
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
           <a className={styles.navCta} href="/login">
             Login
           </a>
-        </nav>
+        </div>
+      </nav>
 
+      <header className={styles.hero}>
         <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>Billing + ride entry</p>

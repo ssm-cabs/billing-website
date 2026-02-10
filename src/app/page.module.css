@@ -19,7 +19,7 @@
     radial-gradient(circle at 20% 10%, #fff5e8, transparent 55%),
     var(--cream);
   color: var(--ink);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .glow {
@@ -46,18 +46,30 @@
   pointer-events: none;
 }
 
-.hero {
-  position: relative;
-  padding: 42px 8vw 80px;
-  z-index: 2;
-}
-
 .nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 18px 8vw;
+  backdrop-filter: blur(12px);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 64px;
+  margin-bottom: 0;
+}
+
+.navScrolled {
+  background: rgba(246, 241, 234, 0.92);
+}
+
+.hero {
+  position: relative;
+  padding: 120px 8vw 80px;
+  z-index: 2;
 }
 
 .brand {
@@ -71,6 +83,33 @@
   gap: 24px;
   font-size: 14px;
   color: var(--muted);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menuButton {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.8);
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.menuButton span {
+  display: block;
+  width: 16px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 999px;
 }
 
 .navLinks a {
@@ -413,15 +452,31 @@
     grid-template-columns: 1fr;
   }
 
-  .nav {
-    flex-direction: column;
-    align-items: flex-start;
+  .hero {
+    padding-top: 180px;
   }
 }
 
 @media (max-width: 768px) {
+  .menuButton {
+    display: inline-flex;
+  }
+
   .navLinks {
-    flex-wrap: wrap;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 8vw 24px;
+    background: rgba(246, 241, 234, 0.98);
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .navLinksOpen {
+    display: flex;
   }
 
   .heroCopy h1 {
@@ -444,7 +499,7 @@
 
 @media (max-width: 560px) {
   .hero {
-    padding: 32px 6vw 60px;
+    padding: 200px 6vw 60px;
   }
 
   .main {
