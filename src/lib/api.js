@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   getCountFromServer,
   limit,
@@ -348,13 +349,18 @@ export async function generateInvoice(companyId, month) {
     };
   }
 
-  // Fetch entries for the month
+  // Fetch company to get its name
+  const companyRef = doc(db, "companies", companyId);
+  const companySnap = await getDoc(companyRef);
+  const companyName = companySnap.exists() ? companySnap.data().name : companyId;
+
+  // Fetch entries for the month by company_name
   const start = `${month}-01`;
   const end = `${month}-31`;
   const entriesRef = collection(db, "entries");
   const entriesQuery = query(
     entriesRef,
-    where("company_id", "==", companyId),
+    where("company_name", "==", companyName),
     where("entry_date", ">=", start),
     where("entry_date", "<=", end)
   );
@@ -364,45 +370,38 @@ export async function generateInvoice(companyId, month) {
     ...doc.data(),
   }));
 
-  // Fetch pricing for the company
-  const pricingRef = collection(db, "companies", companyId, "pricing");
-  const pricingSnapshot = await getDocs(pricingRef);
-  const pricing = pricingSnapshot.docs.reduce((acc, doc) => {
-    const data = doc.data();
-    const key = `${data.cab_type}|${data.slot}`;
-    acc[key] = data.rate || 0;
-    return acc;
-  }, {});
-
   // Calculate total
   let total = 0;
-  const lineItems = entries.map((entry) => {
-    const key = `${entry.cab_type}|${entry.slot}`;
-    const rate = pricing[key] || 0;
-    const amount = rate;
-    total += amount;
-    return {
-      entry_id: entry.entry_id,
-      cab_type: entry.cab_type,
-      slot: entry.slot,
-      rate,
-      amount,
-      date: entry.entry_date,
-    };
-  });
+  const lineItems = entries
+    .filter((entry) => entry.rate > 0) // Only include entries with a rate
+    .map((entry) => {
+      const rate = entry.rate || 0;
+      const amount = rate;
+      total += amount;
+      return {
+        entry_id: entry.entry_id,
+        cab_type: entry.cab_type || "Unknown",
+        slot: entry.slot || "Unknown",
+        rate,
+        amount,
+        date: entry.entry_date || "",
+      };
+    });
 
   // Create invoice
   const invoiceId = `${companyId}-${month}`;
   const invoiceRef = doc(collection(db, "invoices"), invoiceId);
+  const taxAmount = Math.round(total * 0.18);
   const invoice = {
     invoice_id: invoiceId,
     company_id: companyId,
+    company_name: companyName,
     period: month,
-    entries_count: entries.length,
+    entries_count: lineItems.length,
     line_items: lineItems,
     subtotal: total,
-    tax: Math.round(total * 0.18), // 18% GST
-    total: total + Math.round(total * 0.18),
+    tax: taxAmount,
+    total: total + taxAmount,
     status: "draft",
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
