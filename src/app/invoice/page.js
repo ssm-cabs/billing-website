@@ -21,6 +21,14 @@ const getMonthValue = () => {
   return `${year}-${month}`;
 };
 
+const OUR_COMPANY = {
+  name: "SSM Cabs",
+  address: "No. 12, Anna Salai, Chennai, TN 600002",
+  phone: "+91 44 4000 1234",
+  email: "accounts@ssmcabs.com",
+  bank_details: "Account: 000111222333 | SBI | IFSC: SBIN0001234",
+};
+
 export default function InvoicePage() {
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("");
@@ -157,10 +165,16 @@ export default function InvoicePage() {
 
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth - 20;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const margin = 10;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+      const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
+      const imgWidth = canvas.width * scale;
+      const imgHeight = canvas.height * scale;
+      const offsetX = (pageWidth - imgWidth) / 2;
+      const offsetY = (pageHeight - imgHeight) / 2;
 
-      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      pdf.addImage(imgData, "PNG", offsetX, offsetY, imgWidth, imgHeight);
       pdf.save(`${invoice.invoice_id}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -257,7 +271,26 @@ export default function InvoicePage() {
             <p className={styles.empty}>No invoices yet</p>
           ) : (
             <div className={styles.invoices}>
-              {invoices.map((invoice) => (
+              {invoices.map((invoice) => {
+                const companyDetails =
+                  companies.find(
+                    (company) => company.company_id === invoice.company_id
+                  ) || {};
+                const invoiceToName =
+                  invoice.company_name || companyDetails.name || "Company";
+                const invoiceToAddress =
+                  invoice.company_address || companyDetails.address || "";
+                const invoiceToContact = companyDetails.contact_name || "";
+                const invoiceToPhone = companyDetails.contact_phone || "";
+                const invoiceToEmail =
+                  invoice.company_email || companyDetails.email || "";
+                const invoiceDate =
+                  invoice.invoice_date ||
+                  (invoice.created_at?.toDate
+                    ? invoice.created_at.toDate().toISOString().slice(0, 10)
+                    : "");
+
+                return (
                 <div
                   key={invoice.invoice_id}
                   data-invoice-id={invoice.invoice_id}
@@ -290,16 +323,27 @@ export default function InvoicePage() {
                       
                       <div className={styles.invoiceHeader}>
                         <div>
-                          <h3>{invoice.company_name}</h3>
+                          <h3>{invoiceToName}</h3>
                           <p className={styles.period}>Invoice for {invoice.period}</p>
-                          {invoice.company_address && (
-                            <p className={styles.companyDetails}>{invoice.company_address}</p>
+                          {invoiceToAddress && (
+                            <p className={styles.companyDetails}>{invoiceToAddress}</p>
+                          )}
+                          {(invoiceToContact || invoiceToPhone || invoiceToEmail) && (
+                            <p className={styles.companyDetails}>
+                              {[
+                                invoiceToContact,
+                                invoiceToPhone,
+                                invoiceToEmail,
+                              ]
+                                .filter(Boolean)
+                                .join(" | ")}
+                            </p>
                           )}
                         </div>
                         <div className={styles.invoiceMeta}>
                           <p className={styles.invoiceNumber}>Invoice #: {invoice.invoice_id}</p>
-                          {invoice.invoice_date && (
-                            <p className={styles.invoiceDate}>Date: {invoice.invoice_date}</p>
+                          {invoiceDate && (
+                            <p className={styles.invoiceDate}>Date: {invoiceDate}</p>
                           )}
                         </div>
                       </div>
@@ -352,19 +396,19 @@ export default function InvoicePage() {
                       <div className={styles.footer}>
                         <div className={styles.footerSection}>
                           <p className={styles.footerLabel}>Our Details</p>
-                          {invoice.company_phone && (<p>{invoice.company_phone}</p>)}
-                          {invoice.company_email && (<p>{invoice.company_email}</p>)}
+                          <p>{OUR_COMPANY.name}</p>
+                          <p>{OUR_COMPANY.address}</p>
+                          <p>{OUR_COMPANY.phone}</p>
+                          <p>{OUR_COMPANY.email}</p>
                         </div>
-                        {invoice.bank_details && (
-                          <div className={styles.footerSection}>
-                            <p className={styles.footerLabel}>Bank Details</p>
-                            <p>{invoice.bank_details}</p>
-                          </div>
-                        )}
+                        <div className={styles.footerSection}>
+                          <p className={styles.footerLabel}>Bank Details</p>
+                          <p>{OUR_COMPANY.bank_details}</p>
+                        </div>
                       </div>
 
                       {invoice.status !== "paid" && (
-                        <div className={styles.actions}>
+                        <div className={styles.actions} data-html2canvas-ignore="true">
                           <button
                             className={styles.secondaryButton}
                             onClick={() =>
@@ -394,7 +438,7 @@ export default function InvoicePage() {
                       )}
 
                       {invoice.status === "paid" && (
-                        <div className={styles.actions}>
+                        <div className={styles.actions} data-html2canvas-ignore="true">
                           <button
                             className={styles.secondaryButton}
                             onClick={() => handleExportPDF(invoice)}
@@ -421,7 +465,8 @@ export default function InvoicePage() {
                       : "View Details"}
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
