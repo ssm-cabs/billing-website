@@ -378,22 +378,6 @@
   line-height: 1.6;
 }
 
-.cta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding: 32px;
-  border-radius: 26px;
-  background: var(--ink);
-  color: #fff;
-}
-
-.cta p {
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 8px;
-}
-
 .footer {
   padding: 30px 8vw 60px;
   display: flex;

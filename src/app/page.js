@@ -160,18 +160,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="cta" className={styles.cta}>
-          <div>
-            <h2>Ready to streamline daily entry?</h2>
-            <p>
-              Launch the new billing workspace and keep every corporate client
-              invoiced on time.
-            </p>
-          </div>
-          <a className={styles.primaryCta} href="mailto:ops@ssmcabs.in">
-            Get Started
-          </a>
-        </section>
       </main>
 
       <footer className={styles.footer}>
