@@ -4,6 +4,8 @@ import {
   doc,
   getDocs,
   getCountFromServer,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -92,7 +94,7 @@ const mockVehicles = [
   },
 ];
 
-export async function fetchEntries({ company = "", month = "" } = {}) {
+export async function fetchEntries({ company = "", month = "", orderByField = "", orderByDirection = "asc", limitCount = 0 } = {}) {
   if (!isFirebaseConfigured || !db) {
     return mockEntries;
   }
@@ -108,6 +110,14 @@ export async function fetchEntries({ company = "", month = "" } = {}) {
     const end = `${month}-31`;
     constraints.push(where("entry_date", ">=", start));
     constraints.push(where("entry_date", "<=", end));
+  }
+
+  if (orderByField) {
+    constraints.push(orderBy(orderByField, orderByDirection));
+  }
+
+  if (limitCount > 0) {
+    constraints.push(limit(limitCount));
   }
 
   const entriesRef = collection(db, "entries");

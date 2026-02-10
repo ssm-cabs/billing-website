@@ -47,7 +47,7 @@ export default function DashboardPage() {
           countActiveCompanies(),
           countActiveVehicles(),
           countEntriesByMonth(monthValue),
-          fetchEntries({ month: monthValue }),
+          fetchEntries({ month: monthValue, orderByField: "entry_date", orderByDirection: "desc", limitCount: 6 }),
         ]);
         setCompaniesCount(companiesData);
         setVehiclesCount(vehiclesData);
@@ -62,13 +62,7 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  const recentEntries = [...entries]
-    .sort((a, b) => {
-      const aDate = new Date(formatDate(a.entry_date));
-      const bDate = new Date(formatDate(b.entry_date));
-      return bDate - aDate;
-    })
-    .slice(0, 6);
+  const recentEntries = entries;
 
   return (
     <div className={styles.page}>
