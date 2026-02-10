@@ -58,15 +58,20 @@ export default function EntriesPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
+          <Link className={styles.backLink} href="/dashboard">
+            ← Back
+          </Link>
           <p className={styles.eyebrow}>Ride entries</p>
           <h1>Daily Entry Desk</h1>
           <p className={styles.lead}>
             Review, filter, and export rides across corporate companies.
           </p>
         </div>
-        <Link className={styles.primaryCta} href="/entries/new">
-          New Entry
-        </Link>
+        <div className={styles.headerActions}>
+          <Link className={styles.primaryCta} href="/entries/new">
+            New Entry
+          </Link>
+        </div>
       </header>
 
       {!isFirebaseConfigured && (
