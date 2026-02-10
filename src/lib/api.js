@@ -57,6 +57,29 @@ const mockCompanies = [
   },
 ];
 
+const mockVehicles = [
+  {
+    vehicle_id: "tn-09-ab-1234",
+    vehicle_number: "TN 09 AB 1234",
+    cab_type: "SUV",
+    capacity: 6,
+    status: "active",
+    driver_name: "Arun",
+    driver_phone: "+91 90000 01001",
+    notes: "Airport rotation",
+  },
+  {
+    vehicle_id: "tn-10-cd-5678",
+    vehicle_number: "TN 10 CD 5678",
+    cab_type: "Sedan",
+    capacity: 4,
+    status: "active",
+    driver_name: "Suresh",
+    driver_phone: "+91 90000 01002",
+    notes: "",
+  },
+];
+
 export async function fetchEntries({ company = "", month = "" } = {}) {
   if (!isFirebaseConfigured || !db) {
     return mockEntries;
@@ -132,6 +155,36 @@ export async function createCompany(payload) {
 
   await setDoc(docRef, company);
   return { company_id: docRef.id };
+}
+
+export async function fetchVehicles() {
+  if (!isFirebaseConfigured || !db) {
+    return mockVehicles;
+  }
+
+  const vehiclesRef = collection(db, "vehicles");
+  const snapshot = await getDocs(vehiclesRef);
+  return snapshot.docs.map((docSnap) => ({
+    vehicle_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+}
+
+export async function createVehicle(payload) {
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, vehicle_id: "vehicle-new" };
+  }
+
+  const docRef = doc(collection(db, "vehicles"));
+  const vehicle = {
+    ...payload,
+    vehicle_id: docRef.id,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, vehicle);
+  return { vehicle_id: docRef.id };
 }
 
 export { isFirebaseConfigured };

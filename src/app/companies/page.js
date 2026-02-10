@@ -108,8 +108,7 @@ export default function CompaniesPage() {
               onChange={updateField}
             >
               <option value="monthly">Monthly</option>
-              <option value="weekly">Weekly</option>
-              <option value="fortnightly">Fortnightly</option>
+              <option value="daily">Daily</option>
             </select>
           </label>
           <label className={styles.field}>
