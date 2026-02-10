@@ -131,6 +131,7 @@ export default function EntriesPage() {
                 <th>Company</th>
                 <th>Cab Type</th>
                 <th>Slot</th>
+                <th>Rate</th>
                 <th>Route</th>
                 <th>Driver</th>
                 <th>Vehicle</th>
@@ -144,6 +145,7 @@ export default function EntriesPage() {
                   <td data-label="Company">{entry.company_name}</td>
                   <td data-label="Cab Type">{entry.cab_type}</td>
                   <td data-label="Slot">{entry.slot}</td>
+                  <td data-label="Rate">{entry.rate > 0 ? `₹${entry.rate}` : "-"}</td>
                   <td data-label="Route">
                     {entry.pickup_location} → {entry.drop_location}
                   </td>
