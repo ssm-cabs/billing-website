@@ -31,6 +31,9 @@ export default function Home() {
             isMenuOpen ? styles.navLinksOpen : ""
           }`}
         >
+          <a href="/entries" onClick={() => setIsMenuOpen(false)}>
+            Entries
+          </a>
           <a href="#features" onClick={() => setIsMenuOpen(false)}>
             Features
           </a>
@@ -76,7 +79,7 @@ export default function Home() {
               monthly invoices without spreadsheet chaos.
             </p>
             <div className={styles.actions}>
-              <a className={styles.primaryCta} href="#cta">
+              <a className={styles.primaryCta} href="/entries/new">
                 Create Today&apos;s Entries
               </a>
               <a className={styles.secondaryCta} href="#features">
