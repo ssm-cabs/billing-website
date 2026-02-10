@@ -26,6 +26,8 @@ const initialState = {
   pickup_location: "",
   drop_location: "",
   vehicle_number: "",
+  cab_type: "",
+  driver_name: "",
   rate: 0,
   notes: "",
 };
@@ -106,6 +108,8 @@ export default function NewEntryPage() {
 
     setForm((prev) => ({
       ...prev,
+      cab_type: selectedVehicle?.cab_type || "",
+      driver_name: selectedVehicle?.driver_name || "",
       rate: matchingPrice?.rate || 0,
     }));
   }, [form.vehicle_number, form.slot, pricing, vehicles]);
