@@ -435,6 +435,7 @@ export default function CompaniesPage() {
                                           event
                                         )
                                       }
+                                      disabled
                                     >
                                       <option value="4hr">4hr</option>
                                       <option value="6hr">6hr</option>
