@@ -3,6 +3,7 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  getCountFromServer,
   query,
   serverTimestamp,
   setDoc,
@@ -257,6 +258,55 @@ export async function fetchVehicles() {
     vehicle_id: docSnap.id,
     ...docSnap.data(),
   }));
+}
+
+export async function countActiveCompanies() {
+  if (!isFirebaseConfigured || !db) {
+    return mockCompanies.filter((c) => c.active !== false).length;
+  }
+
+  const companiesRef = collection(db, "companies");
+  const activeQuery = query(companiesRef, where("active", "!=", false));
+  const snapshot = await getCountFromServer(activeQuery);
+  return snapshot.data().count;
+}
+
+export async function countActiveVehicles() {
+  if (!isFirebaseConfigured || !db) {
+    return mockVehicles.filter((v) => v.status !== "inactive").length;
+  }
+
+  const vehiclesRef = collection(db, "vehicles");
+  const activeQuery = query(vehiclesRef, where("status", "!=", "inactive"));
+  const snapshot = await getCountFromServer(activeQuery);
+  return snapshot.data().count;
+}
+
+export async function countEntriesByMonth(month = "") {
+  if (!isFirebaseConfigured || !db) {
+    if (!month) return mockEntries.length;
+    const start = `${month}-01`;
+    const end = `${month}-31`;
+    return mockEntries.filter(
+      (e) => e.entry_date >= start && e.entry_date <= end
+    ).length;
+  }
+
+  const entriesRef = collection(db, "entries");
+  const constraints = [];
+
+  if (month) {
+    const start = `${month}-01`;
+    const end = `${month}-31`;
+    constraints.push(where("entry_date", ">=", start));
+    constraints.push(where("entry_date", "<=", end));
+  }
+
+  const countQuery = constraints.length
+    ? query(entriesRef, ...constraints)
+    : entriesRef;
+  const snapshot = await getCountFromServer(countQuery);
+  return snapshot.data().count;
 }
 
 export async function createVehicle(payload) {

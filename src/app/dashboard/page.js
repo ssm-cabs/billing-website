@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  fetchCompanies,
+  countActiveCompanies,
+  countActiveVehicles,
+  countEntriesByMonth,
   fetchEntries,
-  fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
 import styles from "./dashboard.module.css";
@@ -32,22 +33,26 @@ const formatDate = (value) => {
 
 export default function DashboardPage() {
   const [entries, setEntries] = useState([]);
-  const [companies, setCompanies] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
+  const [companiesCount, setCompaniesCount] = useState(0);
+  const [vehiclesCount, setVehiclesCount] = useState(0);
+  const [entriesCount, setEntriesCount] = useState(0);
   const [status, setStatus] = useState("idle");
 
   useEffect(() => {
     const loadData = async () => {
       setStatus("loading");
       try {
-        const [entriesData, companiesData, vehiclesData] = await Promise.all([
-          fetchEntries({ month: getMonthValue() }),
-          fetchCompanies(),
-          fetchVehicles(),
+        const monthValue = getMonthValue();
+        const [companiesData, vehiclesData, entriesCountData, recentEntriesData] = await Promise.all([
+          countActiveCompanies(),
+          countActiveVehicles(),
+          countEntriesByMonth(monthValue),
+          fetchEntries({ month: monthValue }),
         ]);
-        setEntries(entriesData);
-        setCompanies(companiesData);
-        setVehicles(vehiclesData);
+        setCompaniesCount(companiesData);
+        setVehiclesCount(vehiclesData);
+        setEntriesCount(entriesCountData);
+        setEntries(recentEntriesData);
         setStatus("success");
       } catch (err) {
         setStatus("error");
@@ -57,8 +62,6 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  const activeCompanies = companies.filter((company) => company.active !== false);
-  const activeVehicles = vehicles.filter((vehicle) => vehicle.status !== "inactive");
   const recentEntries = [...entries]
     .sort((a, b) => {
       const aDate = new Date(formatDate(a.entry_date));
@@ -93,18 +96,18 @@ export default function DashboardPage() {
       <section className={styles.stats}>
         <div className={styles.card}>
           <p>Entries this month</p>
-          <h2>{entries.length}</h2>
+          <h2>{entriesCount}</h2>
           <span>{getMonthValue()}</span>
         </div>
         <div className={styles.card}>
           <p>Active companies</p>
-          <h2>{activeCompanies.length}</h2>
-          <span>{companies.length} total</span>
+          <h2>{companiesCount}</h2>
+          <span>Total count</span>
         </div>
         <div className={styles.card}>
           <p>Active vehicles</p>
-          <h2>{activeVehicles.length}</h2>
-          <span>{vehicles.length} total</span>
+          <h2>{vehiclesCount}</h2>
+          <span>Total count</span>
         </div>
       </section>
 
