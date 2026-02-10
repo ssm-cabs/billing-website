@@ -31,9 +31,6 @@ export default function Home() {
             isMenuOpen ? styles.navLinksOpen : ""
           }`}
         >
-          <a href="/entries" onClick={() => setIsMenuOpen(false)}>
-            Entries
-          </a>
           <a href="#features" onClick={() => setIsMenuOpen(false)}>
             Features
           </a>
