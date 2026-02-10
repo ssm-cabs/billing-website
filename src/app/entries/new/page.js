@@ -133,6 +133,10 @@ export default function NewEntryPage() {
         isFirebaseConfigured ? "Entry saved." : "Demo mode: entry prepared."
       );
       setForm({ ...initialState, entry_date: getToday() });
+      // Redirect to /entries after 1 second
+      setTimeout(() => {
+        router.push("/entries");
+      }, 1000);
     } catch (err) {
       setStatus("error");
       setMessage(err.message || "Failed to save entry.");
