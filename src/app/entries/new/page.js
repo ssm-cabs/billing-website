@@ -84,14 +84,18 @@ export default function NewEntryPage() {
         </label>
         <label className={styles.field}>
           Cab type
-          <input
-            type="text"
+          <select
             name="cab_type"
             value={form.cab_type}
             onChange={updateField}
-            placeholder="Sedan, SUV, Tempo Traveller"
             required
-          />
+          >
+            <option value="">Select cab type</option>
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Tempo Traveller">Tempo Traveller</option>
+            <option value="Other">Other</option>
+          </select>
         </label>
         <label className={styles.field}>
           Slot
