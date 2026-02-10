@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   createEntry,
   fetchCompanies,
+  fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
 import styles from "./new.module.css";
@@ -24,7 +25,6 @@ const initialState = {
   slot: "",
   pickup_location: "",
   drop_location: "",
-  driver_name: "",
   vehicle_number: "",
   notes: "",
 };
@@ -35,6 +35,8 @@ export default function NewEntryPage() {
   const [message, setMessage] = useState("");
   const [companies, setCompanies] = useState([]);
   const [companyStatus, setCompanyStatus] = useState("idle");
+  const [vehicles, setVehicles] = useState([]);
+  const [vehicleStatus, setVehicleStatus] = useState("idle");
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -49,6 +51,21 @@ export default function NewEntryPage() {
     };
 
     loadCompanies();
+  }, []);
+
+  useEffect(() => {
+    const loadVehicles = async () => {
+      setVehicleStatus("loading");
+      try {
+        const data = await fetchVehicles();
+        setVehicles(data.filter((vehicle) => vehicle.status !== "inactive"));
+        setVehicleStatus("success");
+      } catch (err) {
+        setVehicleStatus("error");
+      }
+    };
+
+    loadVehicles();
   }, []);
 
   const updateField = (event) => {
@@ -171,22 +188,30 @@ export default function NewEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          Driver name
-          <input
-            type="text"
-            name="driver_name"
-            value={form.driver_name}
-            onChange={updateField}
-          />
-        </label>
-        <label className={styles.field}>
-          Vehicle number
-          <input
-            type="text"
+          Vehicle
+          <select
             name="vehicle_number"
             value={form.vehicle_number}
             onChange={updateField}
-          />
+          >
+            <option value="">Select vehicle</option>
+            {vehicles.map((vehicle) => (
+              <option
+                key={vehicle.vehicle_id}
+                value={vehicle.vehicle_number}
+              >
+                {vehicle.vehicle_number} · {vehicle.driver_name || "Driver"} · {vehicle.cab_type}
+              </option>
+            ))}
+          </select>
+          {vehicleStatus === "loading" && (
+            <span className={styles.helper}>Loading vehicles...</span>
+          )}
+          {vehicleStatus === "error" && (
+            <span className={styles.helperError}>
+              Unable to load vehicles.
+            </span>
+          )}
         </label>
         <label className={styles.field}>
           Notes
