@@ -1,11 +1,14 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://script.google.com/macros/s/AKfycbytAS_NclZl1HPxuoFFVU-k86Pxgvj8yK4fmi94qiStg2nbCuc1FeI0LxGwljLaZC2SQQ/exec";
-
-const hasRealApi =
-  API_BASE_URL &&
-  API_BASE_URL !== "YOUR_APPS_SCRIPT_URL" &&
-  !API_BASE_URL.includes("docs.google.com");
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
+} from "firebase/firestore";
+import { db, isFirebaseConfigured } from "./firebase";
 
 const mockEntries = [
   {
@@ -34,49 +37,51 @@ const mockEntries = [
   },
 ];
 
-async function request(path, options = {}) {
-  if (!hasRealApi) {
-    return { ok: true, data: null };
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const message = data?.message || "Request failed";
-    throw new Error(message);
-  }
-
-  return { ok: true, data };
-}
-
 export async function fetchEntries({ company = "", month = "" } = {}) {
-  if (!hasRealApi) {
+  if (!isFirebaseConfigured || !db) {
     return mockEntries;
   }
 
-  const query = new URLSearchParams();
-  query.set("path", "entries");
-  if (company) query.set("company", company);
-  if (month) query.set("date", month);
+  const constraints = [];
 
-  const { data } = await request(`?${query.toString()}`);
-  return data?.entries || [];
+  if (company) {
+    constraints.push(where("company_name", "==", company));
+  }
+
+  if (month) {
+    const start = `${month}-01`;
+    const end = `${month}-31`;
+    constraints.push(where("entry_date", ">=", start));
+    constraints.push(where("entry_date", "<=", end));
+  }
+
+  const entriesRef = collection(db, "entries");
+  const entriesQuery = constraints.length
+    ? query(entriesRef, ...constraints)
+    : entriesRef;
+
+  const snapshot = await getDocs(entriesQuery);
+  return snapshot.docs.map((docSnap) => ({
+    entry_id: docSnap.id,
+    ...docSnap.data(),
+  }));
 }
 
 export async function createEntry(payload) {
-  if (!hasRealApi) {
+  if (!isFirebaseConfigured || !db) {
     return { ok: true, entry_id: "ENT-NEW" };
   }
 
-  const { data } = await request("", {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ path: "entries", ...payload }),
-  });
+  const docRef = doc(collection(db, "entries"));
+  const entry = {
+    ...payload,
+    entry_id: docRef.id,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
 
-  return data;
+  await setDoc(docRef, entry);
+  return { entry_id: docRef.id };
 }
 
-export { hasRealApi, API_BASE_URL };
+export { isFirebaseConfigured };

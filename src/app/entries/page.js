@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { fetchEntries, hasRealApi } from "@/lib/api";
+import { fetchEntries, isFirebaseConfigured } from "@/lib/api";
 import styles from "./entries.module.css";
 
 export default function EntriesPage() {
@@ -52,11 +52,11 @@ export default function EntriesPage() {
         </Link>
       </header>
 
-      {!hasRealApi && (
+      {!isFirebaseConfigured && (
         <div className={styles.notice}>
-          Add your Apps Script URL to
+          Add Firebase config to
           <span className={styles.noticeHighlight}>
-            NEXT_PUBLIC_API_BASE_URL
+            NEXT_PUBLIC_FIREBASE_*
           </span>
           to load live data.
         </div>

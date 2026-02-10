@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createEntry, hasRealApi } from "@/lib/api";
+import { createEntry, isFirebaseConfigured } from "@/lib/api";
 import styles from "./new.module.css";
 
 const initialState = {
@@ -35,7 +35,9 @@ export default function NewEntryPage() {
     try {
       await createEntry(form);
       setStatus("success");
-      setMessage(hasRealApi ? "Entry saved." : "Demo mode: entry prepared.");
+      setMessage(
+        isFirebaseConfigured ? "Entry saved." : "Demo mode: entry prepared."
+      );
       setForm(initialState);
     } catch (err) {
       setStatus("error");
