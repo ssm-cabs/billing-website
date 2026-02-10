@@ -18,6 +18,20 @@ SSM Cabs provides corporate companies with cab facilities.
 - Add, view, edit, and delete ride entries for any corporate company.
 - Generate billing and invoices on a monthly basis.
 
+## Website Pages
+
+Recommended pages for the web app:
+
+- Login (optional if you add authentication)
+- Dashboard (monthly snapshot, recent entries)
+- Ride Entries List (filter by company and date)
+- New Entry (create ride entry)
+- Edit Entry (update or delete an entry)
+- Companies (manage corporate company list)
+- Pricing (per-company cab type and slot rates)
+- Invoices (monthly billing and invoice generation)
+- Settings (year file selection, sheet mapping, API token)
+
 ## Backend Details (Google Sheets + Apps Script)
 
 ### Data Storage
