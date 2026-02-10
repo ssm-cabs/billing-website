@@ -146,7 +146,7 @@ export default function DashboardPage() {
             <Link href="/entries">Review entries</Link>
             <Link href="/companies">Manage companies</Link>
             <Link href="/vehicles">Manage vehicles</Link>
-            <Link href="/invoice">View invoices</Link>
+            <Link href="/invoices">View invoices</Link>
           </div>
         </div>
       </section>
