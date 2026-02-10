@@ -123,6 +123,18 @@ export default function InvoicePage() {
     }
   };
 
+  const handleViewInvoice = () => {
+    const invoiceId = `${selectedCompany}-${selectedMonth}`;
+    setExpandedInvoice(invoiceId);
+    // Scroll to the invoice section
+    setTimeout(() => {
+      const invoiceElement = document.querySelector(`[data-invoice-id="${invoiceId}"]`);
+      if (invoiceElement) {
+        invoiceElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -181,17 +193,17 @@ export default function InvoicePage() {
 
           <button
             className={styles.primaryButton}
-            onClick={handleGenerateInvoice}
-            disabled={status === "loading" || invoiceAlreadyExists}
+            onClick={
+              invoiceAlreadyExists ? handleViewInvoice : handleGenerateInvoice
+            }
+            disabled={status === "loading"}
           >
-            {status === "loading" ? "Generating..." : "Generate Invoice"}
+            {status === "loading"
+              ? "Generating..."
+              : invoiceAlreadyExists
+              ? "View Invoice"
+              : "Generate Invoice"}
           </button>
-
-          {invoiceAlreadyExists && (
-            <p className={styles.warning}>
-              Invoice already exists for this company and month. View it below or select a different month.
-            </p>
-          )}
         </div>
 
         <div className={styles.invoicesList}>
@@ -204,6 +216,7 @@ export default function InvoicePage() {
               {invoices.map((invoice) => (
                 <div
                   key={invoice.invoice_id}
+                  data-invoice-id={invoice.invoice_id}
                   className={styles.invoiceCard}
                 >
                   <div className={styles.invoiceHeader}>
