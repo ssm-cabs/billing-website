@@ -151,6 +151,79 @@
   font-size: 13px;
 }
 
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.linkButton {
+  border: none;
+  background: none;
+  color: var(--page-ink);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pricingSection {
+  border-top: 1px solid rgba(30, 25, 22, 0.08);
+  padding-top: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.pricingForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.secondaryButton {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 25, 22, 0.2);
+  background: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+}
+
+.pricingList {
+  display: grid;
+  gap: 8px;
+}
+
+.pricingHeader,
+.pricingRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.pricingHeader {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+}
+
+.pricingRow {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.06);
+}
+
+.pricingNotice {
+  color: var(--page-muted);
+  font-size: 12px;
+}
+
 .activeTag,
 .inactiveTag {
   align-self: start;
@@ -174,6 +247,10 @@
 
 @media (max-width: 960px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricingForm {
     grid-template-columns: 1fr;
   }
 }

@@ -57,6 +57,16 @@ const mockCompanies = [
   },
 ];
 
+const mockPricing = {
+  "acme-corp": [
+    { pricing_id: "p1", cab_type: "SUV", slot: "6hr", rate: 2400 },
+    { pricing_id: "p2", cab_type: "Sedan", slot: "4hr", rate: 1200 },
+  ],
+  globex: [
+    { pricing_id: "p3", cab_type: "Sedan", slot: "4hr", rate: 1400 },
+  ],
+};
+
 const mockVehicles = [
   {
     vehicle_id: "tn-09-ab-1234",
@@ -155,6 +165,44 @@ export async function createCompany(payload) {
 
   await setDoc(docRef, company);
   return { company_id: docRef.id };
+}
+
+export async function fetchPricing(companyId) {
+  if (!companyId) {
+    throw new Error("companyId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return mockPricing[companyId] || [];
+  }
+
+  const pricingRef = collection(db, "companies", companyId, "pricing");
+  const snapshot = await getDocs(pricingRef);
+  return snapshot.docs.map((docSnap) => ({
+    pricing_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+}
+
+export async function createPricing(companyId, payload) {
+  if (!companyId) {
+    throw new Error("companyId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, pricing_id: "pricing-new" };
+  }
+
+  const docRef = doc(collection(db, "companies", companyId, "pricing"));
+  const pricing = {
+    ...payload,
+    pricing_id: docRef.id,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, pricing);
+  return { pricing_id: docRef.id };
 }
 
 export async function fetchVehicles() {
