@@ -377,9 +377,6 @@ export default function InvoicePage() {
                   {expandedInvoice === invoice.invoice_id && (
                     <div id={`invoice-content-${invoice.invoice_id}`} className={styles.invoiceDetails}>
                       <div className={styles.invoiceHeader}>
-                        <div>
-                          <p className={styles.period}>Invoice for {invoice.period}</p>
-                        </div>
                         <div className={styles.invoiceAside}>
                           <img src="/logo.png" alt="Company Logo" className={styles.logo} />
                           <div className={styles.ourDetails}>
@@ -388,6 +385,9 @@ export default function InvoicePage() {
                             <p>{OUR_COMPANY.phone}</p>
                             <p>{OUR_COMPANY.email}</p>
                           </div>
+                        </div>
+                        <div>
+                          <p className={styles.period}>Invoice for {invoice.period}</p>
                         </div>
                       </div>
 
