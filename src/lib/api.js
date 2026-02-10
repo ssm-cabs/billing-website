@@ -276,7 +276,7 @@ export async function countActiveCompanies() {
   }
 
   const companiesRef = collection(db, "companies");
-  const activeQuery = query(companiesRef, where("active", "!=", false));
+  const activeQuery = query(companiesRef, where("active", "==", true));
   const snapshot = await getCountFromServer(activeQuery);
   return snapshot.data().count;
 }
@@ -287,7 +287,7 @@ export async function countActiveVehicles() {
   }
 
   const vehiclesRef = collection(db, "vehicles");
-  const activeQuery = query(vehiclesRef, where("status", "!=", "inactive"));
+  const activeQuery = query(vehiclesRef, where("status", "==", "active"));
   const snapshot = await getCountFromServer(activeQuery);
   return snapshot.data().count;
 }
