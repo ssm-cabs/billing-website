@@ -166,6 +166,17 @@ export default function NewEntryPage() {
             </span>
           )}
         </label>
+        {form.vehicle_number && (
+          <label className={styles.field}>
+            Cab type
+            <input
+              type="text"
+              value={vehicles.find(v => v.vehicle_number === form.vehicle_number)?.cab_type || ""}
+              disabled
+              readOnly
+            />
+          </label>
+        )}
         <label className={styles.field}>
           Slot
           <select

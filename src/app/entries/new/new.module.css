@@ -67,6 +67,15 @@
   color: var(--page-ink);
 }
 
+.field input:disabled,
+.field textarea:disabled,
+.field select:disabled {
+  background: #f5f3f0;
+  color: var(--page-muted);
+  cursor: not-allowed;
+  border-color: rgba(30, 25, 22, 0.08);
+}
+
 .actions {
   display: flex;
   align-items: center;
