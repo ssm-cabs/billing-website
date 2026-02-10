@@ -26,6 +26,10 @@ function doDelete(e) {
   return jsonResponse({ error: "Unsupported DELETE" }, 400);
 }
 
+function doOptions() {
+  return jsonResponse({ ok: true });
+}
+
 function listEntries(company, date) {
   const sheet = getCompanySheet(company);
   const rows = sheet.getDataRange().getValues();
@@ -130,5 +134,10 @@ function jsonResponse(data, status) {
   const output = ContentService.createTextOutput(JSON.stringify(data));
   output.setMimeType(ContentService.MimeType.JSON);
   if (status) output.setStatusCode(status);
+  if (typeof output.setHeader === "function") {
+    output.setHeader("Access-Control-Allow-Origin", "*");
+    output.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    output.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  }
   return output;
 }

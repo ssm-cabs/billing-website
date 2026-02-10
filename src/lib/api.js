@@ -1,6 +1,6 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://script.google.com/macros/s/AKfycbwGRdDT29n44-8cDmfQ_UR4R35j6Y2z3FLrX7SDtSbSPTWdEzBDf2hFBGN9akWnuGhqsg/exec";
+  "https://script.google.com/macros/s/AKfycbytAS_NclZl1HPxuoFFVU-k86Pxgvj8yK4fmi94qiStg2nbCuc1FeI0LxGwljLaZC2SQQ/exec";
 
 const hasRealApi =
   API_BASE_URL &&
