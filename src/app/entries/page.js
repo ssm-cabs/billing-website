@@ -8,7 +8,12 @@ import styles from "./entries.module.css";
 export default function EntriesPage() {
   const [entries, setEntries] = useState([]);
   const [company, setCompany] = useState("all");
-  const [month, setMonth] = useState("");
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const monthIndex = String(now.getMonth() + 1).padStart(2, "0");
+    return `${year}-${monthIndex}`;
+  });
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
 
