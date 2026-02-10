@@ -267,13 +267,6 @@
   flex-direction: column;
 }
 
-.logoSection {
-  text-align: center;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
-}
-
 .logo {
   max-width: 120px;
   height: auto;
@@ -283,7 +276,7 @@
 .invoiceDetails .invoiceHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(30, 25, 22, 0.08);
@@ -300,6 +293,23 @@
   font-size: 13px;
   color: var(--page-muted);
   margin: 4px 0 0 0;
+}
+
+.invoiceAside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  text-align: right;
+}
+
+.ourDetails {
+  font-size: 12px;
+  color: var(--page-muted);
+}
+
+.ourDetails p {
+  margin: 2px 0;
 }
 
 .invoiceDetails .invoiceMeta {
@@ -325,6 +335,30 @@
   font-size: 12px;
   color: var(--page-muted);
   margin: 4px 0 0 0;
+}
+
+.billedTo {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.billedLabel {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+  margin: 0 0 12px 0;
+}
+
+.invoiceMetaInline {
+  margin-top: 8px;
+}
+
+.invoiceMetaInline .invoiceNumber,
+.invoiceMetaInline .invoiceDate {
+  text-align: left;
 }
 
 .footer {

@@ -376,30 +376,35 @@ export default function InvoicePage() {
 
                   {expandedInvoice === invoice.invoice_id && (
                     <div id={`invoice-content-${invoice.invoice_id}`} className={styles.invoiceDetails}>
-                      <div className={styles.logoSection}>
-                        <img src="/logo.png" alt="Company Logo" className={styles.logo} />
-                      </div>
-                      
                       <div className={styles.invoiceHeader}>
                         <div>
-                          <h3>{invoiceToName}</h3>
                           <p className={styles.period}>Invoice for {invoice.period}</p>
-                          {invoiceToAddress && (
-                            <p className={styles.companyDetails}>{invoiceToAddress}</p>
-                          )}
-                          {(invoiceToContact || invoiceToPhone || invoiceToEmail) && (
-                            <p className={styles.companyDetails}>
-                              {[
-                                invoiceToContact,
-                                invoiceToPhone,
-                                invoiceToEmail,
-                              ]
-                                .filter(Boolean)
-                                .join(" | ")}
-                            </p>
-                          )}
                         </div>
-                        <div className={styles.invoiceMeta}>
+                        <div className={styles.invoiceAside}>
+                          <img src="/logo.png" alt="Company Logo" className={styles.logo} />
+                          <div className={styles.ourDetails}>
+                            <p>{OUR_COMPANY.name}</p>
+                            <p>{OUR_COMPANY.address}</p>
+                            <p>{OUR_COMPANY.phone}</p>
+                            <p>{OUR_COMPANY.email}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={styles.billedTo}>
+                        <p className={styles.billedLabel}>Billed To</p>
+                        <h3>{invoiceToName}</h3>
+                        {invoiceToAddress && (
+                          <p className={styles.companyDetails}>{invoiceToAddress}</p>
+                        )}
+                        {(invoiceToContact || invoiceToPhone || invoiceToEmail) && (
+                          <p className={styles.companyDetails}>
+                            {[invoiceToContact, invoiceToPhone, invoiceToEmail]
+                              .filter(Boolean)
+                              .join(" | ")}
+                          </p>
+                        )}
+                        <div className={styles.invoiceMetaInline}>
                           <p className={styles.invoiceNumber}>Invoice #: {invoice.invoice_id}</p>
                           {invoiceDate && (
                             <p className={styles.invoiceDate}>Date: {invoiceDate}</p>
