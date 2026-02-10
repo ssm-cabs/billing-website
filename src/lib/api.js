@@ -39,10 +39,7 @@ async function request(path, options = {}) {
     return { ok: true, data: null };
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
 
   const data = await response.json().catch(() => ({}));
 
@@ -75,6 +72,7 @@ export async function createEntry(payload) {
 
   const { data } = await request("", {
     method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ path: "entries", ...payload }),
   });
 
