@@ -140,16 +140,16 @@ export default function EntriesPage() {
             <tbody>
               {entries.map((entry) => (
                 <tr key={entry.entry_id}>
-                  <td>{entry.entry_date}</td>
-                  <td>{entry.company_name}</td>
-                  <td>{entry.cab_type}</td>
-                  <td>{entry.slot}</td>
-                  <td>
+                  <td data-label="Date">{entry.entry_date}</td>
+                  <td data-label="Company">{entry.company_name}</td>
+                  <td data-label="Cab Type">{entry.cab_type}</td>
+                  <td data-label="Slot">{entry.slot}</td>
+                  <td data-label="Route">
                     {entry.pickup_location} → {entry.drop_location}
                   </td>
-                  <td>{entry.driver_name}</td>
-                  <td>{entry.vehicle_number}</td>
-                  <td>{entry.notes || "-"}</td>
+                  <td data-label="Driver">{entry.driver_name}</td>
+                  <td data-label="Vehicle">{entry.vehicle_number}</td>
+                  <td data-label="Notes">{entry.notes || "-"}</td>
                 </tr>
               ))}
             </tbody>
