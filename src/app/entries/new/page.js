@@ -21,7 +21,6 @@ const getToday = () => {
 const initialState = {
   entry_date: getToday(),
   company_name: "",
-  cab_type: "",
   slot: "",
   pickup_location: "",
   drop_location: "",
@@ -142,52 +141,6 @@ export default function NewEntryPage() {
           )}
         </label>
         <label className={styles.field}>
-          Cab type
-          <select
-            name="cab_type"
-            value={form.cab_type}
-            onChange={updateField}
-            required
-          >
-            <option value="">Select cab type</option>
-            <option value="Sedan">Sedan</option>
-            <option value="SUV">SUV</option>
-            <option value="Tempo Traveller">Tempo Traveller</option>
-            <option value="Other">Other</option>
-          </select>
-        </label>
-        <label className={styles.field}>
-          Slot
-          <input
-            type="text"
-            name="slot"
-            value={form.slot}
-            onChange={updateField}
-            placeholder="4hr, 6hr, 12hr"
-            required
-          />
-        </label>
-        <label className={styles.field}>
-          Pickup location
-          <input
-            type="text"
-            name="pickup_location"
-            value={form.pickup_location}
-            onChange={updateField}
-            required
-          />
-        </label>
-        <label className={styles.field}>
-          Drop location
-          <input
-            type="text"
-            name="drop_location"
-            value={form.drop_location}
-            onChange={updateField}
-            required
-          />
-        </label>
-        <label className={styles.field}>
           Vehicle
           <select
             name="vehicle_number"
@@ -212,6 +165,42 @@ export default function NewEntryPage() {
               Unable to load vehicles.
             </span>
           )}
+        </label>
+        <label className={styles.field}>
+          Slot
+          <select
+            name="slot"
+            value={form.slot}
+            onChange={updateField}
+            required
+          >
+            <option value="">Select slot</option>
+            <option value="4hr">4hr</option>
+            <option value="6hr">6hr</option>
+            <option value="8hr">8hr</option>
+            <option value="12hr">12hr</option>
+            <option value="Full day">Full day</option>
+          </select>
+        </label>
+        <label className={styles.field}>
+          Pickup location
+          <input
+            type="text"
+            name="pickup_location"
+            value={form.pickup_location}
+            onChange={updateField}
+            required
+          />
+        </label>
+        <label className={styles.field}>
+          Drop location
+          <input
+            type="text"
+            name="drop_location"
+            value={form.drop_location}
+            onChange={updateField}
+            required
+          />
         </label>
         <label className={styles.field}>
           Notes
