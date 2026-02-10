@@ -23,17 +23,28 @@ export default function Home() {
       <div className={styles.grid} aria-hidden="true" />
 
       <nav className={`${styles.nav} ${isScrolled ? styles.navScrolled : ""}`}>
-        <div className={styles.brand}>SSM Cabs</div>
+        <a className={styles.brand} href="#">
+          SSM Cabs
+        </a>
         <div
           className={`${styles.navLinks} ${
             isMenuOpen ? styles.navLinksOpen : ""
           }`}
         >
-          <a href="#features">Features</a>
-          <a href="#workflow">Workflow</a>
-          <a href="#pricing">Pricing Model</a>
+          <a href="#features" onClick={() => setIsMenuOpen(false)}>
+            Features
+          </a>
+          <a href="#workflow" onClick={() => setIsMenuOpen(false)}>
+            Workflow
+          </a>
+          <a href="#pricing" onClick={() => setIsMenuOpen(false)}>
+            Pricing Model
+          </a>
         </div>
         <div className={styles.navActions}>
+          <a className={styles.navCta} href="/login">
+            Login
+          </a>
           <button
             type="button"
             className={styles.menuButton}
@@ -41,13 +52,15 @@ export default function Home() {
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((open) => !open)}
           >
-            <span />
-            <span />
-            <span />
+            <svg
+              className={styles.menuIcon}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
           </button>
-          <a className={styles.navCta} href="/login">
-            Login
-          </a>
         </div>
       </nav>
 
