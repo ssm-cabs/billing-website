@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   createEntry,
@@ -33,6 +34,7 @@ const initialState = {
 };
 
 export default function NewEntryPage() {
+  const router = useRouter();
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
