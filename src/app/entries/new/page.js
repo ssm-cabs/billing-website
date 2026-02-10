@@ -5,8 +5,16 @@ import Link from "next/link";
 import { createEntry, isFirebaseConfigured } from "@/lib/api";
 import styles from "./new.module.css";
 
+const getToday = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const initialState = {
-  entry_date: "",
+  entry_date: getToday(),
   company_name: "",
   cab_type: "",
   slot: "",
@@ -38,7 +46,7 @@ export default function NewEntryPage() {
       setMessage(
         isFirebaseConfigured ? "Entry saved." : "Demo mode: entry prepared."
       );
-      setForm(initialState);
+      setForm({ ...initialState, entry_date: getToday() });
     } catch (err) {
       setStatus("error");
       setMessage(err.message || "Failed to save entry.");
