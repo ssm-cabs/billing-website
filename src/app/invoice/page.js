@@ -292,9 +292,15 @@ export default function InvoicePage() {
                         <div>
                           <h3>{invoice.company_name}</h3>
                           <p className={styles.period}>Invoice for {invoice.period}</p>
+                          {invoice.company_address && (
+                            <p className={styles.companyDetails}>{invoice.company_address}</p>
+                          )}
                         </div>
-                        <div>
+                        <div className={styles.invoiceMeta}>
                           <p className={styles.invoiceNumber}>Invoice #: {invoice.invoice_id}</p>
+                          {invoice.invoice_date && (
+                            <p className={styles.invoiceDate}>Date: {invoice.invoice_date}</p>
+                          )}
                         </div>
                       </div>
 
@@ -341,6 +347,20 @@ export default function InvoicePage() {
                             </span>
                           </div>
                         </div>
+                      </div>
+
+                      <div className={styles.footer}>
+                        <div className={styles.footerSection}>
+                          <p className={styles.footerLabel}>Our Details</p>
+                          {invoice.company_phone && (<p>{invoice.company_phone}</p>)}
+                          {invoice.company_email && (<p>{invoice.company_email}</p>)}
+                        </div>
+                        {invoice.bank_details && (
+                          <div className={styles.footerSection}>
+                            <p className={styles.footerLabel}>Bank Details</p>
+                            <p>{invoice.bank_details}</p>
+                          </div>
+                        )}
                       </div>
 
                       {invoice.status !== "paid" && (

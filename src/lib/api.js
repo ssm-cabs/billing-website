@@ -49,6 +49,9 @@ const mockCompanies = [
     contact_name: "Ravi",
     contact_phone: "+91 90000 00001",
     address: "T Nagar, Chennai",
+    phone: "+91 44 4200 0001",
+    email: "billing@acmecorp.com",
+    bank_details: "Account: 1234567890 | HDFC Bank | IFSC: HDFC0001234",
     active: true,
   },
   {
@@ -58,6 +61,9 @@ const mockCompanies = [
     contact_name: "Meera",
     contact_phone: "+91 90000 00002",
     address: "Guindy, Chennai",
+    phone: "+91 44 4200 0002",
+    email: "accounts@globex.com",
+    bank_details: "Account: 9876543210 | ICICI Bank | IFSC: ICIC0002468",
     active: true,
   },
 ];
@@ -374,10 +380,15 @@ export async function generateInvoice(companyId, month) {
     );
   }
 
-  // Fetch company to get its name
+  // Fetch company to get its name and details
   const companyRef = doc(db, "companies", companyId);
   const companySnap = await getDoc(companyRef);
-  const companyName = companySnap.exists() ? companySnap.data().name : companyId;
+  const companyData = companySnap.exists() ? companySnap.data() : {};
+  const companyName = companyData.name || companyId;
+  const companyAddress = companyData.address || "";
+  const companyPhone = companyData.phone || "";
+  const companyEmail = companyData.email || "";
+  const bankDetails = companyData.bank_details || "";
 
   // Fetch entries for the month by company_name
   const start = `${month}-01`;
@@ -416,11 +427,18 @@ export async function generateInvoice(companyId, month) {
 
   // Create invoice
   const taxAmount = Math.round(total * 0.18);
+  const now = new Date();
+  const invoiceDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const invoice = {
     invoice_id: invoiceId,
     company_id: companyId,
     company_name: companyName,
+    company_address: companyAddress,
+    company_phone: companyPhone,
+    company_email: companyEmail,
+    bank_details: bankDetails,
     period: month,
+    invoice_date: invoiceDate,
     entries_count: lineItems.length,
     line_items: lineItems,
     subtotal: Math.round(total),
