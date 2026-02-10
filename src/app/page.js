@@ -14,8 +14,8 @@ export default function Home() {
             <a href="#workflow">Workflow</a>
             <a href="#pricing">Pricing Model</a>
           </div>
-          <a className={styles.navCta} href="#cta">
-            Start Daily Entry
+          <a className={styles.navCta} href="/login">
+            Login
           </a>
         </nav>
 

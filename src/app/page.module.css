@@ -111,6 +111,7 @@
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
+
 .navCta:hover {
   background: #2a231f;
   transform: translateY(-2px);
