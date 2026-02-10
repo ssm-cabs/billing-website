@@ -47,7 +47,7 @@ export default function DashboardPage() {
           countActiveCompanies(),
           countActiveVehicles(),
           countEntriesByMonth(monthValue),
-          fetchEntries({ month: monthValue, orderByField: "entry_date", orderByDirection: "desc", limitCount: 6 }),
+          fetchEntries({ orderByField: "created_at", orderByDirection: "desc", limitCount: 6 }),
         ]);
         setCompaniesCount(companiesData);
         setVehiclesCount(vehiclesData);
