@@ -205,6 +205,26 @@ export async function createPricing(companyId, payload) {
   return { pricing_id: docRef.id };
 }
 
+export async function updatePricing(companyId, pricingId, payload) {
+  if (!companyId || !pricingId) {
+    throw new Error("companyId and pricingId are required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, pricing_id: pricingId };
+  }
+
+  const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);
+  const pricing = {
+    ...payload,
+    pricing_id: pricingId,
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, pricing, { merge: true });
+  return { pricing_id: pricingId };
+}
+
 export async function fetchVehicles() {
   if (!isFirebaseConfigured || !db) {
     return mockVehicles;

@@ -7,6 +7,7 @@ import {
   fetchCompanies,
   fetchPricing,
   isFirebaseConfigured,
+  updatePricing,
 } from "@/lib/api";
 import styles from "./companies.module.css";
 
@@ -35,6 +36,7 @@ export default function CompaniesPage() {
   const [pricingByCompany, setPricingByCompany] = useState({});
   const [pricingFormByCompany, setPricingFormByCompany] = useState({});
   const [pricingStatus, setPricingStatus] = useState({});
+  const [pricingEditByCompany, setPricingEditByCompany] = useState({});
 
   const loadCompanies = async () => {
     setStatus("loading");
@@ -104,6 +106,60 @@ export default function CompaniesPage() {
         ...prev,
         [companyId]: initialPricing,
       }));
+    } catch (err) {
+      setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
+    }
+  };
+
+  const startEditPricing = (companyId, pricing) => {
+    setPricingEditByCompany((prev) => ({
+      ...prev,
+      [companyId]: {
+        ...(prev[companyId] || {}),
+        [pricing.pricing_id]: {
+          cab_type: pricing.cab_type || "",
+          slot: pricing.slot || "",
+          rate: pricing.rate ?? "",
+        },
+      },
+    }));
+  };
+
+  const cancelEditPricing = (companyId, pricingId) => {
+    setPricingEditByCompany((prev) => {
+      const companyEdits = { ...(prev[companyId] || {}) };
+      delete companyEdits[pricingId];
+      return { ...prev, [companyId]: companyEdits };
+    });
+  };
+
+  const updateEditPricingField = (companyId, pricingId, event) => {
+    const { name, value } = event.target;
+    setPricingEditByCompany((prev) => ({
+      ...prev,
+      [companyId]: {
+        ...(prev[companyId] || {}),
+        [pricingId]: {
+          ...(prev[companyId]?.[pricingId] || {}),
+          [name]: value,
+        },
+      },
+    }));
+  };
+
+  const savePricingEdit = async (companyId, pricingId) => {
+    const payload = pricingEditByCompany?.[companyId]?.[pricingId];
+    if (!payload) return;
+    const rateValue = payload.rate ? Number(payload.rate) : 0;
+
+    try {
+      await updatePricing(companyId, pricingId, {
+        ...payload,
+        rate: rateValue,
+      });
+      const data = await fetchPricing(companyId);
+      setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
+      cancelEditPricing(companyId, pricingId);
     } catch (err) {
       setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
     }
@@ -337,16 +393,119 @@ export default function CompaniesPage() {
                           <span>Rate</span>
                         </div>
                         {(pricingByCompany[company.company_id] || []).map(
-                          (pricing) => (
-                            <div
-                              key={pricing.pricing_id}
-                              className={styles.pricingRow}
-                            >
-                              <span>{pricing.cab_type}</span>
-                              <span>{pricing.slot}</span>
-                              <span>₹ {pricing.rate}</span>
-                            </div>
-                          )
+                          (pricing) => {
+                            const edits =
+                              pricingEditByCompany?.[company.company_id]?.[
+                                pricing.pricing_id
+                              ];
+                            const isEditing = Boolean(edits);
+                            return (
+                              <div
+                                key={pricing.pricing_id}
+                                className={styles.pricingRow}
+                              >
+                                {isEditing ? (
+                                  <>
+                                    <select
+                                      name="cab_type"
+                                      value={edits.cab_type}
+                                      onChange={(event) =>
+                                        updateEditPricingField(
+                                          company.company_id,
+                                          pricing.pricing_id,
+                                          event
+                                        )
+                                      }
+                                    >
+                                      <option value="Sedan">Sedan</option>
+                                      <option value="SUV">SUV</option>
+                                      <option value="Tempo Traveller">
+                                        Tempo Traveller
+                                      </option>
+                                      <option value="Other">Other</option>
+                                    </select>
+                                    <select
+                                      name="slot"
+                                      value={edits.slot}
+                                      onChange={(event) =>
+                                        updateEditPricingField(
+                                          company.company_id,
+                                          pricing.pricing_id,
+                                          event
+                                        )
+                                      }
+                                    >
+                                      <option value="4hr">4hr</option>
+                                      <option value="6hr">6hr</option>
+                                      <option value="12hr">12hr</option>
+                                    </select>
+                                    <input
+                                      type="number"
+                                      name="rate"
+                                      value={edits.rate}
+                                      onChange={(event) =>
+                                        updateEditPricingField(
+                                          company.company_id,
+                                          pricing.pricing_id,
+                                          event
+                                        )
+                                      }
+                                      min="0"
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>{pricing.cab_type}</span>
+                                    <span>{pricing.slot}</span>
+                                    <span>₹ {pricing.rate}</span>
+                                  </>
+                                )}
+                                <div className={styles.pricingActions}>
+                                  {isEditing ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className={styles.textButton}
+                                        onClick={() =>
+                                          savePricingEdit(
+                                            company.company_id,
+                                            pricing.pricing_id
+                                          )
+                                        }
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className={styles.textButton}
+                                        onClick={() =>
+                                          cancelEditPricing(
+                                            company.company_id,
+                                            pricing.pricing_id
+                                          )
+                                        }
+                                      >
+                                        Cancel
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className={styles.textButton}
+                                      onClick={() =>
+                                        startEditPricing(
+                                          company.company_id,
+                                          pricing
+                                        )
+                                      }
+                                    >
+                                      Update
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          }
                         )}
                         {pricingStatus[company.company_id] === "loading" && (
                           <p className={styles.pricingNotice}>Loading pricing...</p>
