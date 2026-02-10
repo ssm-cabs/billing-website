@@ -265,6 +265,49 @@
   border-bottom: 1px solid rgba(30, 25, 22, 0.06);
 }
 
+.logoSection {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.logo {
+  max-width: 120px;
+  height: auto;
+  object-fit: contain;
+}
+
+.invoiceDetails .invoiceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.invoiceDetails .invoiceHeader h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--page-ink);
+}
+
+.invoiceDetails .period {
+  font-size: 13px;
+  color: var(--page-muted);
+  margin: 4px 0 0 0;
+}
+
+.invoiceDetails .invoiceNumber {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--page-ink);
+  margin: 0;
+  text-align: right;
+}
+
 .detailsSection h4 {
   font-size: 13px;
   font-weight: 600;

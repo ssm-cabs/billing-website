@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import {
   fetchCompanies,
   generateInvoice,
@@ -135,6 +137,37 @@ export default function InvoicePage() {
     }, 100);
   };
 
+  const handleExportPDF = async (invoice) => {
+    const element = document.getElementById(`invoice-content-${invoice.invoice_id}`);
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      pdf.save(`${invoice.invoice_id}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      setError("Failed to generate PDF");
+    }
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -239,7 +272,21 @@ export default function InvoicePage() {
                   </div>
 
                   {expandedInvoice === invoice.invoice_id && (
-                    <div className={styles.invoiceDetails}>
+                    <div id={`invoice-content-${invoice.invoice_id}`} className={styles.invoiceDetails}>
+                      <div className={styles.logoSection}>
+                        <img src="/logo.png" alt="Company Logo" className={styles.logo} />
+                      </div>
+                      
+                      <div className={styles.invoiceHeader}>
+                        <div>
+                          <h3>{invoice.company_name}</h3>
+                          <p className={styles.period}>Invoice for {invoice.period}</p>
+                        </div>
+                        <div>
+                          <p className={styles.invoiceNumber}>Invoice #: {invoice.invoice_id}</p>
+                        </div>
+                      </div>
+
                       <div className={styles.detailsSection}>
                         <h4>Breakdown</h4>
                         <div className={styles.lineItems}>
@@ -301,6 +348,23 @@ export default function InvoicePage() {
                             }
                           >
                             Mark as Paid
+                          </button>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => handleExportPDF(invoice)}
+                          >
+                            Download PDF
+                          </button>
+                        </div>
+                      )}
+
+                      {invoice.status === "paid" && (
+                        <div className={styles.actions}>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => handleExportPDF(invoice)}
+                          >
+                            Download PDF
                           </button>
                         </div>
                       )}
