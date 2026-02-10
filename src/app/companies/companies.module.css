@@ -150,9 +150,30 @@
   margin: 0;
 }
 
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.cardHeader div {
+  flex: 1;
+}
+
 .card p {
   color: var(--page-muted);
   margin-top: 4px;
+}
+
+.companyId {
+  font-size: 12px;
+  color: var(--page-muted);
+  margin: 0;
+  font-family: monospace;
+  opacity: 0.8;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .meta {

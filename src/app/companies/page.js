@@ -303,9 +303,12 @@ export default function CompaniesPage() {
             <div className={styles.cards}>
               {companies.map((company) => (
                 <article key={company.company_id} className={styles.card}>
-                  <div>
-                    <h3>{company.name}</h3>
-                    <p>{company.billing_cycle || "monthly"} billing</p>
+                  <div className={styles.cardHeader}>
+                    <div>
+                      <h3>{company.name}</h3>
+                      <p>{company.billing_cycle || "monthly"} billing</p>
+                    </div>
+                    <p className={styles.companyId}>ID: {company.company_id}</p>
                   </div>
                   <div className={styles.meta}>
                     <span>{company.contact_name || "-"}</span>
