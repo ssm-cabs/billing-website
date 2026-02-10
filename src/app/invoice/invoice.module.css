@@ -1,0 +1,358 @@
+.page {
+  min-height: 100vh;
+  padding: 120px 8vw 80px;
+  background: var(--page-bg);
+  color: var(--page-ink);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: var(--page-muted);
+  margin-bottom: 8px;
+}
+
+.lead {
+  color: var(--page-muted);
+  max-width: 520px;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+  margin-bottom: 12px;
+}
+
+.notice {
+  background: #fff4e8;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  color: #5d4a40;
+  padding: 14px 18px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.noticeHighlight {
+  font-weight: 600;
+}
+
+.error {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.success {
+  background: #efe;
+  border: 1px solid #cfc;
+  color: #3c3;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.controls {
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.controls h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--page-ink);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--page-ink);
+}
+
+.field input,
+.field select {
+  padding: 10px 12px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--page-ink);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: #1e1916;
+  box-shadow: 0 0 0 2px rgba(30, 25, 22, 0.1);
+}
+
+.primaryButton {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: #1e1916;
+  color: #fff;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #0a0a0a;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  color: #1e1916;
+  font-size: 12px;
+  text-transform: uppercase;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.secondaryButton:hover {
+  background: #eee;
+}
+
+.invoicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.invoicesList h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--page-ink);
+  margin: 0;
+}
+
+.invoices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.invoiceCard {
+  background: #fff;
+  border: 1px solid rgba(30, 25, 22, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.invoiceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.06);
+}
+
+.invoiceId {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--page-ink);
+  margin: 0 0 4px 0;
+}
+
+.invoicePeriod {
+  font-size: 12px;
+  color: var(--page-muted);
+  margin: 0;
+}
+
+.invoiceAmount {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.totalAmount {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--page-ink);
+  margin: 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-draft {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.badge-issued {
+  background: #fff4e8;
+  color: #996600;
+}
+
+.badge-paid {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.invoiceDetails {
+  padding: 16px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.06);
+}
+
+.detailsSection h4 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+  margin: 0 0 12px 0;
+}
+
+.lineItems {
+  margin-bottom: 16px;
+  border: 1px solid rgba(30, 25, 22, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.lineItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.04);
+}
+
+.lineItem:last-child {
+  border-bottom: none;
+}
+
+.totals {
+  margin-bottom: 16px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.04);
+}
+
+.totalRow.final {
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: none;
+  border-top: 2px solid rgba(30, 25, 22, 0.08);
+  padding-top: 12px;
+  padding-bottom: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.actions button {
+  flex: 1;
+}
+
+.expandButton {
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(30, 25, 22, 0.06);
+  color: var(--page-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.expandButton:hover {
+  background: rgba(30, 25, 22, 0.02);
+}
+
+.empty {
+  color: var(--page-muted);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .invoiceAmount {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

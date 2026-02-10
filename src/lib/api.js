@@ -336,4 +336,123 @@ export async function createVehicle(payload) {
   return { vehicle_id: docRef.id };
 }
 
+export async function generateInvoice(companyId, month) {
+  if (!companyId || !month) {
+    throw new Error("companyId and month are required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return {
+      ok: true,
+      invoice_id: `INV-${month}-${companyId}`,
+    };
+  }
+
+  // Fetch entries for the month
+  const start = `${month}-01`;
+  const end = `${month}-31`;
+  const entriesRef = collection(db, "entries");
+  const entriesQuery = query(
+    entriesRef,
+    where("company_id", "==", companyId),
+    where("entry_date", ">=", start),
+    where("entry_date", "<=", end)
+  );
+  const entriesSnapshot = await getDocs(entriesQuery);
+  const entries = entriesSnapshot.docs.map((doc) => ({
+    entry_id: doc.id,
+    ...doc.data(),
+  }));
+
+  // Fetch pricing for the company
+  const pricingRef = collection(db, "companies", companyId, "pricing");
+  const pricingSnapshot = await getDocs(pricingRef);
+  const pricing = pricingSnapshot.docs.reduce((acc, doc) => {
+    const data = doc.data();
+    const key = `${data.cab_type}|${data.slot}`;
+    acc[key] = data.rate || 0;
+    return acc;
+  }, {});
+
+  // Calculate total
+  let total = 0;
+  const lineItems = entries.map((entry) => {
+    const key = `${entry.cab_type}|${entry.slot}`;
+    const rate = pricing[key] || 0;
+    const amount = rate;
+    total += amount;
+    return {
+      entry_id: entry.entry_id,
+      cab_type: entry.cab_type,
+      slot: entry.slot,
+      rate,
+      amount,
+      date: entry.entry_date,
+    };
+  });
+
+  // Create invoice
+  const invoiceId = `${companyId}-${month}`;
+  const invoiceRef = doc(collection(db, "invoices"), invoiceId);
+  const invoice = {
+    invoice_id: invoiceId,
+    company_id: companyId,
+    period: month,
+    entries_count: entries.length,
+    line_items: lineItems,
+    subtotal: total,
+    tax: Math.round(total * 0.18), // 18% GST
+    total: total + Math.round(total * 0.18),
+    status: "draft",
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(invoiceRef, invoice);
+  return { invoice_id: invoiceId };
+}
+
+export async function fetchInvoices(companyId) {
+  if (!companyId) {
+    throw new Error("companyId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return [];
+  }
+
+  const invoicesRef = collection(db, "invoices");
+  const invoicesQuery = query(
+    invoicesRef,
+    where("company_id", "==", companyId),
+    orderBy("period", "desc")
+  );
+  const snapshot = await getDocs(invoicesQuery);
+  return snapshot.docs.map((docSnap) => ({
+    invoice_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+}
+
+export async function updateInvoiceStatus(invoiceId, status) {
+  if (!invoiceId || !status) {
+    throw new Error("invoiceId and status are required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, invoice_id: invoiceId };
+  }
+
+  const invoiceRef = doc(collection(db, "invoices"), invoiceId);
+  await setDoc(
+    invoiceRef,
+    {
+      status,
+      updated_at: serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { invoice_id: invoiceId };
+}
+
 export { isFirebaseConfigured };
