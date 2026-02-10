@@ -23,6 +23,17 @@
   line-height: 1.6;
 }
 
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+  margin-bottom: 12px;
+}
+
 .notice {
   background: #fff4e8;
   border: 1px solid rgba(30, 25, 22, 0.12);

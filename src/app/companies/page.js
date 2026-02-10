@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   createCompany,
   createPricing,
@@ -195,6 +196,9 @@ export default function CompaniesPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
+          <Link className={styles.backLink} href="/dashboard">
+            ← Back
+          </Link>
           <p className={styles.eyebrow}>Companies</p>
           <h1>Corporate Companies</h1>
           <p className={styles.lead}>

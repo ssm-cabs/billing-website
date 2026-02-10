@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createVehicle, fetchVehicles, isFirebaseConfigured } from "@/lib/api";
 import styles from "./vehicles.module.css";
 
@@ -71,6 +72,9 @@ export default function VehiclesPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
+          <Link className={styles.backLink} href="/dashboard">
+            ← Back
+          </Link>
           <p className={styles.eyebrow}>Vehicles</p>
           <h1>Fleet Vehicles</h1>
           <p className={styles.lead}>
