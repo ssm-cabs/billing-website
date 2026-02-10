@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -42,9 +43,9 @@ export default function Home() {
           </a>
         </div>
         <div className={styles.navActions}>
-          <a className={styles.navCta} href="/dashboard">
+          <Link className={styles.navCta} href="/dashboard">
             Login
-          </a>
+          </Link>
           <button
             type="button"
             className={styles.menuButton}
@@ -76,9 +77,9 @@ export default function Home() {
               monthly invoices without spreadsheet chaos.
             </p>
             <div className={styles.actions}>
-              <a className={styles.primaryCta} href="/entries/new">
+              <Link className={styles.primaryCta} href="/entries/new">
                 Create Today&apos;s Entries
-              </a>
+              </Link>
               <a className={styles.secondaryCta} href="#features">
                 Explore Features
               </a>
