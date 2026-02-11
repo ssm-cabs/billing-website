@@ -28,7 +28,6 @@ const initialState = {
 
 export default function ClientEditEntryPage({ id }) {
   const router = useRouter();
-  const entryId = id;
 
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
@@ -44,10 +43,16 @@ export default function ClientEditEntryPage({ id }) {
 
   // Load entry data
   useEffect(() => {
+    if (!id) {
+      setLoadError("Invalid entry ID");
+      setLoadingEntry(false);
+      return;
+    }
+
     const loadEntry = async () => {
       try {
         setLoadingEntry(true);
-        const entry = await fetchEntryById(entryId);
+        const entry = await fetchEntryById(id);
         setForm({
           entry_date: entry.entry_date || "",
           company_name: entry.company_name || "",
@@ -68,10 +73,8 @@ export default function ClientEditEntryPage({ id }) {
       }
     };
 
-    if (entryId) {
-      loadEntry();
-    }
-  }, [entryId]);
+    loadEntry();
+  }, [id]);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -155,7 +158,7 @@ export default function ClientEditEntryPage({ id }) {
     setMessage("");
 
     try {
-      await updateEntry(entryId, form);
+      await updateEntry(id, form);
       setStatus("success");
       setMessage(
         isFirebaseConfigured ? "Entry updated." : "Demo mode: entry prepared."

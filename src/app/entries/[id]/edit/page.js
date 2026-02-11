@@ -12,6 +12,7 @@ export async function generateStaticParams() {
   }
 }
 
-export default function EditEntryPage({ params }) {
-  return <ClientEditEntryPage id={params.id} />;
+export default async function EditEntryPage({ params }) {
+  const { id } = await params;
+  return <ClientEditEntryPage id={id} />;
 }
