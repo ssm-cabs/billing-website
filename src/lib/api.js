@@ -157,6 +157,23 @@ export async function createEntry(payload) {
   return { entry_id: docRef.id };
 }
 
+export async function updateEntry(entryId, payload) {
+  if (!entryId) {
+    throw new Error("entryId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, entry_id: entryId };
+  }
+
+  const entryRef = doc(db, "entries", entryId);
+  await updateDoc(entryRef, {
+    ...payload,
+    updated_at: serverTimestamp(),
+  });
+  return { entry_id: entryId };
+}
+
 export async function fetchCompanies() {
   if (!isFirebaseConfigured || !db) {
     return mockCompanies;
@@ -452,12 +469,12 @@ export async function generateInvoice(companyId, month) {
 
   await setDoc(invoiceRef, invoice);
 
-  // Mark all entries used in this invoice as generated/locked
+  // Mark all entries used in this invoice as locked
   for (const lineItem of lineItems) {
     const entryRef = doc(db, "entries", lineItem.entry_id);
     await updateDoc(entryRef, {
       invoice_id: invoiceId,
-      is_generated: true,
+      locked: true,
       updated_at: serverTimestamp(),
     });
   }

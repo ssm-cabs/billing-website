@@ -82,30 +82,6 @@
   font-size: 13px;
 }
 
-.lockedBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: #f5f5f5;
-  color: #666;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.activeBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -169,6 +145,56 @@
 .helperError {
   font-size: 12px;
   color: #c23d2b;
+}
+
+.actionsCell {
+  white-space: nowrap;
+}
+
+.textButton {
+  background: none;
+  border: none;
+  color: #1e1916;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.textButton:hover {
+  background: rgba(30, 25, 22, 0.08);
+}
+
+.table td input,
+.table td select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(30, 25, 22, 0.2);
+  background: #fff;
+  color: var(--page-ink);
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.routeEdit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.routeEdit input {
+  flex: 1;
+  min-width: 80px;
+}
+
+.routeEdit span {
+  color: var(--page-muted);
+  white-space: nowrap;
 }
 
 @media (max-width: 900px) {
