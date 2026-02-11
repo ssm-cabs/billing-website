@@ -177,7 +177,7 @@ export default function EntriesPage() {
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Notes">{entry.notes || "-"}</td>
                   <td data-label="Actions" className={styles.actionsCell}>
-                    {!entry.locked && (
+                    {!entry.billed && (
                       <>
                         <Link
                           href={`/entries/${entry.entry_id}/edit`}

@@ -509,12 +509,12 @@ export async function generateInvoice(companyId, month) {
 
   await setDoc(invoiceRef, invoice);
 
-  // Mark all entries used in this invoice as locked
+  // Mark all entries used in this invoice as billed
   for (const lineItem of lineItems) {
     const entryRef = doc(db, "entries", lineItem.entry_id);
     await updateDoc(entryRef, {
       invoice_id: invoiceId,
-      locked: true,
+      billed: true,
       updated_at: serverTimestamp(),
     });
   }
