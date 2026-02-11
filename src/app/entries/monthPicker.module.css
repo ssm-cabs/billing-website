@@ -11,10 +11,22 @@
   color: var(--page-ink);
   cursor: pointer;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  transition: border-color 0.2s;
 }
 
 .monthInput:hover {
   border-color: rgba(30, 25, 22, 0.32);
+}
+
+.chevron {
+  font-size: 11px;
+  color: var(--page-muted);
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
 .pickerModal {
