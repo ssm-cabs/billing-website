@@ -164,17 +164,20 @@ export default function InvoicePage() {
     element.style.minHeight = "1122px";
 
     try {
+      const renderScale = 1.5;
+      const jpegQuality = 0.75;
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: renderScale,
         useCORS: true,
         allowTaint: true,
       });
 
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", jpegQuality);
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
+        compress: true,
       });
 
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -188,7 +191,7 @@ export default function InvoicePage() {
       const pageHeightPx = maxHeight / scale;
 
       if (imgHeight <= maxHeight) {
-        pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
+        pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
       } else {
         let y = 0;
         let pageIndex = 0;
@@ -212,14 +215,14 @@ export default function InvoicePage() {
             sliceHeight
           );
 
-          const pageData = pageCanvas.toDataURL("image/png");
+          const pageData = pageCanvas.toDataURL("image/jpeg", jpegQuality);
           if (pageIndex > 0) {
             pdf.addPage();
           }
 
           pdf.addImage(
             pageData,
-            "PNG",
+            "JPEG",
             margin,
             margin,
             imgWidth,
