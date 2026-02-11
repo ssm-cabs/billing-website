@@ -607,6 +607,9 @@ export default function InvoicePage() {
             <p className={styles.modalSubtitle}>
               Are you sure you want to generate an invoice for <strong>{companies.find(c => c.company_id === selectedCompany)?.name || "this company"}</strong> for {selectedMonth}?
             </p>
+            <p className={styles.modalWarning}>
+              ⚠️ Once generated, all entries used in this invoice will be locked and cannot be edited.
+            </p>
 
             <div className={styles.modalActions}>
               <button
