@@ -95,7 +95,10 @@ export default function DatePicker({ value, onChange }) {
           key={day}
           type="button"
           className={`${styles.day} ${isSelected ? styles.selected : ""}`}
-          onClick={() => handleSelectDate(day)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSelectDate(day);
+          }}
         >
           {day}
         </button>
@@ -111,7 +114,10 @@ export default function DatePicker({ value, onChange }) {
         type="text"
         value={value ? new Date(value).toLocaleDateString() : ""}
         readOnly
-        onClick={() => setShowPicker(!showPicker)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowPicker(!showPicker);
+        }}
         className={styles.dateInput}
         placeholder="Select date"
       />
@@ -122,7 +128,10 @@ export default function DatePicker({ value, onChange }) {
             <button
               type="button"
               className={styles.navButton}
-              onClick={handlePrevMonth}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevMonth();
+              }}
             >
               ←
             </button>
@@ -132,7 +141,10 @@ export default function DatePicker({ value, onChange }) {
             <button
               type="button"
               className={styles.navButton}
-              onClick={handleNextMonth}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextMonth();
+              }}
             >
               →
             </button>
@@ -153,7 +165,10 @@ export default function DatePicker({ value, onChange }) {
           <button
             type="button"
             className={styles.closeButton}
-            onClick={() => setShowPicker(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPicker(false);
+            }}
           >
             Close
           </button>

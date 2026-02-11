@@ -70,7 +70,10 @@ export default function MonthPicker({ value, onChange }) {
         type="text"
         value={getDisplayValue()}
         readOnly
-        onClick={() => setShowPicker(!showPicker)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowPicker(!showPicker);
+        }}
         className={styles.monthInput}
         placeholder="Select month"
       />
@@ -81,7 +84,10 @@ export default function MonthPicker({ value, onChange }) {
             <button
               type="button"
               className={styles.navButton}
-              onClick={handlePrevYear}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevYear();
+              }}
             >
               ←
             </button>
@@ -91,7 +97,10 @@ export default function MonthPicker({ value, onChange }) {
             <button
               type="button"
               className={styles.navButton}
-              onClick={handleNextYear}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextYear();
+              }}
             >
               →
             </button>
@@ -105,7 +114,10 @@ export default function MonthPicker({ value, onChange }) {
                 className={`${styles.monthButton} ${
                   currentMonth === index ? styles.selected : ""
                 }`}
-                onClick={() => handleSelectMonth(index)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectMonth(index);
+                }}
               >
                 {month.substring(0, 3)}
               </button>
@@ -115,7 +127,10 @@ export default function MonthPicker({ value, onChange }) {
           <button
             type="button"
             className={styles.closeButton}
-            onClick={() => setShowPicker(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPicker(false);
+            }}
           >
             Close
           </button>
