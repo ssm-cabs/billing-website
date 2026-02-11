@@ -475,7 +475,7 @@ export async function fetchInvoices(companyId) {
   }));
 }
 
-export async function updateInvoiceStatus(invoiceId, status) {
+export async function updateInvoiceStatus(invoiceId, status, note = "") {
   if (!invoiceId || !status) {
     throw new Error("invoiceId and status are required");
   }
@@ -485,12 +485,18 @@ export async function updateInvoiceStatus(invoiceId, status) {
   }
 
   const invoiceRef = doc(collection(db, "invoices"), invoiceId);
+  const updateData = {
+    status,
+    updated_at: serverTimestamp(),
+  };
+
+  if (note) {
+    updateData.payment_note = note;
+  }
+
   await setDoc(
     invoiceRef,
-    {
-      status,
-      updated_at: serverTimestamp(),
-    },
+    updateData,
     { merge: true }
   );
   return { invoice_id: invoiceId };

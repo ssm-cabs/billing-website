@@ -41,6 +41,8 @@ export default function InvoicePage() {
   const [message, setMessage] = useState("");
   const [expandedInvoice, setExpandedInvoice] = useState(null);
   const [invoiceAlreadyExists, setInvoiceAlreadyExists] = useState(false);
+  const [paymentNoteModal, setPaymentNoteModal] = useState(null);
+  const [paymentNote, setPaymentNote] = useState("");
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -121,13 +123,15 @@ export default function InvoicePage() {
     }
   };
 
-  const handleUpdateStatus = async (invoiceId, newStatus) => {
+  const handleUpdateStatus = async (invoiceId, newStatus, note = "") => {
     setError("");
     setMessage("");
 
     try {
-      await updateInvoiceStatus(invoiceId, newStatus);
+      await updateInvoiceStatus(invoiceId, newStatus, note);
       setMessage(`Invoice marked as ${newStatus}`);
+      setPaymentNoteModal(null);
+      setPaymentNote("");
       const data = await fetchInvoices(selectedCompany);
       setInvoices(data);
     } catch (err) {
@@ -503,7 +507,7 @@ export default function InvoicePage() {
                           <button
                             className={styles.primaryButton}
                             onClick={() =>
-                              handleUpdateStatus(invoice.invoice_id, "paid")
+                              setPaymentNoteModal(invoice.invoice_id)
                             }
                           >
                             Mark as Paid
@@ -551,6 +555,48 @@ export default function InvoicePage() {
           )}
         </div>
       </section>
+
+      {paymentNoteModal && (
+        <div className={styles.modalOverlay} onClick={() => {
+          setPaymentNoteModal(null);
+          setPaymentNote("");
+        }}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Add Payment Note</h3>
+            <p className={styles.modalSubtitle}>
+              Add an optional note about this payment (e.g., reference number, payment method)
+            </p>
+            
+            <textarea
+              className={styles.noteTextarea}
+              placeholder="Enter payment note..."
+              value={paymentNote}
+              onChange={(e) => setPaymentNote(e.target.value)}
+              rows={4}
+            />
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => {
+                  setPaymentNoteModal(null);
+                  setPaymentNote("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                onClick={() =>
+                  handleUpdateStatus(paymentNoteModal, "paid", paymentNote)
+                }
+              >
+                Mark as Paid
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
