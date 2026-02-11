@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import MonthPicker from "./MonthPicker";
 import {
   fetchCompanies,
   fetchEntries,
@@ -137,10 +138,9 @@ export default function EntriesPage() {
         </label>
         <label className={styles.field}>
           Month
-          <input
-            type="month"
+          <MonthPicker
             value={month}
-            onChange={(event) => setMonth(event.target.value)}
+            onChange={setMonth}
           />
         </label>
       </section>

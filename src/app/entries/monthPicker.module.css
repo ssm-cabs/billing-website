@@ -1,0 +1,110 @@
+.monthPickerContainer {
+  position: relative;
+}
+
+.monthInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff;
+  color: var(--page-ink);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.monthInput:hover {
+  border-color: rgba(30, 25, 22, 0.32);
+}
+
+.pickerModal {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 280px;
+}
+
+.pickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.year {
+  font-weight: 600;
+  color: var(--page-ink);
+  text-align: center;
+  flex: 1;
+  font-size: 16px;
+}
+
+.navButton {
+  background: #f5f3f0;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--page-ink);
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.navButton:hover {
+  background: #ede9e4;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.monthButton {
+  padding: 12px 8px;
+  border: 1px solid rgba(30, 25, 22, 0.08);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--page-ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.monthButton:hover {
+  background: #f5f3f0;
+  border-color: rgba(30, 25, 22, 0.16);
+}
+
+.monthButton.selected {
+  background: #1e1916;
+  color: #fff;
+  border-color: #1e1916;
+}
+
+.closeButton {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #f5f3f0;
+  color: var(--page-ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.closeButton:hover {
+  background: #ede9e4;
+}

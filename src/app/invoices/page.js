@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import MonthPicker from "@/app/entries/MonthPicker";
 import {
   fetchCompanies,
   generateInvoice,
@@ -312,10 +313,9 @@ export default function InvoicePage() {
 
           <label className={styles.field}>
             Month
-            <input
-              type="month"
+            <MonthPicker
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
+              onChange={setSelectedMonth}
             />
           </label>
 
