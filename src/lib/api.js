@@ -10,6 +10,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
@@ -450,6 +451,17 @@ export async function generateInvoice(companyId, month) {
   };
 
   await setDoc(invoiceRef, invoice);
+
+  // Mark all entries used in this invoice as generated/locked
+  for (const lineItem of lineItems) {
+    const entryRef = doc(db, "entries", lineItem.entry_id);
+    await updateDoc(entryRef, {
+      invoice_id: invoiceId,
+      is_generated: true,
+      updated_at: serverTimestamp(),
+    });
+  }
+
   return { invoice_id: invoiceId };
 }
 

@@ -136,6 +136,7 @@ export default function EntriesPage() {
                 <th>Driver</th>
                 <th>Vehicle</th>
                 <th>Notes</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -152,6 +153,13 @@ export default function EntriesPage() {
                   <td data-label="Driver">{entry.driver_name}</td>
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Notes">{entry.notes || "-"}</td>
+                  <td data-label="Status">
+                    {entry.is_generated ? (
+                      <span className={styles.lockedBadge}>🔒 Locked</span>
+                    ) : (
+                      <span className={styles.activeBadge}>Active</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -72,6 +72,40 @@
   font-weight: 600;
 }
 
+.infoNotice {
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  color: #01579b;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.lockedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #f5f5f5;
+  color: #666;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.activeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
