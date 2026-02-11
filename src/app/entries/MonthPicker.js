@@ -114,7 +114,7 @@ export default function MonthPicker({ value, onChange }) {
                 className={`${styles.monthButton} ${
                   currentMonth === index ? styles.selected : ""
                 }`}
-                onClick={(e) => {
+                onMouseDown={(e) => {
                   e.stopPropagation();
                   handleSelectMonth(index);
                 }}
@@ -127,7 +127,7 @@ export default function MonthPicker({ value, onChange }) {
           <button
             type="button"
             className={styles.closeButton}
-            onClick={(e) => {
+            onMouseDown={(e) => {
               e.stopPropagation();
               setShowPicker(false);
             }}

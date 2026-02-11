@@ -95,7 +95,7 @@ export default function DatePicker({ value, onChange }) {
           key={day}
           type="button"
           className={`${styles.day} ${isSelected ? styles.selected : ""}`}
-          onClick={(e) => {
+          onMouseDown={(e) => {
             e.stopPropagation();
             handleSelectDate(day);
           }}
@@ -165,7 +165,7 @@ export default function DatePicker({ value, onChange }) {
           <button
             type="button"
             className={styles.closeButton}
-            onClick={(e) => {
+            onMouseDown={(e) => {
               e.stopPropagation();
               setShowPicker(false);
             }}
