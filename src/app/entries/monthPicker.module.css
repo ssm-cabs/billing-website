@@ -18,17 +18,17 @@
 }
 
 .pickerModal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
   background: #fff;
   border: 1px solid rgba(30, 25, 22, 0.16);
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   z-index: 100;
-  min-width: 280px;
 }
 
 .pickerHeader {
