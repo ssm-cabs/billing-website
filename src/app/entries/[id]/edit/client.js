@@ -40,6 +40,7 @@ export default function ClientEditEntryPage({ id }) {
   const [pricingStatus, setPricingStatus] = useState("idle");
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [isBilled, setIsBilled] = useState(false);
 
   // Load entry data
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function ClientEditEntryPage({ id }) {
       try {
         setLoadingEntry(true);
         const entry = await fetchEntryById(id);
+        setIsBilled(entry.billed || false);
         setForm({
           entry_date: entry.entry_date || "",
           company_name: entry.company_name || "",
@@ -221,7 +223,12 @@ export default function ClientEditEntryPage({ id }) {
         </div>
       </header>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
+      {isBilled ? (
+        <div className={styles.form}>
+          <p>This entry has been billed and cannot be edited.</p>
+        </div>
+      ) : (
+        <form className={styles.form} onSubmit={handleSubmit}>
         <label className={styles.field}>
           Entry date
           <input
@@ -355,7 +362,8 @@ export default function ClientEditEntryPage({ id }) {
           </button>
           {message && <p className={styles.message}>{message}</p>}
         </div>
-      </form>
+        </form>
+      )}
     </div>
   );
 }
