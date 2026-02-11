@@ -245,6 +245,7 @@ export default function ClientEditEntryPage({ id }) {
             name="company_name"
             value={form.company_name}
             onChange={updateField}
+            disabled
             required
           >
             <option value="">Select company</option>
