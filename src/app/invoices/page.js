@@ -418,7 +418,7 @@ export default function InvoicePage() {
                         <div className={styles.invoiceMetaInline}>
                           <p className={styles.invoiceNumber}>Invoice #: {invoice.invoice_id}</p>
                           {invoiceDate && (
-                            <p className={styles.invoiceDate}>Date: {invoiceDate}</p>
+                            <p className={styles.invoiceDate}>Invoice Date: {invoiceDate}</p>
                           )}
                         </div>
                       </div>
