@@ -1,0 +1,108 @@
+.companyDropdownContainer {
+  position: relative;
+}
+
+.dropdownInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff;
+  color: var(--page-ink);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  transition: border-color 0.2s;
+}
+
+.dropdownInput:hover {
+  border-color: rgba(30, 25, 22, 0.32);
+}
+
+.chevron {
+  font-size: 11px;
+  color: var(--page-muted);
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.dropdownModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 280px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdownList {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.option {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--page-ink);
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  transition: background 0.15s;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.option:hover {
+  background: #f5f3f0;
+}
+
+.option.selected {
+  background: #1e1916;
+  color: #fff;
+}
+
+.closeButton {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #f5f3f0;
+  color: var(--page-ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.closeButton:hover {
+  background: #ede9e4;
+}
+
+.helper {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--page-muted);
+}
+
+.helperError {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #d32f2f;
+}

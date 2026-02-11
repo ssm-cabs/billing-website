@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MonthPicker from "./MonthPicker";
+import CustomDropdown from "./CustomDropdown";
 import {
   fetchCompanies,
   fetchEntries,
@@ -116,25 +117,16 @@ export default function EntriesPage() {
       <section className={styles.filters}>
         <label className={styles.field}>
           Company
-          <select
+          <CustomDropdown
+            options={companies}
             value={company}
-            onChange={(event) => setCompany(event.target.value)}
-          >
-            <option value="all">All Companies</option>
-            {companies.map((companyItem) => (
-              <option key={companyItem.company_id} value={companyItem.name}>
-                {companyItem.name}
-              </option>
-            ))}
-          </select>
-          {companyStatus === "loading" && (
-            <span className={styles.helper}>Loading companies...</span>
-          )}
-          {companyStatus === "error" && (
-            <span className={styles.helperError}>
-              Unable to load companies.
-            </span>
-          )}
+            onChange={setCompany}
+            status={companyStatus}
+            getLabel={(c) => c.name}
+            getValue={(c) => c.name}
+            placeholder="Select company"
+            defaultOption={{ label: "All Companies", value: "all" }}
+          />
         </label>
         <label className={styles.field}>
           Month

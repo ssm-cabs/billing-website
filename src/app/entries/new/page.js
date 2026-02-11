@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import DatePicker from "../DatePicker";
+import CustomDropdown from "../CustomDropdown";
 import {
   createEntry,
   fetchCompanies,
@@ -173,53 +174,27 @@ export default function NewEntryPage() {
         </label>
         <label className={styles.field}>
           Company
-          <select
-            name="company_name"
+          <CustomDropdown
+            options={companies}
             value={form.company_name}
-            onChange={updateField}
-            required
-          >
-            <option value="">Select company</option>
-            {companies.map((company) => (
-              <option key={company.company_id} value={company.name}>
-                {company.name}
-              </option>
-            ))}
-          </select>
-          {companyStatus === "loading" && (
-            <span className={styles.helper}>Loading companies...</span>
-          )}
-          {companyStatus === "error" && (
-            <span className={styles.helperError}>
-              Unable to load companies.
-            </span>
-          )}
+            onChange={(value) => setForm((prev) => ({ ...prev, company_name: value }))}
+            status={companyStatus}
+            getLabel={(c) => c.name}
+            getValue={(c) => c.name}
+            placeholder="Select company"
+          />
         </label>
         <label className={styles.field}>
           Vehicle
-          <select
-            name="vehicle_number"
+          <CustomDropdown
+            options={vehicles}
             value={form.vehicle_number}
-            onChange={updateField}
-          >
-            <option value="">Select vehicle</option>
-            {vehicles.map((vehicle) => (
-              <option
-                key={vehicle.vehicle_id}
-                value={vehicle.vehicle_number}
-              >
-                {vehicle.vehicle_number} · {vehicle.driver_name || "Driver"} · {vehicle.cab_type}
-              </option>
-            ))}
-          </select>
-          {vehicleStatus === "loading" && (
-            <span className={styles.helper}>Loading vehicles...</span>
-          )}
-          {vehicleStatus === "error" && (
-            <span className={styles.helperError}>
-              Unable to load vehicles.
-            </span>
-          )}
+            onChange={(value) => setForm((prev) => ({ ...prev, vehicle_number: value }))}
+            status={vehicleStatus}
+            getLabel={(v) => `${v.vehicle_number} · ${v.driver_name || "Driver"} · ${v.cab_type}`}
+            getValue={(v) => v.vehicle_number}
+            placeholder="Select vehicle"
+          />
         </label>
         {form.vehicle_number && (
           <label className={styles.field}>
@@ -234,17 +209,14 @@ export default function NewEntryPage() {
         )}
         <label className={styles.field}>
           Slot
-          <select
-            name="slot"
+          <CustomDropdown
+            options={["4hr", "6hr", "12hr"]}
             value={form.slot}
-            onChange={updateField}
-            required
-          >
-            <option value="">Select slot</option>
-            <option value="4hr">4hr</option>
-            <option value="6hr">6hr</option>
-            <option value="12hr">12hr</option>
-          </select>
+            onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
+            getLabel={(slot) => slot}
+            getValue={(slot) => slot}
+            placeholder="Select slot"
+          />
         </label>
         {form.vehicle_number && form.slot && (
           <label className={styles.field}>
