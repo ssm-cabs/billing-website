@@ -140,6 +140,32 @@ export async function fetchEntries({ company = "", month = "", orderByField = ""
   }));
 }
 
+export async function fetchEntryById(entryId) {
+  if (!entryId) {
+    throw new Error("entryId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    const mockEntry = mockEntries.find((entry) => entry.entry_id === entryId);
+    if (!mockEntry) {
+      throw new Error("Entry not found");
+    }
+    return mockEntry;
+  }
+
+  const entryRef = doc(db, "entries", entryId);
+  const docSnap = await getDoc(entryRef);
+
+  if (!docSnap.exists()) {
+    throw new Error("Entry not found");
+  }
+
+  return {
+    entry_id: docSnap.id,
+    ...docSnap.data(),
+  };
+}
+
 export async function createEntry(payload) {
   if (!isFirebaseConfigured || !db) {
     return { ok: true, entry_id: "ENT-NEW" };

@@ -6,7 +6,6 @@ import {
   fetchCompanies,
   fetchEntries,
   isFirebaseConfigured,
-  updateEntry,
   deleteEntry,
 } from "@/lib/api";
 import styles from "./entries.module.css";
@@ -24,8 +23,6 @@ export default function EntriesPage() {
   const [error, setError] = useState("");
   const [companies, setCompanies] = useState([]);
   const [companyStatus, setCompanyStatus] = useState("idle");
-  const [editingEntryId, setEditingEntryId] = useState(null);
-  const [editFormData, setEditFormData] = useState({});
 
   useEffect(() => {
     const load = async () => {
@@ -61,40 +58,6 @@ export default function EntriesPage() {
 
     loadCompanies();
   }, []);
-
-  const startEditing = (entry) => {
-    setEditingEntryId(entry.entry_id);
-    setEditFormData({
-      entry_date: entry.entry_date,
-      pickup_location: entry.pickup_location,
-      drop_location: entry.drop_location,
-      slot: entry.slot,
-      rate: entry.rate,
-      notes: entry.notes || "",
-    });
-  };
-
-  const handleEditChange = (field, value) => {
-    setEditFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const saveEntry = async (entryId) => {
-    try {
-      await updateEntry(entryId, editFormData);
-      const data = await fetchEntries({
-        company: company === "all" ? "" : company,
-        month,
-      });
-      setEntries(data);
-      setEditingEntryId(null);
-      setEditFormData({});
-    } catch (err) {
-      setError(err.message || "Failed to update entry");
-    }
-  };
 
   const handleDeleteEntry = async (entryId) => {
     if (!window.confirm("Are you sure you want to delete this entry?")) {
@@ -198,145 +161,42 @@ export default function EntriesPage() {
               </tr>
             </thead>
             <tbody>
-              {entries.map((entry) => {
-                const isEditing = editingEntryId === entry.entry_id;
-                return (
-                  <tr key={entry.entry_id}>
-                    <td data-label="Date">
-                      {isEditing ? (
-                        <input
-                          type="date"
-                          value={editFormData.entry_date}
-                          onChange={(e) =>
-                            handleEditChange("entry_date", e.target.value)
-                          }
-                        />
-                      ) : (
-                        entry.entry_date
-                      )}
-                    </td>
-                    <td data-label="Company">{entry.company_name}</td>
-                    <td data-label="Cab Type">{entry.cab_type}</td>
-                    <td data-label="Slot">
-                      {isEditing ? (
-                        <select
-                          value={editFormData.slot}
-                          onChange={(e) =>
-                            handleEditChange("slot", e.target.value)
-                          }
+              {entries.map((entry) => (
+                <tr key={entry.entry_id}>
+                  <td data-label="Date">{entry.entry_date}</td>
+                  <td data-label="Company">{entry.company_name}</td>
+                  <td data-label="Cab Type">{entry.cab_type}</td>
+                  <td data-label="Slot">{entry.slot}</td>
+                  <td data-label="Rate">
+                    {entry.rate > 0 ? `₹${entry.rate}` : "-"}
+                  </td>
+                  <td data-label="Route">
+                    {`${entry.pickup_location} → ${entry.drop_location}`}
+                  </td>
+                  <td data-label="Driver">{entry.driver_name}</td>
+                  <td data-label="Vehicle">{entry.vehicle_number}</td>
+                  <td data-label="Notes">{entry.notes || "-"}</td>
+                  <td data-label="Actions" className={styles.actionsCell}>
+                    {!entry.locked && (
+                      <>
+                        <Link
+                          href={`/entries/${entry.entry_id}/edit`}
+                          className={styles.textButton}
                         >
-                          <option value="4hr">4hr</option>
-                          <option value="6hr">6hr</option>
-                          <option value="12hr">12hr</option>
-                        </select>
-                      ) : (
-                        entry.slot
-                      )}
-                    </td>
-                    <td data-label="Rate">
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          value={editFormData.rate}
-                          onChange={(e) =>
-                            handleEditChange("rate", Number(e.target.value))
-                          }
-                          min="0"
-                        />
-                      ) : (
-                        entry.rate > 0 ? `₹${entry.rate}` : "-"
-                      )}
-                    </td>
-                    <td data-label="Route">
-                      {isEditing ? (
-                        <div className={styles.routeEdit}>
-                          <input
-                            type="text"
-                            placeholder="Pickup"
-                            value={editFormData.pickup_location}
-                            onChange={(e) =>
-                              handleEditChange(
-                                "pickup_location",
-                                e.target.value
-                              )
-                            }
-                          />
-                          <span>→</span>
-                          <input
-                            type="text"
-                            placeholder="Drop"
-                            value={editFormData.drop_location}
-                            onChange={(e) =>
-                              handleEditChange("drop_location", e.target.value)
-                            }
-                          />
-                        </div>
-                      ) : (
-                        `${entry.pickup_location} → ${entry.drop_location}`
-                      )}
-                    </td>
-                    <td data-label="Driver">{entry.driver_name}</td>
-                    <td data-label="Vehicle">{entry.vehicle_number}</td>
-                    <td data-label="Notes">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editFormData.notes}
-                          onChange={(e) =>
-                            handleEditChange("notes", e.target.value)
-                          }
-                          placeholder="Notes"
-                        />
-                      ) : (
-                        entry.notes || "-"
-                      )}
-                    </td>
-                    <td data-label="Actions" className={styles.actionsCell}>
-                      {!entry.locked && (
-                        <>
-                          {isEditing ? (
-                            <>
-                              <button
-                                type="button"
-                                className={styles.textButton}
-                                onClick={() => saveEntry(entry.entry_id)}
-                              >
-                                Save
-                              </button>
-                              <button
-                                type="button"
-                                className={styles.deleteButton}
-                                onClick={() => setEditingEntryId(null)}
-                              >
-                                Cancel
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                type="button"
-                                className={styles.textButton}
-                                onClick={() => startEditing(entry)}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                className={styles.deleteButton}
-                                onClick={() =>
-                                  handleDeleteEntry(entry.entry_id)
-                                }
-                              >
-                                Delete
-                              </button>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                          Edit
+                        </Link>
+                        <button
+                          type="button"
+                          className={styles.deleteButton}
+                          onClick={() => handleDeleteEntry(entry.entry_id)}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
