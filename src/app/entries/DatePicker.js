@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import styles from "./datePicker.module.css";
 
 const getDaysInMonth = (year, month) => {
@@ -16,6 +16,22 @@ const months = [
 
 export default function DatePicker({ value, onChange }) {
   const [showPicker, setShowPicker] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setShowPicker(false);
+      }
+    };
+
+    if (showPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showPicker]);
   const [displayMonth, setDisplayMonth] = useState(() => {
     if (value) {
       const [year, month] = value.split("-");
@@ -90,7 +106,7 @@ export default function DatePicker({ value, onChange }) {
   };
 
   return (
-    <div className={styles.datePickerContainer}>
+    <div className={styles.datePickerContainer} ref={containerRef}>
       <input
         type="text"
         value={value ? new Date(value).toLocaleDateString() : ""}
@@ -101,7 +117,7 @@ export default function DatePicker({ value, onChange }) {
       />
       
       {showPicker && (
-        <div className={styles.pickerModal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.pickerModal}>
           <div className={styles.pickerHeader}>
             <button
               type="button"

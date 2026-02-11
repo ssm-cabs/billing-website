@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import styles from "./monthPicker.module.css";
 
 const months = [
@@ -8,6 +8,22 @@ const months = [
 
 export default function MonthPicker({ value, onChange }) {
   const [showPicker, setShowPicker] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setShowPicker(false);
+      }
+    };
+
+    if (showPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showPicker]);
   const [displayYear, setDisplayYear] = useState(() => {
     if (value) {
       const [year] = value.split("-");
@@ -49,7 +65,7 @@ export default function MonthPicker({ value, onChange }) {
   const currentMonth = getCurrentMonth();
 
   return (
-    <div className={styles.monthPickerContainer}>
+    <div className={styles.monthPickerContainer} ref={containerRef}>
       <input
         type="text"
         value={getDisplayValue()}
@@ -60,7 +76,7 @@ export default function MonthPicker({ value, onChange }) {
       />
 
       {showPicker && (
-        <div className={styles.pickerModal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.pickerModal}>
           <div className={styles.pickerHeader}>
             <button
               type="button"
