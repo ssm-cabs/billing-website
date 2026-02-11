@@ -174,6 +174,20 @@ export async function updateEntry(entryId, payload) {
   return { entry_id: entryId };
 }
 
+export async function deleteEntry(entryId) {
+  if (!entryId) {
+    throw new Error("entryId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, entry_id: entryId };
+  }
+
+  const entryRef = doc(db, "entries", entryId);
+  await deleteDoc(entryRef);
+  return { entry_id: entryId };
+}
+
 export async function fetchCompanies() {
   if (!isFirebaseConfigured || !db) {
     return mockCompanies;

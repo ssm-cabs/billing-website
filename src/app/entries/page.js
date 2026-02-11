@@ -7,6 +7,7 @@ import {
   fetchEntries,
   isFirebaseConfigured,
   updateEntry,
+  deleteEntry,
 } from "@/lib/api";
 import styles from "./entries.module.css";
 
@@ -92,6 +93,22 @@ export default function EntriesPage() {
       setEditFormData({});
     } catch (err) {
       setError(err.message || "Failed to update entry");
+    }
+  };
+
+  const handleDeleteEntry = async (entryId) => {
+    if (!window.confirm("Are you sure you want to delete this entry?")) {
+      return;
+    }
+    try {
+      await deleteEntry(entryId);
+      const data = await fetchEntries({
+        company: company === "all" ? "" : company,
+        month,
+      });
+      setEntries(data);
+    } catch (err) {
+      setError(err.message || "Failed to delete entry");
     }
   };
 
@@ -278,21 +295,41 @@ export default function EntriesPage() {
                       {!entry.locked && (
                         <>
                           {isEditing ? (
-                            <button
-                              type="button"
-                              className={styles.textButton}
-                              onClick={() => saveEntry(entry.entry_id)}
-                            >
-                              Save
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                className={styles.textButton}
+                                onClick={() => saveEntry(entry.entry_id)}
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.deleteButton}
+                                onClick={() => setEditingEntryId(null)}
+                              >
+                                Cancel
+                              </button>
+                            </>
                           ) : (
-                            <button
-                              type="button"
-                              className={styles.textButton}
-                              onClick={() => startEditing(entry)}
-                            >
-                              Edit
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                className={styles.textButton}
+                                onClick={() => startEditing(entry)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.deleteButton}
+                                onClick={() =>
+                                  handleDeleteEntry(entry.entry_id)
+                                }
+                              >
+                                Delete
+                              </button>
+                            </>
                           )}
                         </>
                       )}

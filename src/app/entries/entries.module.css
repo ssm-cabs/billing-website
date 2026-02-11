@@ -169,6 +169,24 @@
   background: rgba(30, 25, 22, 0.08);
 }
 
+.deleteButton {
+  background: none;
+  border: none;
+  color: #c23d2b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.deleteButton:hover {
+  background: rgba(194, 61, 43, 0.1);
+}
+
 .table td input,
 .table td select {
   padding: 6px 8px;
