@@ -482,6 +482,13 @@ export default function InvoicePage() {
                         </div>
                       </div>
 
+                      {invoice.payment_note && (
+                        <div className={styles.paymentNoteSection}>
+                          <p className={styles.paymentNoteLabel}>Payment Note</p>
+                          <p className={styles.paymentNoteText}>{invoice.payment_note}</p>
+                        </div>
+                      )}
+
                       {invoice.status === "draft" && (
                         <div className={styles.actions} data-html2canvas-ignore="true">
                           <button

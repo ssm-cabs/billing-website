@@ -388,6 +388,32 @@
   color: var(--page-muted);
 }
 
+.paymentNoteSection {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  border-left: 4px solid #2e7d32;
+}
+
+.paymentNoteLabel {
+  font-weight: 600;
+  color: var(--page-ink);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+}
+
+.paymentNoteText {
+  margin: 0;
+  color: var(--page-ink);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .detailsSection h4 {
   font-size: 13px;
   font-weight: 600;
