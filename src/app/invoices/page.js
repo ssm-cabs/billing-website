@@ -43,6 +43,7 @@ export default function InvoicePage() {
   const [invoiceAlreadyExists, setInvoiceAlreadyExists] = useState(false);
   const [paymentNoteModal, setPaymentNoteModal] = useState(null);
   const [paymentNote, setPaymentNote] = useState("");
+  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -117,6 +118,7 @@ export default function InvoicePage() {
       const data = await fetchInvoices(selectedCompany);
       setInvoices(data);
       setStatus("success");
+      setShowGenerateConfirm(false);
     } catch (err) {
       setError(err.message || "Failed to generate invoice");
       setStatus("error");
@@ -320,7 +322,7 @@ export default function InvoicePage() {
           <button
             className={styles.primaryButton}
             onClick={
-              invoiceAlreadyExists ? handleViewInvoice : handleGenerateInvoice
+              invoiceAlreadyExists ? handleViewInvoice : () => setShowGenerateConfirm(true)
             }
             disabled={status === "loading"}
           >
@@ -592,6 +594,33 @@ export default function InvoicePage() {
                 }
               >
                 Mark as Paid
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showGenerateConfirm && (
+        <div className={styles.modalOverlay} onClick={() => setShowGenerateConfirm(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Generate Invoice</h3>
+            <p className={styles.modalSubtitle}>
+              Are you sure you want to generate an invoice for <strong>{companies.find(c => c.company_id === selectedCompany)?.name || "this company"}</strong> for {selectedMonth}?
+            </p>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => setShowGenerateConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                onClick={handleGenerateInvoice}
+                disabled={status === "loading"}
+              >
+                {status === "loading" ? "Generating..." : "Generate Invoice"}
               </button>
             </div>
           </div>
