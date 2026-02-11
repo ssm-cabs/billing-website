@@ -77,9 +77,6 @@ export default function Home() {
               monthly invoices without spreadsheet chaos.
             </p>
             <div className={styles.actions}>
-              <Link className={styles.primaryCta} href="/entries/new">
-                Create Today&apos;s Entries
-              </Link>
               <a className={styles.secondaryCta} href="#features">
                 Explore Features
               </a>
