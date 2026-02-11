@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import DatePicker from "../DatePicker";
 import {
   createEntry,
   fetchCompanies,
@@ -121,6 +122,10 @@ export default function NewEntryPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDateChange = (date) => {
+    setForm((prev) => ({ ...prev, entry_date: date }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus("loading");
@@ -161,12 +166,9 @@ export default function NewEntryPage() {
       <form className={styles.form} onSubmit={handleSubmit}>
         <label className={styles.field}>
           Entry date
-          <input
-            type="date"
-            name="entry_date"
+          <DatePicker
             value={form.entry_date}
-            onChange={updateField}
-            required
+            onChange={handleDateChange}
           />
         </label>
         <label className={styles.field}>
