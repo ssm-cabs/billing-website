@@ -23,6 +23,8 @@ export default function EntriesPage() {
   const [error, setError] = useState("");
   const [companies, setCompanies] = useState([]);
   const [companyStatus, setCompanyStatus] = useState("idle");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteEntryId, setDeleteEntryId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -59,17 +61,22 @@ export default function EntriesPage() {
     loadCompanies();
   }, []);
 
-  const handleDeleteEntry = async (entryId) => {
-    if (!window.confirm("Are you sure you want to delete this entry?")) {
-      return;
-    }
+  const handleDeleteEntry = (entryId) => {
+    setDeleteEntryId(entryId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteEntry = async () => {
+    if (!deleteEntryId) return;
     try {
-      await deleteEntry(entryId);
+      await deleteEntry(deleteEntryId);
       const data = await fetchEntries({
         company: company === "all" ? "" : company,
         month,
       });
       setEntries(data);
+      setShowDeleteConfirm(false);
+      setDeleteEntryId(null);
     } catch (err) {
       setError(err.message || "Failed to delete entry");
     }
@@ -201,6 +208,32 @@ export default function EntriesPage() {
           </table>
         )}
       </section>
+
+      {showDeleteConfirm && (
+        <div className={styles.modalOverlay} onClick={() => setShowDeleteConfirm(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Delete Entry</h3>
+            <p className={styles.modalSubtitle}>
+              Are you sure you want to delete this entry? This action cannot be undone.
+            </p>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                onClick={confirmDeleteEntry}
+              >
+                Delete Entry
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
