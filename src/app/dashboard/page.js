@@ -196,6 +196,7 @@ export default function DashboardPage() {
             <Link href="/companies">Manage companies</Link>
             <Link href="/vehicles">Manage vehicles</Link>
             <Link href="/invoices">View invoices</Link>
+            <Link href="/users">Manage users</Link>
           </div>
         </div>
       </section>

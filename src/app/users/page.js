@@ -27,10 +27,16 @@ export default function UsersPage() {
     phone: "",
     name: "",
     email: "",
-    role: "driver",
     active: true,
     company_id: "",
     notes: "",
+    permissions: {
+      invoices: "none",
+      companies: "none",
+      entries: "none",
+      vehicles: "none",
+      users: "none",
+    },
   });
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
@@ -81,10 +87,16 @@ export default function UsersPage() {
       phone: "",
       name: "",
       email: "",
-      role: "driver",
       active: true,
       company_id: "",
       notes: "",
+      permissions: {
+        invoices: "none",
+        companies: "none",
+        entries: "none",
+        vehicles: "none",
+        users: "none",
+      },
     });
     setFormError("");
     setShowForm(true);
@@ -96,10 +108,16 @@ export default function UsersPage() {
       phone: user.phone || "",
       name: user.name || "",
       email: user.email || "",
-      role: user.role || "driver",
       active: user.active !== false,
       company_id: user.company_id || "",
       notes: user.notes || "",
+      permissions: user.permissions || {
+        invoices: "none",
+        companies: "none",
+        entries: "none",
+        vehicles: "none",
+        users: "none",
+      },
     });
     setFormError("");
     setShowForm(true);
@@ -111,6 +129,24 @@ export default function UsersPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  const handlePermissionChange = (collection, permission) => {
+    setFormData((prev) => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [collection]: permission,
+      },
+    }));
+  };
+
+  const getPermissionsSummary = (permissions) => {
+    if (!permissions) return "None";
+    const activePerm = Object.entries(permissions)
+      .filter(([_, perm]) => perm !== "none")
+      .map(([collection, perm]) => `${collection}: ${perm}`);
+    return activePerm.length > 0 ? activePerm.join(", ") : "None";
   };
 
   const validateForm = () => {
@@ -259,7 +295,7 @@ export default function UsersPage() {
                 <th>Phone</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Role</th>
+                <th>Permissions</th>
                 <th>Company</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -271,7 +307,9 @@ export default function UsersPage() {
                   <td className={styles.phone}>{user.phone}</td>
                   <td className={styles.name}>{user.name}</td>
                   <td className={styles.email}>{user.email}</td>
-                  <td className={styles.role}>{user.role}</td>
+                  <td className={styles.permissions}>
+                    {getPermissionsSummary(user.permissions)}
+                  </td>
                   <td className={styles.company}>{user.company_id || "-"}</td>
                   <td>
                     <span
@@ -350,7 +388,7 @@ export default function UsersPage() {
                 />
               </div>
 
-              <div className={styles.formGroup}>
+              <div className={styles.formGroup}>  
                 <label>Email *</label>
                 <input
                   type="email"
@@ -362,29 +400,40 @@ export default function UsersPage() {
                 />
               </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label>Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleFormChange}
-                  >
-                    <option value="driver">Driver</option>
-                    <option value="admin">Admin</option>
-                    <option value="manager">Manager</option>
-                  </select>
-                </div>
+              <div className={styles.formGroup}>
+                <label>Company ID</label>
+                <input
+                  type="text"
+                  name="company_id"
+                  value={formData.company_id}
+                  onChange={handleFormChange}
+                  placeholder="acme-corp"
+                />
+              </div>
 
-                <div className={styles.formGroup}>
-                  <label>Company ID</label>
-                  <input
-                    type="text"
-                    name="company_id"
-                    value={formData.company_id}
-                    onChange={handleFormChange}
-                    placeholder="acme-corp"
-                  />
+              <div className={styles.formGroup}>
+                <label>Permissions</label>
+                <div className={styles.permissionsGrid}>
+                  {["invoices", "companies", "entries", "vehicles", "users"].map(
+                    (collection) => (
+                      <div key={collection} className={styles.permissionItem}>
+                        <span className={styles.permissionLabel}>
+                          {collection.charAt(0).toUpperCase() + collection.slice(1)}
+                        </span>
+                        <select
+                          value={formData.permissions[collection]}
+                          onChange={(e) =>
+                            handlePermissionChange(collection, e.target.value)
+                          }
+                          className={styles.permissionSelect}
+                        >
+                          <option value="none">None</option>
+                          <option value="read">Read</option>
+                          <option value="edit">Edit</option>
+                        </select>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 

@@ -168,6 +168,15 @@
   font-size: 13px;
 }
 
+.table .permissions {
+  font-size: 12px;
+  color: #5e534c;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .status {
   display: inline-block;
   padding: 4px 10px;
@@ -348,6 +357,47 @@
   cursor: pointer;
 }
 
+.permissionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: #fbf7f2;
+  border: 1px solid rgba(30, 25, 22, 0.08);
+  border-radius: 6px;
+}
+
+.permissionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.permissionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5e534c;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
+.permissionSelect {
+  padding: 8px 10px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.permissionSelect:focus {
+  outline: none;
+  border-color: #ea5a32;
+  box-shadow: 0 0 0 3px rgba(234, 90, 50, 0.1);
+}
+
 .formError {
   background: #fff4f1;
   border: 1px solid rgba(234, 90, 50, 0.2);
@@ -432,6 +482,10 @@
   }
 
   .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .permissionsGrid {
     grid-template-columns: 1fr;
   }
 
