@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper: only allow authenticated Firebase users.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // USERS
+    // Public read is required by current login flow:
+    // phone number is checked in users collection before OTP verification.
+    // Writes are restricted to authenticated users.
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // ENTRIES
+    // Operational ride entries should only be available to signed-in users.
+    match /entries/{entryId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // COMPANIES
+    // Client master data is internal and requires authentication.
+    match /companies/{companyId} {
+      allow read, write: if isSignedIn();
+
+      // PRICING SUBCOLLECTION
+      // Per-company pricing is sensitive business data.
+      match /pricing/{pricingId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // VEHICLES
+    // Fleet and driver details are internal data.
+    match /vehicles/{vehicleId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // INVOICES
+    // Billing records should only be accessible to authenticated users.
+    match /invoices/{invoiceId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Explicit default deny for any collection not listed above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
