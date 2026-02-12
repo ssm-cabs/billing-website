@@ -355,10 +355,10 @@ export default function CompaniesPage() {
                             required
                           >
                             <option value="">Select cab type</option>
-                            <option value="sedan">Sedan</option>
-                            <option value="premium_sedan">Premium Sedan</option>
-                            <option value="suv">SUV</option>
-                            <option value="premium_suv">Premium SUV</option>
+                            <option value="Sedan">Sedan</option>
+                            <option value="Premium Sedan">Premium Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Premium SUV">Premium SUV</option>
                           </select>
                         </label>
                         <label className={styles.field}>
@@ -432,12 +432,12 @@ export default function CompaniesPage() {
                                       }
                                       disabled
                                     >
-                                      <option value="sedan">Sedan</option>
-                                      <option value="premium_sedan">
+                                      <option value="Sedan">Sedan</option>
+                                      <option value="Premium Sedan">
                                         Premium Sedan
                                       </option>
-                                      <option value="suv">SUV</option>
-                                      <option value="premium_suv">
+                                      <option value="SUV">SUV</option>
+                                      <option value="Premium SUV">
                                         Premium SUV
                                       </option>
                                     </select>
