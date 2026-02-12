@@ -104,6 +104,10 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.topNav}>
+        <UserSession />
+      </div>
+      
       <header className={styles.header}>
         <div>
           <p className={styles.eyebrow}>Dashboard</p>
@@ -112,12 +116,9 @@ export default function DashboardPage() {
             Track daily volume, active companies, and fleet readiness.
           </p>
         </div>
-        <div className={styles.headerActions}>
-          <Link className={styles.primaryCta} href="/entries/new">
-            New Entry
-          </Link>
-          <UserSession />
-        </div>
+        <Link className={styles.primaryCta} href="/entries/new">
+          New Entry
+        </Link>
       </header>
 
       {!isFirebaseConfigured && (

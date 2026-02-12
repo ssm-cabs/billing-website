@@ -1,61 +1,40 @@
-.session {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 8px;
-}
-
-.userInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-align: right;
-}
-
-.phone {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1e1916;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-}
-
-.logoutButton {
-  padding: 10px 16px;
-  background: #ea5a32;
-  color: white;
-  border: none;
+.logoutIcon {
+  width: 40px;
+  height: 40px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  background: #efe3d5;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  color: #1e1916;
+  font-size: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  padding: 0;
 }
 
-.logoutButton:hover:not(:disabled) {
-  background: #c74624;
-  transform: translateY(-1px);
+.logoutIcon:hover:not(:disabled) {
+  background: #ea5a32;
+  color: white;
+  border-color: #ea5a32;
+  transform: scale(1.05);
 }
 
-.logoutButton:disabled {
+.logoutIcon:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.logoutIcon:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 @media (max-width: 640px) {
-  .session {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .userInfo {
-    text-align: center;
-  }
-
-  .logoutButton {
-    width: 100%;
+  .logoutIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
   }
 }

@@ -6,7 +6,7 @@ import { signOutUser, getCurrentUser } from "@/lib/phoneAuth";
 import styles from "./userSession.module.css";
 
 /**
- * Component that displays current user and logout button
+ * Component that displays logout button as icon only
  */
 export function UserSession() {
   const router = useRouter();
@@ -38,18 +38,15 @@ export function UserSession() {
   }
 
   return (
-    <div className={styles.session}>
-      <div className={styles.userInfo}>
-        <span className={styles.phone}>{user.phoneNumber}</span>
-      </div>
-      <button
-        onClick={handleLogout}
-        disabled={loading}
-        className={styles.logoutButton}
-      >
-        {loading ? "Logging out..." : "Logout"}
-      </button>
-    </div>
+    <button
+      onClick={handleLogout}
+      disabled={loading}
+      className={styles.logoutIcon}
+      title="Logout"
+      aria-label="Logout"
+    >
+      {loading ? "..." : "⎋"}
+    </button>
   );
 }
 

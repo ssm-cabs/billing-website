@@ -3,6 +3,17 @@
   padding: 120px 8vw 80px;
   background: var(--page-bg);
   color: var(--page-ink);
+  position: relative;
+}
+
+.topNav {
+  position: fixed;
+  top: 20px;
+  right: 8vw;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .header {
