@@ -7,6 +7,8 @@ import {
   countActiveCompanies,
   countActiveVehicles,
   countEntriesByMonth,
+  countInvoices,
+  countUsers,
   fetchEntries,
   isFirebaseConfigured,
 } from "@/lib/api";
@@ -43,6 +45,8 @@ export default function DashboardPage() {
   const [companiesCount, setCompaniesCount] = useState(0);
   const [vehiclesCount, setVehiclesCount] = useState(0);
   const [entriesCount, setEntriesCount] = useState(0);
+  const [usersCount, setUsersCount] = useState(0);
+  const [invoicesCount, setInvoicesCount] = useState(0);
   const [status, setStatus] = useState("idle");
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,15 +80,26 @@ export default function DashboardPage() {
       setStatus("loading");
       try {
         const monthValue = getMonthValue();
-        const [companiesData, vehiclesData, entriesCountData, recentEntriesData] = await Promise.all([
+        const [
+          companiesData,
+          vehiclesData,
+          entriesCountData,
+          usersCountData,
+          invoicesCountData,
+          recentEntriesData,
+        ] = await Promise.all([
           countActiveCompanies(),
           countActiveVehicles(),
           countEntriesByMonth(monthValue),
+          countUsers(),
+          countInvoices(),
           fetchEntries({ orderByField: "created_at", orderByDirection: "desc", limitCount: 6 }),
         ]);
         setCompaniesCount(companiesData);
         setVehiclesCount(vehiclesData);
         setEntriesCount(entriesCountData);
+        setUsersCount(usersCountData);
+        setInvoicesCount(invoicesCountData);
         setEntries(recentEntriesData);
         setStatus("success");
       } catch (err) {
@@ -146,6 +161,11 @@ export default function DashboardPage() {
           <span>{getMonthValue()}</span>
         </div>
         <div className={styles.card}>
+          <p>Active users</p>
+          <h2>{usersCount}</h2>
+          <span>Total count</span>
+        </div>
+        <div className={styles.card}>
           <p>Active companies</p>
           <h2>{companiesCount}</h2>
           <span>Total count</span>
@@ -154,6 +174,11 @@ export default function DashboardPage() {
           <p>Active vehicles</p>
           <h2>{vehiclesCount}</h2>
           <span>Total count</span>
+        </div>
+        <div className={styles.card}>
+          <p>Total invoices</p>
+          <h2>{invoicesCount}</h2>
+          <span>All time</span>
         </div>
       </section>
 

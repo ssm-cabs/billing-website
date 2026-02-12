@@ -281,12 +281,16 @@ export default function UsersPage() {
             <tbody>
               {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td className={styles.phone}>{user.phone}</td>
-                  <td className={styles.name}>{user.name}</td>
-                  <td className={styles.permissions}>
+                  <td className={styles.phone} data-label="Phone">
+                    {user.phone}
+                  </td>
+                  <td className={styles.name} data-label="Name">
+                    {user.name}
+                  </td>
+                  <td className={styles.permissions} data-label="Permissions">
                     {getPermissionsSummary(user.permissions)}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span
                       className={`${styles.status} ${
                         user.active ? styles.active : styles.inactive
@@ -295,7 +299,7 @@ export default function UsersPage() {
                       {user.active ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td className={styles.actions}>
+                  <td className={styles.actions} data-label="Actions">
                     <button
                       className={styles.editBtn}
                       onClick={() => handleEditClick(user)}

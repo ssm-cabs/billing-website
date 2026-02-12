@@ -508,3 +508,62 @@
     max-width: 90vw;
   }
 }
+
+@media (max-width: 640px) {
+  .tableContainer {
+    background: transparent;
+    border: none;
+  }
+
+  .table {
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .table tbody tr {
+    display: grid;
+    gap: 8px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid rgba(30, 25, 22, 0.08);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    gap: 12px;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--page-muted);
+  }
+
+  .table td.actions::before {
+    content: none;
+  }
+
+  .permissions {
+    white-space: normal;
+    max-width: none;
+  }
+
+  .table td.actions {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+}

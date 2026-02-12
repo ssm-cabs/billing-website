@@ -357,6 +357,26 @@ export async function countActiveVehicles() {
   return vehicles.filter((v) => v.status !== "inactive").length;
 }
 
+export async function countUsers() {
+  if (!isFirebaseConfigured || !db) {
+    return 0;
+  }
+
+  const usersRef = collection(db, "users");
+  const snapshot = await getCountFromServer(usersRef);
+  return snapshot.data().count;
+}
+
+export async function countInvoices() {
+  if (!isFirebaseConfigured || !db) {
+    return 0;
+  }
+
+  const invoicesRef = collection(db, "invoices");
+  const snapshot = await getCountFromServer(invoicesRef);
+  return snapshot.data().count;
+}
+
 export async function countEntriesByMonth(month = "") {
   if (!isFirebaseConfigured || !db) {
     if (!month) return mockEntries.length;
