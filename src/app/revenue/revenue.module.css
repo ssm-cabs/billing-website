@@ -1,0 +1,188 @@
+.page {
+  min-height: 100vh;
+  padding: 120px 8vw 80px;
+  background: var(--page-bg);
+  color: var(--page-ink);
+  position: relative;
+}
+
+.topNav {
+  position: fixed;
+  top: 20px;
+  right: 8vw;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+  margin-bottom: 12px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: var(--page-muted);
+  margin-bottom: 8px;
+}
+
+.lead {
+  color: var(--page-muted);
+  max-width: 520px;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+.notice {
+  background: #fff4e8;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  color: #5d4a40;
+  padding: 14px 18px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.noticeHighlight {
+  font-weight: 600;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid rgba(30, 25, 22, 0.1);
+  display: grid;
+  gap: 8px;
+}
+
+.card h2 {
+  font-size: 26px;
+}
+
+.card span {
+  color: var(--page-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(30, 25, 22, 0.1);
+  display: grid;
+  gap: 16px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table {
+  display: grid;
+  gap: 12px;
+}
+
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns: 1.4fr 100px 120px;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.tableHeader {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+}
+
+.tableRow {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.checklist {
+  display: grid;
+  gap: 16px;
+}
+
+.checkTitle {
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.checkCopy {
+  color: var(--page-muted);
+  margin: 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.error {
+  color: #c23d2b;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 100px 16px 60px;
+  }
+
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 1fr;
+  }
+}
