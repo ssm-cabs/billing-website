@@ -26,9 +26,7 @@ export default function UsersPage() {
   const [formData, setFormData] = useState({
     phone: "",
     name: "",
-    email: "",
     active: true,
-    company_id: "",
     notes: "",
     permissions: {
       invoices: "none",
@@ -86,9 +84,7 @@ export default function UsersPage() {
     setFormData({
       phone: "",
       name: "",
-      email: "",
       active: true,
-      company_id: "",
       notes: "",
       permissions: {
         invoices: "none",
@@ -107,9 +103,7 @@ export default function UsersPage() {
     setFormData({
       phone: user.phone || "",
       name: user.name || "",
-      email: user.email || "",
       active: user.active !== false,
-      company_id: user.company_id || "",
       notes: user.notes || "",
       permissions: user.permissions || {
         invoices: "none",
@@ -156,10 +150,6 @@ export default function UsersPage() {
     }
     if (!formData.name.trim()) {
       setFormError("Name is required");
-      return false;
-    }
-    if (!formData.email.trim()) {
-      setFormError("Email is required");
       return false;
     }
     if (!/^\+\d{10,15}$/.test(formData.phone.replace(/\D/g, "")) && formData.phone.length > 0) {
@@ -228,7 +218,7 @@ export default function UsersPage() {
   };
 
   const filteredUsers = users.filter((user) =>
-    [user.phone, user.name, user.email]
+    [user.phone, user.name]
       .join(" ")
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -272,7 +262,7 @@ export default function UsersPage() {
       <div className={styles.searchBar}>
         <input
           type="text"
-          placeholder="Search by phone, name, or email..."
+          placeholder="Search by phone or name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}
@@ -294,9 +284,7 @@ export default function UsersPage() {
               <tr>
                 <th>Phone</th>
                 <th>Name</th>
-                <th>Email</th>
                 <th>Permissions</th>
-                <th>Company</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -306,11 +294,9 @@ export default function UsersPage() {
                 <tr key={user.id}>
                   <td className={styles.phone}>{user.phone}</td>
                   <td className={styles.name}>{user.name}</td>
-                  <td className={styles.email}>{user.email}</td>
                   <td className={styles.permissions}>
                     {getPermissionsSummary(user.permissions)}
                   </td>
-                  <td className={styles.company}>{user.company_id || "-"}</td>
                   <td>
                     <span
                       className={`${styles.status} ${
@@ -377,37 +363,14 @@ export default function UsersPage() {
               </div>
 
               <div className={styles.formGroup}>
-                <label>Name *</label>
+                <label>User Name *</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleFormChange}
-                  placeholder="Driver Name"
+                  placeholder="User Name"
                   required
-                />
-              </div>
-
-              <div className={styles.formGroup}>  
-                <label>Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleFormChange}
-                  placeholder="driver@example.com"
-                  required
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Company ID</label>
-                <input
-                  type="text"
-                  name="company_id"
-                  value={formData.company_id}
-                  onChange={handleFormChange}
-                  placeholder="acme-corp"
                 />
               </div>
 
