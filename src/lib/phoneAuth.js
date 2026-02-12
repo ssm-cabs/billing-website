@@ -159,9 +159,10 @@ export function getCurrentUser() {
  */
 export async function signOutUser() {
   try {
-    // Clear token expiry
+    // Clear token expiry and user data
     if (typeof window !== "undefined") {
       localStorage.removeItem("session_expiry_time");
+      localStorage.removeItem("user_data");
     }
     await auth.signOut();
   } catch (error) {

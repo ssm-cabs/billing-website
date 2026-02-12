@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getCurrentUser, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
+import { usePermissions } from "@/lib/usePermissions";
+import { MODULES, getDefaultPermissions } from "@/config/modules";
 import {
   fetchAllUsers,
   addUser,
@@ -15,6 +17,7 @@ import styles from "./users.module.css";
 
 export default function UsersPage() {
   const router = useRouter();
+  const { canView, canEdit, loading: permissionsLoading } = usePermissions("users");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,13 +31,7 @@ export default function UsersPage() {
     name: "",
     active: true,
     notes: "",
-    permissions: {
-      invoices: "none",
-      companies: "none",
-      entries: "none",
-      vehicles: "none",
-      users: "none",
-    },
+    permissions: getDefaultPermissions(),
   });
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
@@ -86,13 +83,7 @@ export default function UsersPage() {
       name: "",
       active: true,
       notes: "",
-      permissions: {
-        invoices: "none",
-        companies: "none",
-        entries: "none",
-        vehicles: "none",
-        users: "none",
-      },
+      permissions: getDefaultPermissions(),
     });
     setFormError("");
     setShowForm(true);
@@ -105,13 +96,7 @@ export default function UsersPage() {
       name: user.name || "",
       active: user.active !== false,
       notes: user.notes || "",
-      permissions: user.permissions || {
-        invoices: "none",
-        companies: "none",
-        entries: "none",
-        vehicles: "none",
-        users: "none",
-      },
+      permissions: user.permissions || getDefaultPermissions(),
     });
     setFormError("");
     setShowForm(true);
@@ -377,22 +362,21 @@ export default function UsersPage() {
               <div className={styles.formGroup}>
                 <label>Permissions</label>
                 <div className={styles.permissionsGrid}>
-                  {["invoices", "companies", "entries", "vehicles", "users"].map(
-                    (collection) => (
-                      <div key={collection} className={styles.permissionItem}>
-                        <span className={styles.permissionLabel}>
-                          {collection.charAt(0).toUpperCase() + collection.slice(1)}
-                        </span>
-                        <select
-                          value={formData.permissions[collection]}
-                          onChange={(e) =>
-                            handlePermissionChange(collection, e.target.value)
-                          }
-                          className={styles.permissionSelect}
-                        >
-                          <option value="none">None</option>
-                          <option value="read">Read</option>
-                          <option value="edit">Edit</option>
+                  {MODULES.map((module) => (
+                    <div key={module.id} className={styles.permissionItem}>
+                      <span className={styles.permissionLabel}>
+                        {module.icon} {module.name}
+                      </span>
+                      <select
+                        value={formData.permissions[module.id]}
+                        onChange={(e) =>
+                          handlePermissionChange(module.id, e.target.value)
+                        }
+                        className={styles.permissionSelect}
+                      >
+                        <option value="none">None</option>
+                        <option value="read">Read</option>
+                        <option value="edit">Edit</option>
                         </select>
                       </div>
                     )

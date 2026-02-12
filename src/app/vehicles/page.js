@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createVehicle, fetchVehicles, isFirebaseConfigured } from "@/lib/api";
+import { usePermissions } from "@/lib/usePermissions";
 import styles from "./vehicles.module.css";
 
 const initialState = {
@@ -16,6 +17,7 @@ const initialState = {
 };
 
 export default function VehiclesPage() {
+  const { canView, canEdit, loading: permissionsLoading } = usePermissions("vehicles");
   const [vehicles, setVehicles] = useState([]);
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
@@ -46,6 +48,12 @@ export default function VehiclesPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    
+    if (!canEdit) {
+      setError("You don't have permission to create vehicles");
+      return;
+    }
+    
     setMessage("");
     setError("");
 
@@ -70,6 +78,14 @@ export default function VehiclesPage() {
 
   return (
     <div className={styles.page}>
+      {permissionsLoading && (
+        <div style={{ padding: "40px", textAlign: "center" }}>
+          <p>Loading permissions...</p>
+        </div>
+      )}
+      
+      {!permissionsLoading && (
+      <>
       <header className={styles.header}>
         <div>
           <Link className={styles.backLink} href="/dashboard">
@@ -94,6 +110,7 @@ export default function VehiclesPage() {
       )}
 
       <section className={styles.grid}>
+        {canEdit && (
         <form className={styles.form} onSubmit={handleSubmit}>
           <h2>Add Vehicle</h2>
           <label className={styles.field}>
@@ -179,6 +196,7 @@ export default function VehiclesPage() {
             {error && <p className={styles.error}>{error}</p>}
           </div>
         </form>
+        )}
 
         <div className={styles.list}>
           <div className={styles.listHeader}>
@@ -209,6 +227,8 @@ export default function VehiclesPage() {
           )}
         </div>
       </section>
+      </>
+      )}
     </div>
   );
 }

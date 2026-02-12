@@ -11,6 +11,7 @@ import {
   isFirebaseConfigured,
   updatePricing,
 } from "@/lib/api";
+import { usePermissions } from "@/lib/usePermissions";
 import styles from "./companies.module.css";
 
 const initialState = {
@@ -29,6 +30,7 @@ const initialPricing = {
 };
 
 export default function CompaniesPage() {
+  const { canView, canEdit, loading: permissionsLoading } = usePermissions("companies");
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
@@ -175,6 +177,12 @@ export default function CompaniesPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    
+    if (!canEdit) {
+      setError("You don't have permission to create companies");
+      return;
+    }
+    
     setMessage("");
     setError("");
 
@@ -194,6 +202,14 @@ export default function CompaniesPage() {
 
   return (
     <div className={styles.page}>
+      {permissionsLoading && (
+        <div style={{ padding: "40px", textAlign: "center" }}>
+          <p>Loading permissions...</p>
+        </div>
+      )}
+      
+      {!permissionsLoading && (
+        <>
       <header className={styles.header}>
         <div>
           <Link className={styles.backLink} href="/dashboard">
@@ -218,6 +234,7 @@ export default function CompaniesPage() {
       )}
 
       <section className={styles.grid}>
+        {canEdit && (
         <form className={styles.form} onSubmit={handleSubmit}>
           <h2>Add Company</h2>
           <label className={styles.field}>
@@ -289,6 +306,7 @@ export default function CompaniesPage() {
             {error && <p className={styles.error}>{error}</p>}
           </div>
         </form>
+        )}
 
         <div className={styles.list}>
           <div className={styles.listHeader}>
@@ -335,6 +353,7 @@ export default function CompaniesPage() {
                   </div>
                   {expandedCompanyId === company.company_id && (
                     <div className={styles.pricingSection}>
+                      {canEdit && (
                       <form
                         className={styles.pricingForm}
                         onSubmit={(event) =>
@@ -400,6 +419,7 @@ export default function CompaniesPage() {
                           Add rate
                         </button>
                       </form>
+                      )}
                       <div className={styles.pricingList}>
                         <div className={styles.pricingHeader}>
                           <span>Cab type</span>
@@ -479,6 +499,8 @@ export default function CompaniesPage() {
                                   </>
                                 )}
                                 <div className={styles.pricingActions}>
+                                  {canEdit && (
+                                  <>
                                   {isEditing ? (
                                     <button
                                       type="button"
@@ -520,6 +542,8 @@ export default function CompaniesPage() {
                                       </button>
                                     </>
                                   )}
+                                  </>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -549,6 +573,8 @@ export default function CompaniesPage() {
           )}
         </div>
       </section>
+      </>
+      )}
     </div>
   );
 }

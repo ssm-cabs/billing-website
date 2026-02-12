@@ -13,6 +13,8 @@ import {
 import { getCurrentUser } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
+import { canViewCollection } from "@/lib/usePermissions";
+import { MODULES } from "@/config/modules";
 import styles from "./dashboard.module.css";
 
 const getMonthValue = () => {
@@ -191,12 +193,11 @@ export default function DashboardPage() {
             <h3>Quick actions</h3>
           </div>
           <div className={styles.actions}>
-            <Link href="/entries/new">Add ride entry</Link>
-            <Link href="/entries">Review entries</Link>
-            <Link href="/companies">Manage companies</Link>
-            <Link href="/vehicles">Manage vehicles</Link>
-            <Link href="/invoices">View invoices</Link>
-            <Link href="/users">Manage users</Link>
+            {MODULES.filter((module) => canViewCollection(module.id)).map((module) => (
+              <Link key={module.id} href={module.path}>
+                {module.icon} {module.name}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

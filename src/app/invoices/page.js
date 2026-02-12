@@ -5,6 +5,7 @@ import Link from "next/link";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import MonthPicker from "@/app/entries/MonthPicker";
+import { usePermissions } from "@/lib/usePermissions";
 import {
   fetchCompanies,
   generateInvoice,
@@ -33,6 +34,7 @@ const OUR_COMPANY = {
 };
 
 export default function InvoicePage() {
+  const { canView, canEdit, loading: permissionsLoading } = usePermissions("invoices");
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [invoices, setInvoices] = useState([]);

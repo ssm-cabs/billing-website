@@ -11,6 +11,7 @@ import {
   getCurrentUser,
   signOutUser,
   waitForAuthInit,
+  getUserData,
 } from "@/lib/phoneAuth";
 import { setTokenExpiry } from "@/lib/useSessionTimeout";
 
@@ -171,10 +172,19 @@ export default function LoginPage() {
         return;
       }
 
-      await verifyOTP(confirmationResult, otp);
+      const result = await verifyOTP(confirmationResult, otp);
       
       // Set token expiry for 24-hour timeout
       setTokenExpiry();
+      
+      // Fetch and save user data with permissions to localStorage
+      const phoneNumber = result.user.phoneNumber;
+      const userData = await getUserData(phoneNumber);
+      
+      if (userData) {
+        localStorage.setItem("user_data", JSON.stringify(userData));
+        console.log("User data saved to localStorage");
+      }
       
       // Redirect to dashboard on successful verification
       router.push("/dashboard");

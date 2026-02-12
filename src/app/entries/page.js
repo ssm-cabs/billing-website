@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MonthPicker from "./MonthPicker";
 import CustomDropdown from "./CustomDropdown";
+import { usePermissions } from "@/lib/usePermissions";
 import {
   fetchCompanies,
   fetchEntries,
@@ -13,6 +14,7 @@ import {
 import styles from "./entries.module.css";
 
 export default function EntriesPage() {
+  const { canView, canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [entries, setEntries] = useState([]);
   const [company, setCompany] = useState("all");
   const [month, setMonth] = useState(() => {
