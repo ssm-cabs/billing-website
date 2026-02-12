@@ -65,6 +65,7 @@
   border: 1px solid rgba(30, 25, 22, 0.16);
   background: #fff;
   color: var(--page-ink);
+  font-family: inherit;
 }
 
 .field input:disabled,
