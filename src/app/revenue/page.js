@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MonthPicker from "../entries/MonthPicker";
-import { fetchEntries, isFirebaseConfigured } from "@/lib/api";
+import { fetchCompanies, fetchEntries, isFirebaseConfigured } from "@/lib/api";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import styles from "./revenue.module.css";
@@ -38,6 +38,7 @@ export default function RevenuePage() {
   const router = useRouter();
   const [month, setMonth] = useState(getMonthValue);
   const [entries, setEntries] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -70,8 +71,12 @@ export default function RevenuePage() {
       setStatus("loading");
       setError("");
       try {
-        const data = await fetchEntries({ month });
-        setEntries(data);
+        const [entriesData, companiesData] = await Promise.all([
+          fetchEntries({ month }),
+          fetchCompanies(),
+        ]);
+        setEntries(entriesData);
+        setCompanies(companiesData);
         setStatus("success");
       } catch (err) {
         setError(err.message || "Unable to load revenue data.");
@@ -133,7 +138,7 @@ export default function RevenuePage() {
   }, [entries, month]);
 
   const companyBreakdown = useMemo(() => {
-    const map = entries.reduce((acc, entry) => {
+    const revenueByCompany = entries.reduce((acc, entry) => {
       const name = entry.company_name || "Unknown";
       if (!acc[name]) {
         acc[name] = { name, rides: 0, revenue: 0 };
@@ -143,8 +148,20 @@ export default function RevenuePage() {
       return acc;
     }, {});
 
-    return Object.values(map).sort((a, b) => b.revenue - a.revenue);
-  }, [entries]);
+    const normalizedCompanies = companies.map((company) => {
+      const name = company.name || company.company_id || "Unknown";
+      return revenueByCompany[name] || { name, rides: 0, revenue: 0 };
+    });
+
+    const knownNames = new Set(normalizedCompanies.map((item) => item.name));
+    const additionalRows = Object.values(revenueByCompany).filter(
+      (row) => !knownNames.has(row.name)
+    );
+
+    return [...normalizedCompanies, ...additionalRows].sort(
+      (a, b) => b.revenue - a.revenue
+    );
+  }, [entries, companies]);
 
   const dailyRevenue = useMemo(() => {
     const { year, month: monthNumber, totalDays } = getMonthMeta(month);
