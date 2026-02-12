@@ -88,12 +88,13 @@ export default function DashboardPage() {
         setEntries(recentEntriesData);
         setStatus("success");
       } catch (err) {
+        console.error("Dashboard data loading error:", err);
         setStatus("error");
       }
     };
 
     loadData();
-  }, []);
+  }, [isAuthenticated, isLoading]);
 
   const recentEntries = entries;
 
@@ -195,7 +196,7 @@ export default function DashboardPage() {
           <div className={styles.actions}>
             {MODULES.filter((module) => canViewCollection(module.id)).map((module) => (
               <Link key={module.id} href={module.path}>
-                {module.icon} {module.name}
+                {module.name}
               </Link>
             ))}
           </div>

@@ -341,9 +341,9 @@ export async function countActiveCompanies() {
   }
 
   const companiesRef = collection(db, "companies");
-  const activeQuery = query(companiesRef, where("active", "==", true));
-  const snapshot = await getCountFromServer(activeQuery);
-  return snapshot.data().count;
+  const snapshot = await getDocs(companiesRef);
+  const companies = snapshot.docs.map((docSnap) => docSnap.data());
+  return companies.filter((c) => c.active !== false).length;
 }
 
 export async function countActiveVehicles() {
@@ -352,9 +352,9 @@ export async function countActiveVehicles() {
   }
 
   const vehiclesRef = collection(db, "vehicles");
-  const activeQuery = query(vehiclesRef, where("status", "==", "active"));
-  const snapshot = await getCountFromServer(activeQuery);
-  return snapshot.data().count;
+  const snapshot = await getDocs(vehiclesRef);
+  const vehicles = snapshot.docs.map((docSnap) => docSnap.data());
+  return vehicles.filter((v) => v.status !== "inactive").length;
 }
 
 export async function countEntriesByMonth(month = "") {
@@ -379,9 +379,9 @@ export async function countEntriesByMonth(month = "") {
 
   const countQuery = constraints.length
     ? query(entriesRef, ...constraints)
-    : entriesRef;
-  const snapshot = await getCountFromServer(countQuery);
-  return snapshot.data().count;
+    : query(entriesRef);
+  const snapshot = await getDocs(countQuery);
+  return snapshot.docs.length;
 }
 
 export async function createVehicle(payload) {
