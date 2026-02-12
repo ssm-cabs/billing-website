@@ -10,8 +10,11 @@ export default function CustomDropdown({
   getValue = (option) => option.name || option,
   placeholder = "Select option",
   defaultOption = null,
+  searchable = false,
+  searchPlaceholder = "Search...",
 }) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -32,6 +35,7 @@ export default function CustomDropdown({
   const handleSelect = (optionValue) => {
     onChange(optionValue);
     setShowDropdown(false);
+    setSearchText("");
   };
 
   const getDisplayValue = () => {
@@ -42,6 +46,14 @@ export default function CustomDropdown({
     return selected ? getLabel(selected) : placeholder;
   };
 
+  const normalizedSearch = searchText.trim().toLowerCase();
+  const filteredOptions =
+    searchable && normalizedSearch
+      ? options.filter((option) =>
+          String(getLabel(option)).toLowerCase().includes(normalizedSearch)
+        )
+      : options;
+
   return (
     <div className={styles.customDropdownContainer} ref={containerRef}>
       <button
@@ -49,7 +61,12 @@ export default function CustomDropdown({
         className={styles.dropdownInput}
         onClick={(e) => {
           e.stopPropagation();
-          setShowDropdown(!showDropdown);
+          setShowDropdown((prev) => {
+            if (prev) {
+              setSearchText("");
+            }
+            return !prev;
+          });
         }}
       >
         <span>{getDisplayValue()}</span>
@@ -58,6 +75,16 @@ export default function CustomDropdown({
 
       {showDropdown && (
         <div className={styles.dropdownModal}>
+          {searchable && (
+            <input
+              type="text"
+              className={styles.searchInput}
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              placeholder={searchPlaceholder}
+              autoFocus
+            />
+          )}
           <div className={styles.dropdownList}>
             {defaultOption && (
               <button
@@ -72,7 +99,7 @@ export default function CustomDropdown({
               </button>
             )}
 
-            {options.map((option, index) => (
+            {filteredOptions.map((option, index) => (
               <button
                 key={index}
                 type="button"
@@ -85,6 +112,9 @@ export default function CustomDropdown({
                 {getLabel(option)}
               </button>
             ))}
+            {filteredOptions.length === 0 && (
+              <div className={styles.emptyState}>No options found</div>
+            )}
           </div>
         </div>
       )}

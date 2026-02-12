@@ -194,6 +194,8 @@ export default function NewEntryPage() {
             getLabel={(v) => `${v.vehicle_number} · ${v.driver_name || "Driver"} · ${v.cab_type}`}
             getValue={(v) => v.vehicle_number}
             placeholder="Select vehicle"
+            searchable
+            searchPlaceholder="Search vehicle"
           />
         </label>
         {form.vehicle_number && (
