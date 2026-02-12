@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   countActiveCompanies,
@@ -9,6 +10,8 @@ import {
   fetchEntries,
   isFirebaseConfigured,
 } from "@/lib/api";
+import { getCurrentUser } from "@/lib/phoneAuth";
+import { UserSession } from "@/components/UserSession";
 import styles from "./dashboard.module.css";
 
 const getMonthValue = () => {
@@ -32,13 +35,30 @@ const formatDate = (value) => {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [entries, setEntries] = useState([]);
   const [companiesCount, setCompaniesCount] = useState(0);
   const [vehiclesCount, setVehiclesCount] = useState(0);
   const [entriesCount, setEntriesCount] = useState(0);
   const [status, setStatus] = useState("idle");
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check authentication on mount
+    const user = getCurrentUser();
+    if (!user) {
+      setIsAuthenticated(false);
+      router.push("/login");
+      return;
+    }
+    setIsAuthenticated(true);
+    setIsLoading(false);
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated || isLoading) return;
+
     const loadData = async () => {
       setStatus("loading");
       try {
@@ -64,6 +84,20 @@ export default function DashboardPage() {
 
   const recentEntries = entries;
 
+  if (isLoading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ textAlign: "center", padding: "40px" }}>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Router will redirect to /login
+  }
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -74,9 +108,12 @@ export default function DashboardPage() {
             Track daily volume, active companies, and fleet readiness.
           </p>
         </div>
-        <Link className={styles.primaryCta} href="/entries/new">
-          New Entry
-        </Link>
+        <div className={styles.headerActions}>
+          <Link className={styles.primaryCta} href="/entries/new">
+            New Entry
+          </Link>
+          <UserSession />
+        </div>
       </header>
 
       {!isFirebaseConfigured && (

@@ -1,0 +1,61 @@
+.session {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+.phone {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e1916;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.logoutButton {
+  padding: 10px 16px;
+  background: #ea5a32;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.logoutButton:hover:not(:disabled) {
+  background: #c74624;
+  transform: translateY(-1px);
+}
+
+.logoutButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .session {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .userInfo {
+    text-align: center;
+  }
+
+  .logoutButton {
+    width: 100%;
+  }
+}
