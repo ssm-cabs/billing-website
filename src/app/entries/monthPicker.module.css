@@ -1,5 +1,6 @@
 .monthPickerContainer {
   position: relative;
+  font-family: inherit;
 }
 
 .monthInput {
@@ -11,6 +12,7 @@
   color: var(--page-ink);
   cursor: pointer;
   font-size: 14px;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -53,6 +55,7 @@
 
 .year {
   font-weight: 600;
+  font-family: inherit;
   color: var(--page-ink);
   text-align: center;
   flex: 1;
@@ -66,6 +69,7 @@
   padding: 8px 12px;
   cursor: pointer;
   color: var(--page-ink);
+  font-family: inherit;
   font-weight: 500;
   transition: background 0.2s;
 }
@@ -89,6 +93,7 @@
   color: var(--page-ink);
   cursor: pointer;
   font-size: 12px;
+  font-family: inherit;
   font-weight: 500;
   transition: all 0.2s;
 }
@@ -113,6 +118,7 @@
   color: var(--page-ink);
   cursor: pointer;
   font-size: 13px;
+  font-family: inherit;
   font-weight: 500;
   transition: background 0.2s;
 }
