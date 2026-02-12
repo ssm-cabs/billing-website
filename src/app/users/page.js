@@ -152,7 +152,7 @@ export default function UsersPage() {
       setFormError("Name is required");
       return false;
     }
-    if (!/^\+\d{10,15}$/.test(formData.phone.replace(/\D/g, "")) && formData.phone.length > 0) {
+    if (!/^\+\d{10,15}$/.test(formData.phone.trim())) {
       setFormError("Invalid phone format (+91XXXXXXXXXX)");
       return false;
     }
