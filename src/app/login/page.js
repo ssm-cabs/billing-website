@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
 import {
-  isUserAuthorized,
+  getAuthorizedUser,
   setupRecaptcha,
   sendOTP,
   verifyOTP,
@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
+  const [authorizedUserData, setAuthorizedUserData] = useState(null);
   const recaptchaVerifierRef = useRef(null);
 
   // Check if user is already logged in
@@ -114,15 +115,16 @@ export default function LoginPage() {
         return;
       }
 
-      // Check if user is authorized
-      const isAuthorized = await isUserAuthorized(formattedPhone);
-      if (!isAuthorized) {
+      // Check if user is authorized and keep profile for post-OTP session state.
+      const authorizedUser = await getAuthorizedUser(formattedPhone);
+      if (!authorizedUser) {
         setError(
           "This phone number is not authorized. Please contact your administrator."
         );
         setLoading(false);
         return;
       }
+      setAuthorizedUserData(authorizedUser);
 
       // Send OTP
       const confirmation = await sendOTP(
@@ -179,7 +181,7 @@ export default function LoginPage() {
       
       // Fetch and save user data with permissions to localStorage
       const phoneNumber = result.user.phoneNumber;
-      const userData = await getUserData(phoneNumber);
+      const userData = authorizedUserData || await getUserData(phoneNumber);
       
       if (userData) {
         localStorage.setItem("user_data", JSON.stringify(userData));
@@ -211,6 +213,7 @@ export default function LoginPage() {
     setError("");
     setPhoneNumber("");
     setConfirmationResult(null);
+    setAuthorizedUserData(null);
   };
 
   return (

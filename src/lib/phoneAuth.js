@@ -44,13 +44,24 @@ export function waitForAuthInit() {
  * @returns {Promise<boolean>} - True if user is authorized
  */
 export async function isUserAuthorized(phoneNumber) {
+  const userData = await getAuthorizedUser(phoneNumber);
+  return Boolean(userData);
+}
+
+/**
+ * Get authorized user data in a single query
+ * @param {string} phoneNumber - Phone number with country code
+ * @returns {Promise<Object|null>} - User data or null if not found
+ */
+export async function getAuthorizedUser(phoneNumber) {
   try {
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("phone", "==", phoneNumber));
     const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
+    if (querySnapshot.empty) return null;
+    return querySnapshot.docs[0].data();
   } catch (error) {
-    console.error("Error checking user authorization:", error);
+    console.error("Error fetching authorized user:", error);
     throw error;
   }
 }
@@ -61,16 +72,7 @@ export async function isUserAuthorized(phoneNumber) {
  * @returns {Promise<Object|null>} - User data or null if not found
  */
 export async function getUserData(phoneNumber) {
-  try {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("phone", "==", phoneNumber));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) return null;
-    return querySnapshot.docs[0].data();
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-    throw error;
-  }
+  return getAuthorizedUser(phoneNumber);
 }
 
 /**

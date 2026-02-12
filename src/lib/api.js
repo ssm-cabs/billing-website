@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
   where,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
@@ -341,9 +342,11 @@ export async function countActiveCompanies() {
   }
 
   const companiesRef = collection(db, "companies");
-  const snapshot = await getDocs(companiesRef);
-  const companies = snapshot.docs.map((docSnap) => docSnap.data());
-  return companies.filter((c) => c.active !== false).length;
+  const [totalSnapshot, inactiveSnapshot] = await Promise.all([
+    getCountFromServer(companiesRef),
+    getCountFromServer(query(companiesRef, where("active", "==", false))),
+  ]);
+  return totalSnapshot.data().count - inactiveSnapshot.data().count;
 }
 
 export async function countActiveVehicles() {
@@ -352,9 +355,11 @@ export async function countActiveVehicles() {
   }
 
   const vehiclesRef = collection(db, "vehicles");
-  const snapshot = await getDocs(vehiclesRef);
-  const vehicles = snapshot.docs.map((docSnap) => docSnap.data());
-  return vehicles.filter((v) => v.status !== "inactive").length;
+  const [totalSnapshot, inactiveSnapshot] = await Promise.all([
+    getCountFromServer(vehiclesRef),
+    getCountFromServer(query(vehiclesRef, where("status", "==", "inactive"))),
+  ]);
+  return totalSnapshot.data().count - inactiveSnapshot.data().count;
 }
 
 export async function countUsers() {
@@ -399,9 +404,9 @@ export async function countEntriesByMonth(month = "") {
 
   const countQuery = constraints.length
     ? query(entriesRef, ...constraints)
-    : query(entriesRef);
-  const snapshot = await getDocs(countQuery);
-  return snapshot.docs.length;
+    : entriesRef;
+  const snapshot = await getCountFromServer(countQuery);
+  return snapshot.data().count;
 }
 
 export async function createVehicle(payload) {
@@ -530,13 +535,19 @@ export async function generateInvoice(companyId, month) {
   await setDoc(invoiceRef, invoice);
 
   // Mark all entries used in this invoice as billed
-  for (const lineItem of lineItems) {
-    const entryRef = doc(db, "entries", lineItem.entry_id);
-    await updateDoc(entryRef, {
-      invoice_id: invoiceId,
-      billed: true,
-      updated_at: serverTimestamp(),
-    });
+  const batchSize = 450;
+  for (let i = 0; i < lineItems.length; i += batchSize) {
+    const batch = writeBatch(db);
+    const chunk = lineItems.slice(i, i + batchSize);
+    for (const lineItem of chunk) {
+      const entryRef = doc(db, "entries", lineItem.entry_id);
+      batch.update(entryRef, {
+        invoice_id: invoiceId,
+        billed: true,
+        updated_at: serverTimestamp(),
+      });
+    }
+    await batch.commit();
   }
 
   return { invoice_id: invoiceId };
