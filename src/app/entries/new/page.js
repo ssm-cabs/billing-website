@@ -12,6 +12,7 @@ import {
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
+import { usePermissions } from "@/lib/usePermissions";
 import styles from "./new.module.css";
 
 const getToday = () => {
@@ -37,6 +38,7 @@ const initialState = {
 
 export default function NewEntryPage() {
   const router = useRouter();
+  const { canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -148,6 +150,35 @@ export default function NewEntryPage() {
       setMessage(err.message || "Failed to save entry.");
     }
   };
+
+  if (permissionsLoading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: "40px", textAlign: "center" }}>
+          <p>Loading permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canEdit) {
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <div>
+            <Link className={styles.backLink} href="/entries">
+              ← Back
+            </Link>
+            <p className={styles.eyebrow}>Access Denied</p>
+            <h1>Permission Required</h1>
+            <p className={styles.lead}>
+              You don't have permission to create new entries.
+            </p>
+          </div>
+        </header>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>

@@ -12,6 +12,7 @@ import {
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
+import { usePermissions } from "@/lib/usePermissions";
 import styles from "../../edit.module.css";
 
 const initialState = {
@@ -29,7 +30,7 @@ const initialState = {
 
 export default function ClientEditEntryPage({ id }) {
   const router = useRouter();
-
+  const { canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -180,7 +181,7 @@ export default function ClientEditEntryPage({ id }) {
     }
   };
 
-  if (loadingEntry) {
+  if (permissionsLoading || loadingEntry) {
     return (
       <div className={styles.page}>
         <header className={styles.header}>
@@ -190,6 +191,25 @@ export default function ClientEditEntryPage({ id }) {
             </Link>
             <p className={styles.eyebrow}>Edit entry</p>
             <h1>Loading...</h1>
+          </div>
+        </header>
+      </div>
+    );
+  }
+
+  if (!canEdit) {
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <div>
+            <Link className={styles.backLink} href="/entries">
+              ← Back
+            </Link>
+            <p className={styles.eyebrow}>Access Denied</p>
+            <h1>Permission Required</h1>
+            <p className={styles.lead}>
+              You don't have permission to edit entries.
+            </p>
           </div>
         </header>
       </div>
