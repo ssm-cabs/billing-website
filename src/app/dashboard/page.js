@@ -161,9 +161,9 @@ export default function DashboardPage() {
           <span>{getMonthValue()}</span>
         </div>
         <div className={styles.card}>
-          <p>Active users</p>
-          <h2>{usersCount}</h2>
-          <span>Total count</span>
+          <p>Total invoices</p>
+          <h2>{invoicesCount}</h2>
+          <span>All time</span>
         </div>
         <div className={styles.card}>
           <p>Active companies</p>
@@ -176,9 +176,9 @@ export default function DashboardPage() {
           <span>Total count</span>
         </div>
         <div className={styles.card}>
-          <p>Total invoices</p>
-          <h2>{invoicesCount}</h2>
-          <span>All time</span>
+          <p>Active users</p>
+          <h2>{usersCount}</h2>
+          <span>Total count</span>
         </div>
       </section>
 
@@ -219,11 +219,16 @@ export default function DashboardPage() {
             <h3>Quick actions</h3>
           </div>
           <div className={styles.actions}>
-            {MODULES.filter((module) => canViewCollection(module.id)).map((module) => (
-              <Link key={module.id} href={module.path}>
-                {module.name}
-              </Link>
-            ))}
+            {MODULES.filter((module) => canViewCollection(module.id))
+              .sort((a, b) => {
+                const order = ["entries", "invoices", "companies", "vehicles", "users"];
+                return order.indexOf(a.id) - order.indexOf(b.id);
+              })
+              .map((module) => (
+                <Link key={module.id} href={module.path}>
+                  {module.name}
+                </Link>
+              ))}
           </div>
         </div>
       </section>
