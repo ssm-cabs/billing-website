@@ -16,6 +16,36 @@ import {
 } from "@/lib/usersApi";
 import styles from "./users.module.css";
 
+const getPermissionOptions = (moduleId) => {
+  if (moduleId === "revenue") {
+    return [
+      { value: "none", label: "None" },
+      { value: "read", label: "Read" },
+    ];
+  }
+
+  return [
+    { value: "none", label: "None" },
+    { value: "read", label: "Read" },
+    { value: "edit", label: "Edit" },
+  ];
+};
+
+const normalizeModulePermission = (moduleId, permission) => {
+  if (moduleId === "revenue" && permission === "edit") {
+    return "read";
+  }
+  return permission;
+};
+
+const normalizePermissions = (permissions = {}) =>
+  Object.fromEntries(
+    Object.entries(permissions).map(([moduleId, permission]) => [
+      moduleId,
+      normalizeModulePermission(moduleId, permission),
+    ])
+  );
+
 export default function UsersPage() {
   const router = useRouter();
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("users");
@@ -118,7 +148,7 @@ export default function UsersPage() {
       ...prev,
       permissions: {
         ...prev.permissions,
-        [collection]: permission,
+        [collection]: normalizeModulePermission(collection, permission),
       },
     }));
   };
@@ -170,6 +200,7 @@ export default function UsersPage() {
       const dataToSave = {
         ...formData,
         phone: formatPhoneForStorage(formData.phone),
+        permissions: normalizePermissions(formData.permissions),
       };
 
       if (editingId) {
@@ -382,16 +413,21 @@ export default function UsersPage() {
                         {module.icon} {module.name}
                       </span>
                       <select
-                        value={formData.permissions[module.id]}
+                        value={normalizeModulePermission(
+                          module.id,
+                          formData.permissions[module.id]
+                        )}
                         onChange={(e) =>
                           handlePermissionChange(module.id, e.target.value)
                         }
                         className={styles.permissionSelect}
                       >
-                        <option value="none">None</option>
-                        <option value="read">Read</option>
-                        <option value="edit">Edit</option>
-                        </select>
+                        {getPermissionOptions(module.id).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                       </div>
                     )
                   )}
