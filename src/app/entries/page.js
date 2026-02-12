@@ -99,11 +99,13 @@ export default function EntriesPage() {
             Review, filter, and export rides across corporate companies.
           </p>
         </div>
-        <div className={styles.headerActions}>
-          <Link className={styles.primaryCta} href="/entries/new">
-            New Entry
-          </Link>
-        </div>
+        {canEdit && (
+          <div className={styles.headerActions}>
+            <Link className={styles.primaryCta} href="/entries/new">
+              New Entry
+            </Link>
+          </div>
+        )}
       </header>
 
       {!isFirebaseConfigured && (
@@ -178,7 +180,7 @@ export default function EntriesPage() {
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Notes">{entry.notes || "-"}</td>
                   <td data-label="Actions" className={styles.actionsCell}>
-                    {!entry.billed && (
+                    {canEdit && !entry.billed && (
                       <>
                         <Link
                           href={`/entries/${entry.entry_id}/edit`}
