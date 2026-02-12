@@ -221,7 +221,7 @@ export default function DashboardPage() {
           <div className={styles.actions}>
             {MODULES.filter((module) => canViewCollection(module.id))
               .sort((a, b) => {
-                const order = ["entries", "invoices", "companies", "vehicles", "users"];
+                const order = ["entries", "revenue", "invoices", "companies", "vehicles", "users"];
                 return order.indexOf(a.id) - order.indexOf(b.id);
               })
               .map((module) => (

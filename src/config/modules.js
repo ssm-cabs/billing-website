@@ -5,6 +5,12 @@
 
 export const MODULES = [
   {
+    id: "revenue",
+    name: "Revenue",
+    description: "View monthly revenue dashboard",
+    path: "/revenue",
+  },
+  {
     id: "invoices",
     name: "Invoices",
     description: "View and generate invoices",

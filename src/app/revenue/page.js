@@ -7,6 +7,7 @@ import MonthPicker from "../entries/MonthPicker";
 import { fetchCompanies, fetchEntries, isFirebaseConfigured } from "@/lib/api";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
+import { usePermissions } from "@/lib/usePermissions";
 import styles from "./revenue.module.css";
 
 const getMonthValue = () => {
@@ -36,6 +37,7 @@ const getMonthMeta = (monthValue) => {
 
 export default function RevenuePage() {
   const router = useRouter();
+  const { canView, loading: permissionsLoading } = usePermissions("revenue");
   const [month, setMonth] = useState(getMonthValue);
   const [entries, setEntries] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -65,7 +67,7 @@ export default function RevenuePage() {
   }, [router]);
 
   useEffect(() => {
-    if (!isAuthenticated || isLoading) return;
+    if (!isAuthenticated || isLoading || permissionsLoading || !canView) return;
 
     const loadEntries = async () => {
       setStatus("loading");
@@ -85,7 +87,7 @@ export default function RevenuePage() {
     };
 
     loadEntries();
-  }, [month, isAuthenticated, isLoading]);
+  }, [month, isAuthenticated, isLoading, permissionsLoading, canView]);
 
   const revenueStats = useMemo(() => {
     const { year, month: monthNumber, totalDays } = getMonthMeta(month);
@@ -226,6 +228,20 @@ export default function RevenuePage() {
   }
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  if (permissionsLoading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ textAlign: "center", padding: "40px" }}>
+          <p>Loading permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canView) {
     return null;
   }
 
