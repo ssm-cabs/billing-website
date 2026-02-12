@@ -9,35 +9,30 @@ export const MODULES = [
     name: "Invoices",
     description: "View and generate invoices",
     path: "/invoices",
-    icon: "📄",
   },
   {
     id: "companies",
     name: "Companies",
     description: "Manage corporate clients",
     path: "/companies",
-    icon: "🏢",
   },
   {
     id: "entries",
     name: "Entries",
     description: "Manage ride entries",
     path: "/entries",
-    icon: "📝",
   },
   {
     id: "vehicles",
     name: "Vehicles",
     description: "Manage fleet vehicles",
     path: "/vehicles",
-    icon: "🚗",
   },
   {
     id: "users",
     name: "Users",
     description: "Manage system users",
     path: "/users",
-    icon: "👥",
   },
 ];
 
