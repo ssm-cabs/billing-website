@@ -50,15 +50,26 @@ export function setupRecaptcha(containerId) {
     throw new Error("Firebase Auth not initialized");
   }
 
-  return new RecaptchaVerifier(auth, containerId, {
-    size: "invisible",
-    callback: () => {
-      // reCAPTCHA solved, callback not needed
-    },
-    "expired-callback": () => {
-      console.warn("reCAPTCHA expired");
-    },
-  });
+  try {
+    const verifier = new RecaptchaVerifier(auth, containerId, {
+      size: "invisible",
+      callback: (token) => {
+        console.debug("reCAPTCHA verification succeeded");
+      },
+      "expired-callback": () => {
+        console.warn("reCAPTCHA expired");
+      },
+      "error-callback": (error) => {
+        console.error("reCAPTCHA error:", error);
+      },
+    });
+    return verifier;
+  } catch (error) {
+    console.error("Failed to create reCAPTCHA verifier:", error);
+    throw new Error(
+      `reCAPTCHA setup failed: ${error.message}. Ensure reCAPTCHA is configured in Firebase Console.`
+    );
+  }
 }
 
 /**

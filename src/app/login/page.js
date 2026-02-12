@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
 import {
@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
-  const [recaptchaVerifier, setRecaptchaVerifier] = useState(null);
+  const recaptchaVerifierRef = useRef(null);
 
   // Check if user is already logged in
   useEffect(() => {
@@ -29,19 +29,46 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  // Initialize reCAPTCHA
+  // Initialize reCAPTCHA - run once on mount
   useEffect(() => {
-    try {
-      const verifier = setupRecaptcha("recaptcha-container");
-      setRecaptchaVerifier(verifier);
-    } catch (err) {
-      console.error("Failed to setup reCAPTCHA:", err);
-      setError("Failed to initialize security verification. Please refresh.");
-    }
+    const initRecaptcha = () => {
+      // Check if container exists
+      const container = document.getElementById("recaptcha-container");
+      if (!container) {
+        setTimeout(initRecaptcha, 100);
+        return;
+      }
+
+      try {
+        // Clear any existing verifier
+        if (recaptchaVerifierRef.current) {
+          try {
+            recaptchaVerifierRef.current.clear();
+          } catch (e) {
+            console.warn("Error clearing existing verifier:", e);
+          }
+        }
+
+        const verifier = setupRecaptcha("recaptcha-container");
+        recaptchaVerifierRef.current = verifier;
+      } catch (err) {
+        console.error("Failed to setup reCAPTCHA:", err);
+        setError(
+          "Security verification failed to load. Please refresh the page. Error: " +
+            err.message
+        );
+      }
+    };
+
+    initRecaptcha();
 
     return () => {
-      if (recaptchaVerifier) {
-        recaptchaVerifier.clear();
+      if (recaptchaVerifierRef.current) {
+        try {
+          recaptchaVerifierRef.current.clear();
+        } catch (e) {
+          console.warn("Error clearing verifier on unmount:", e);
+        }
       }
     };
   }, []);
@@ -64,6 +91,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Check if verifier is ready
+      if (!recaptchaVerifierRef.current) {
+        setError("Security verification not ready. Please refresh and try again.");
+        setLoading(false);
+        return;
+      }
+
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
       // Validate phone number format
@@ -86,7 +120,7 @@ export default function LoginPage() {
       // Send OTP
       const confirmation = await sendOTP(
         formattedPhone,
-        recaptchaVerifier
+        recaptchaVerifierRef.current
       );
       setConfirmationResult(confirmation);
       setStep("otp");
@@ -95,11 +129,24 @@ export default function LoginPage() {
       if (err.code === "auth/invalid-phone-number") {
         setError("Invalid phone number format");
       } else if (err.code === "auth/too-many-requests") {
+        setError("Too many attempts. Please try again later.");
+      } else if (err.code === "auth/invalid-api-key") {
+        setError("Firebase configuration error. Please contact support.");
+      } else if (err.code === "auth/invalid-app-credential") {
         setError(
-          "Too many attempts. Please try again later."
+          "Security verification failed. Please refresh the page and try again."
         );
       } else {
         setError(err.message || "Failed to send OTP. Please try again.");
+      }
+      // Reset reCAPTCHA on error
+      if (recaptchaVerifierRef.current) {
+        try {
+          recaptchaVerifierRef.current.clear();
+          recaptchaVerifierRef.current = null;
+        } catch (e) {
+          console.warn("Error resetting verifier:", e);
+        }
       }
     } finally {
       setLoading(false);
