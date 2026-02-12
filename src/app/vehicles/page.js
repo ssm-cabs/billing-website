@@ -117,9 +117,9 @@ export default function VehiclesPage() {
             >
               <option value="">Select cab type</option>
               <option value="Sedan">Sedan</option>
+              <option value="Premium Sedan">Premium Sedan</option>
               <option value="SUV">SUV</option>
-              <option value="Tempo Traveller">Tempo Traveller</option>
-              <option value="Other">Other</option>
+              <option value="Premium SUV">Premium SUV</option>
             </select>
           </label>
           <label className={styles.field}>
