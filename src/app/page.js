@@ -114,7 +114,7 @@ export default function Home() {
               <div className={styles.panelRow}>
                 <div>
                   <p className={styles.panelTitle}>Umbrella</p>
-                  <p className={styles.panelMeta}>Tempo Traveller · 12hr</p>
+                  <p className={styles.panelMeta}>Premium SUV · 12hr</p>
                 </div>
                 <span className={styles.panelValue}>₹ 5,800</span>
               </div>
@@ -195,7 +195,7 @@ export default function Home() {
             </div>
             <div>
               <h3>Cab types</h3>
-              <p>Sedan, SUV, tempo traveller, and any fleet variant you add.</p>
+              <p>Sedan, Premium Sedan, SUV, and Premium SUV.</p>
             </div>
             <div>
               <h3>Smart rate lookup</h3>
