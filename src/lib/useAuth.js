@@ -19,7 +19,9 @@ export function useAuth(options = {}) {
 
   const checkAuth = useCallback(async () => {
     try {
-      const currentUser = getCurrentUser();
+      // Wait for Firebase auth to initialize
+      const { waitForAuthInit } = await import("./phoneAuth");
+      const currentUser = await waitForAuthInit();
 
       if (!currentUser) {
         setIsAuthenticated(false);

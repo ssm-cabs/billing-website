@@ -49,15 +49,22 @@ export default function DashboardPage() {
   useSessionTimeout();
 
   useEffect(() => {
-    // Check authentication on mount
-    const user = getCurrentUser();
-    if (!user) {
-      setIsAuthenticated(false);
-      router.push("/login");
-      return;
-    }
-    setIsAuthenticated(true);
-    setIsLoading(false);
+    // Check authentication on mount - wait for Firebase auth to initialize
+    const checkAuth = async () => {
+      const { waitForAuthInit } = await import("@/lib/phoneAuth");
+      const user = await waitForAuthInit();
+      
+      if (!user) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        router.push("/login");
+        return;
+      }
+      setIsAuthenticated(true);
+      setIsLoading(false);
+    };
+    
+    checkAuth();
   }, [router]);
 
   useEffect(() => {

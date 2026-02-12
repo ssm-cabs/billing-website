@@ -10,6 +10,7 @@ import {
   verifyOTP,
   getCurrentUser,
   signOutUser,
+  waitForAuthInit,
 } from "@/lib/phoneAuth";
 import { setTokenExpiry } from "@/lib/useSessionTimeout";
 
@@ -25,10 +26,13 @@ export default function LoginPage() {
 
   // Check if user is already logged in
   useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      router.push("/dashboard");
-    }
+    const checkExistingAuth = async () => {
+      const user = await waitForAuthInit();
+      if (user) {
+        router.push("/dashboard");
+      }
+    };
+    checkExistingAuth();
   }, [router]);
 
   // Initialize reCAPTCHA - run once on mount

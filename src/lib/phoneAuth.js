@@ -1,9 +1,42 @@
 import {
   signInWithPhoneNumber,
   RecaptchaVerifier,
+  onAuthStateChanged,
 } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+
+// Track auth state initialization
+let authStateInitialized = false;
+let authStatePromise = null;
+
+/**
+ * Wait for Firebase auth state to initialize
+ * @returns {Promise<User|null>}
+ */
+export function waitForAuthInit() {
+  if (authStateInitialized) {
+    return Promise.resolve(auth?.currentUser || null);
+  }
+
+  if (!authStatePromise) {
+    authStatePromise = new Promise((resolve) => {
+      if (!auth) {
+        authStateInitialized = true;
+        resolve(null);
+        return;
+      }
+
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        authStateInitialized = true;
+        unsubscribe();
+        resolve(user);
+      });
+    });
+  }
+
+  return authStatePromise;
+}
 
 /**
  * Verify if a phone number exists in the authorized users database
