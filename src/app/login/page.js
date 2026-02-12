@@ -218,7 +218,6 @@ export default function LoginPage() {
       <div className={styles.card}>
         <div className={styles.header}>
           <h1>SSM Cabs Billing</h1>
-          <p>Driver Management System</p>
         </div>
 
         <div id="recaptcha-container" className={styles.recaptchaContainer} />
