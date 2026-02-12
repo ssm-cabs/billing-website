@@ -43,7 +43,7 @@ export default function Home() {
           </a>
         </div>
         <div className={styles.navActions}>
-          <Link className={styles.navCta} href="/dashboard">
+          <Link className={styles.navCta} href="/login">
             Login
           </Link>
           <button
