@@ -273,6 +273,61 @@
   overflow-y: auto;
 }
 
+.confirmModal {
+  padding: 24px;
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e1916;
+  margin: 0 0 8px;
+}
+
+.modalSubtitle {
+  font-size: 14px;
+  color: var(--page-muted);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modalActions button {
+  flex: 1;
+  max-width: 180px;
+}
+
+.secondaryButton {
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: #efe3d5;
+  color: #5e534c;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.primaryButton {
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: #1e1916;
+  color: #fff;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
 .modalHeader {
   display: flex;
   justify-content: space-between;

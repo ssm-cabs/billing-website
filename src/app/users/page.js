@@ -26,6 +26,8 @@ export default function UsersPage() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState({ id: null, name: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     phone: "",
@@ -189,14 +191,18 @@ export default function UsersPage() {
     }
   };
 
-  const handleDelete = async (userId, userName) => {
-    if (!confirm(`Delete user "${userName}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDelete = (userId, userName) => {
+    setDeleteTarget({ id: userId, name: userName });
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget.id) return;
     try {
-      await deleteUser(userId);
-      setUsers(users.filter((u) => u.id !== userId));
+      await deleteUser(deleteTarget.id);
+      setUsers(users.filter((u) => u.id !== deleteTarget.id));
+      setShowDeleteConfirm(false);
+      setDeleteTarget({ id: null, name: "" });
     } catch (err) {
       console.error("Error deleting user:", err);
       alert("Failed to delete user");
@@ -436,6 +442,34 @@ export default function UsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className={styles.modalOverlay} onClick={() => setShowDeleteConfirm(false)}>
+          <div
+            className={`${styles.modal} ${styles.confirmModal}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className={styles.modalTitle}>Delete User</h3>
+            <p className={styles.modalSubtitle}>
+              Are you sure you want to delete {deleteTarget.name || "this user"}? This action cannot be undone.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                onClick={confirmDelete}
+              >
+                Delete User
+              </button>
+            </div>
           </div>
         </div>
       )}
