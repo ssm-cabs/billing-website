@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
@@ -231,6 +232,9 @@ export default function UsersPage() {
 
       <header className={styles.header}>
         <div>
+          <Link className={styles.backLink} href="/dashboard">
+            ← Back
+          </Link>
           <p className={styles.eyebrow}>Users</p>
           <h1>Manage Users</h1>
           <p className={styles.lead}>
