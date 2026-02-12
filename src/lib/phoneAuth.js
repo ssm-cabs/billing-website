@@ -12,7 +12,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
  */
 export async function isUserAuthorized(phoneNumber) {
   try {
-    const usersRef = collection(db, "authorized_users");
+    const usersRef = collection(db, "users");
     const q = query(usersRef, where("phone", "==", phoneNumber));
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
@@ -29,7 +29,7 @@ export async function isUserAuthorized(phoneNumber) {
  */
 export async function getUserData(phoneNumber) {
   try {
-    const usersRef = collection(db, "authorized_users");
+    const usersRef = collection(db, "users");
     const q = query(usersRef, where("phone", "==", phoneNumber));
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) return null;
