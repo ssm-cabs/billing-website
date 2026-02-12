@@ -28,6 +28,12 @@ const getMonthLabel = (monthValue) => {
   return date.toLocaleString("en-IN", { month: "long", year: "numeric" });
 };
 
+const getMonthMeta = (monthValue) => {
+  const [year, month] = monthValue.split("-").map(Number);
+  const totalDays = new Date(year, month, 0).getDate();
+  return { year, month, totalDays };
+};
+
 export default function RevenuePage() {
   const router = useRouter();
   const [month, setMonth] = useState(getMonthValue);
@@ -77,11 +83,20 @@ export default function RevenuePage() {
   }, [month, isAuthenticated, isLoading]);
 
   const revenueStats = useMemo(() => {
+    const { year, month: monthNumber, totalDays } = getMonthMeta(month);
+    const today = new Date();
+    const isCurrentMonth =
+      today.getFullYear() === year && today.getMonth() + 1 === monthNumber;
+    const daysElapsed = isCurrentMonth ? today.getDate() : totalDays;
+
     if (!entries.length) {
       return {
         totalRevenue: 0,
         totalEntries: 0,
         averageRate: 0,
+        projectedRevenue: 0,
+        daysElapsed,
+        totalDays,
         topCompany: "-",
       };
     }
@@ -101,13 +116,21 @@ export default function RevenuePage() {
 
     const topCompany = Object.entries(revenueByCompany).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
 
+    const projectedRevenue =
+      totalRevenue > 0
+        ? (totalRevenue / Math.max(1, daysElapsed)) * totalDays
+        : 0;
+
     return {
       totalRevenue,
       totalEntries,
       averageRate,
+      projectedRevenue,
+      daysElapsed,
+      totalDays,
       topCompany,
     };
-  }, [entries]);
+  }, [entries, month]);
 
   const companyBreakdown = useMemo(() => {
     const map = entries.reduce((acc, entry) => {
@@ -122,6 +145,58 @@ export default function RevenuePage() {
 
     return Object.values(map).sort((a, b) => b.revenue - a.revenue);
   }, [entries]);
+
+  const dailyRevenue = useMemo(() => {
+    const { year, month: monthNumber, totalDays } = getMonthMeta(month);
+    const today = new Date();
+    const isCurrentMonth =
+      today.getFullYear() === year && today.getMonth() + 1 === monthNumber;
+    const daysElapsed = isCurrentMonth ? today.getDate() : totalDays;
+    const totals = Array.from({ length: totalDays }, () => 0);
+
+    entries.forEach((entry) => {
+      if (!entry.entry_date) return;
+      const parts = entry.entry_date.split("-");
+      if (parts.length !== 3) return;
+      const dayIndex = Number(parts[2]) - 1;
+      if (Number.isNaN(dayIndex) || dayIndex < 0 || dayIndex >= totalDays) return;
+      totals[dayIndex] += Number(entry.rate) || 0;
+    });
+
+    const totalRevenue = totals.reduce((sum, value) => sum + value, 0);
+    const projectedPerDay =
+      totalRevenue > 0 ? totalRevenue / Math.max(1, daysElapsed) : 0;
+    const maxValue = Math.max(...totals, projectedPerDay, 1);
+    const peakValue = Math.max(...totals, 0);
+    const peakDay = totals.findIndex((value) => value === peakValue) + 1;
+    const yTicks = [1, 0.75, 0.5, 0.25, 0].map((factor) => Math.round(maxValue * factor));
+    const bars = totals.map((value, index) => {
+      const day = index + 1;
+      const date = new Date(year, monthNumber - 1, day);
+      const weekday = date.toLocaleDateString("en-IN", { weekday: "short" });
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const heightPercent = (value / maxValue) * 100;
+      return {
+        day,
+        weekday,
+        value,
+        isWeekend,
+        heightPercent,
+      };
+    });
+
+    return {
+      totals,
+      maxValue,
+      bars,
+      yTicks,
+      peakDay,
+      peakValue,
+      projectedPerDay,
+      daysElapsed,
+      totalDays,
+    };
+  }, [entries, month]);
 
   if (isLoading) {
     return (
@@ -179,6 +254,13 @@ export default function RevenuePage() {
           <span>{getMonthLabel(month)}</span>
         </div>
         <div className={styles.card}>
+          <p>Projected revenue</p>
+          <h2>{formatCurrency(revenueStats.projectedRevenue)}</h2>
+          <span>
+            {revenueStats.daysElapsed} of {revenueStats.totalDays} days
+          </span>
+        </div>
+        <div className={styles.card}>
           <p>Average rate</p>
           <h2>{formatCurrency(revenueStats.averageRate)}</h2>
           <span>Per ride</span>
@@ -190,7 +272,59 @@ export default function RevenuePage() {
         </div>
       </section>
 
-      <section className={styles.grid}>
+      <section className={styles.chartSection}>
+        <div className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h3>Daily revenue trend</h3>
+            <span>{getMonthLabel(month)}</span>
+          </div>
+          {status === "error" && <p className={styles.error}>{error}</p>}
+          {status === "success" && entries.length === 0 && (
+            <p>No entries found for this month.</p>
+          )}
+          {dailyRevenue.totals.length > 0 && (
+            <div className={styles.chartWrap}>
+              <div className={styles.chartFrame}>
+                <div className={styles.yAxis}>
+                  {dailyRevenue.yTicks.map((tick, index) => (
+                    <span key={`${tick}-${index}`}>{formatCurrency(tick)}</span>
+                  ))}
+                </div>
+                <div className={styles.barsWrap}>
+                  <div className={styles.barGrid} aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className={styles.chartBars}>
+                    {dailyRevenue.bars.map((bar) => (
+                      <div key={bar.day} className={styles.barCol}>
+                        <div
+                          className={`${styles.bar} ${
+                            bar.isWeekend ? styles.barWeekend : ""
+                          }`}
+                          style={{ height: `${bar.heightPercent}%` }}
+                          title={`${bar.weekday}, Day ${bar.day}: ${formatCurrency(bar.value)}`}
+                        />
+                        <span className={styles.barDay}>{bar.day}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className={styles.chartMeta}>
+                <span>
+                  Peak day: Day {dailyRevenue.peakDay} ({formatCurrency(dailyRevenue.peakValue)})
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className={styles.chartSection}>
         <div className={styles.panel}>
           <div className={styles.panelHeader}>
             <h3>Company revenue</h3>
@@ -218,32 +352,6 @@ export default function RevenuePage() {
               ))}
             </div>
           )}
-        </div>
-
-        <div className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <h3>Revenue checklist</h3>
-          </div>
-          <div className={styles.checklist}>
-            <div>
-              <p className={styles.checkTitle}>Validate entries</p>
-              <p className={styles.checkCopy}>
-                Make sure all rides for {getMonthLabel(month)} are captured.
-              </p>
-            </div>
-            <div>
-              <p className={styles.checkTitle}>Review top clients</p>
-              <p className={styles.checkCopy}>
-                Compare company totals against targets and contracts.
-              </p>
-            </div>
-            <div>
-              <p className={styles.checkTitle}>Prep invoices</p>
-              <p className={styles.checkCopy}>
-                Move the month forward once entries look complete.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
     </div>
