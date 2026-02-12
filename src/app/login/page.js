@@ -9,6 +9,7 @@ import {
   sendOTP,
   verifyOTP,
   getCurrentUser,
+  signOutUser,
 } from "@/lib/phoneAuth";
 
 export default function LoginPage() {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser } from "./phoneAuth";
+import { getCurrentUser, getUserData } from "./phoneAuth";
 
 /**
  * Hook to protect pages - redirects to login if not authenticated
@@ -36,9 +36,8 @@ export function useAuth(options = {}) {
       // Optional: Fetch user data from Firestore
       if (currentUser.phoneNumber) {
         try {
-          const response = await fetch(`/api/auth/user-data?phone=${encodeURIComponent(currentUser.phoneNumber)}`);
-          if (response.ok) {
-            const data = await response.json();
+          const data = await getUserData(currentUser.phoneNumber);
+          if (data) {
             setUserData(data);
 
             // Check admin requirement
