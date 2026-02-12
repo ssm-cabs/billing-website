@@ -23,9 +23,21 @@ const initialState = {
   drop_location: "",
   vehicle_number: "",
   cab_type: "",
-  driver_name: "",
+  user_name: "",
   rate: 0,
   notes: "",
+};
+
+const getLoggedInUserName = () => {
+  if (typeof window === "undefined") return "";
+  try {
+    const stored = localStorage.getItem("user_data");
+    if (!stored) return "";
+    const userData = JSON.parse(stored);
+    return userData?.name || userData?.phone || "";
+  } catch (error) {
+    return "";
+  }
 };
 
 export default function ClientEditEntryPage({ id }) {
@@ -65,7 +77,7 @@ export default function ClientEditEntryPage({ id }) {
           drop_location: entry.drop_location || "",
           vehicle_number: entry.vehicle_number || "",
           cab_type: entry.cab_type || "",
-          driver_name: entry.driver_name || "",
+          user_name: entry.user_name || "",
           rate: entry.rate || 0,
           notes: entry.notes || "",
         });
@@ -136,6 +148,14 @@ export default function ClientEditEntryPage({ id }) {
   }, [form.company_name, companies]);
 
   useEffect(() => {
+    if (loadingEntry) return;
+    const loggedInName = getLoggedInUserName();
+    if (loggedInName) {
+      setForm((prev) => ({ ...prev, user_name: loggedInName }));
+    }
+  }, [loadingEntry]);
+
+  useEffect(() => {
     const selectedVehicle = vehicles.find(
       (v) => v.vehicle_number === form.vehicle_number
     );
@@ -146,7 +166,6 @@ export default function ClientEditEntryPage({ id }) {
     setForm((prev) => ({
       ...prev,
       cab_type: selectedVehicle?.cab_type || "",
-      driver_name: selectedVehicle?.driver_name || "",
       rate: matchingPrice?.rate || 0,
     }));
   }, [form.vehicle_number, form.slot, pricing, vehicles]);
@@ -166,7 +185,11 @@ export default function ClientEditEntryPage({ id }) {
     setMessage("");
 
     try {
-      await updateEntry(id, form);
+      const loggedInName = getLoggedInUserName();
+      await updateEntry(id, {
+        ...form,
+        user_name: loggedInName || form.user_name,
+      });
       setStatus("success");
       setMessage(
         isFirebaseConfigured ? "Entry updated." : "Demo mode: entry prepared."

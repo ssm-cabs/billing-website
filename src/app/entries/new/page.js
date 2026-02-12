@@ -23,6 +23,18 @@ const getToday = () => {
   return `${year}-${month}-${day}`;
 };
 
+const getLoggedInUserName = () => {
+  if (typeof window === "undefined") return "";
+  try {
+    const stored = localStorage.getItem("user_data");
+    if (!stored) return "";
+    const userData = JSON.parse(stored);
+    return userData?.name || userData?.phone || "";
+  } catch (error) {
+    return "";
+  }
+};
+
 const initialState = {
   entry_date: getToday(),
   company_name: "",
@@ -31,7 +43,7 @@ const initialState = {
   drop_location: "",
   vehicle_number: "",
   cab_type: "",
-  driver_name: "",
+  user_name: "",
   rate: 0,
   notes: "",
 };
@@ -105,6 +117,13 @@ export default function NewEntryPage() {
   }, [form.company_name, companies]);
 
   useEffect(() => {
+    const loggedInName = getLoggedInUserName();
+    if (loggedInName) {
+      setForm((prev) => ({ ...prev, user_name: loggedInName }));
+    }
+  }, []);
+
+  useEffect(() => {
     const selectedVehicle = vehicles.find(
       (v) => v.vehicle_number === form.vehicle_number
     );
@@ -115,7 +134,6 @@ export default function NewEntryPage() {
     setForm((prev) => ({
       ...prev,
       cab_type: selectedVehicle?.cab_type || "",
-      driver_name: selectedVehicle?.driver_name || "",
       rate: matchingPrice?.rate || 0,
     }));
   }, [form.vehicle_number, form.slot, pricing, vehicles]);
@@ -135,12 +153,20 @@ export default function NewEntryPage() {
     setMessage("");
 
     try {
-      await createEntry(form);
+      const loggedInName = getLoggedInUserName();
+      await createEntry({
+        ...form,
+        user_name: loggedInName || form.user_name,
+      });
       setStatus("success");
       setMessage(
         isFirebaseConfigured ? "Entry saved." : "Demo mode: entry prepared."
       );
-      setForm({ ...initialState, entry_date: getToday() });
+      setForm({
+        ...initialState,
+        entry_date: getToday(),
+        user_name: loggedInName || "",
+      });
       // Redirect to /entries after 1 second
       setTimeout(() => {
         router.push("/entries");

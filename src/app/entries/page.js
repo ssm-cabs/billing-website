@@ -157,7 +157,7 @@ export default function EntriesPage() {
                 <th>Slot</th>
                 <th>Rate</th>
                 <th>Route</th>
-                <th>Driver</th>
+                <th>User</th>
                 <th>Vehicle</th>
                 <th>Notes</th>
                 <th>Actions</th>
@@ -176,7 +176,7 @@ export default function EntriesPage() {
                   <td data-label="Route">
                     {`${entry.pickup_location} → ${entry.drop_location}`}
                   </td>
-                  <td data-label="Driver">{entry.driver_name}</td>
+                  <td data-label="User">{entry.user_name || entry.driver_name || "-"}</td>
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Notes">{entry.notes || "-"}</td>
                   <td data-label="Actions" className={styles.actionsCell}>
