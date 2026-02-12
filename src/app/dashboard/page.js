@@ -11,6 +11,7 @@ import {
   isFirebaseConfigured,
 } from "@/lib/api";
 import { getCurrentUser } from "@/lib/phoneAuth";
+import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import styles from "./dashboard.module.css";
 
@@ -43,6 +44,9 @@ export default function DashboardPage() {
   const [status, setStatus] = useState("idle");
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Check session timeout - auto logout after 24 hours
+  useSessionTimeout();
 
   useEffect(() => {
     // Check authentication on mount

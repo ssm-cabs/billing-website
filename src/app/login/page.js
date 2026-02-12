@@ -11,6 +11,7 @@ import {
   getCurrentUser,
   signOutUser,
 } from "@/lib/phoneAuth";
+import { setTokenExpiry } from "@/lib/useSessionTimeout";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -167,6 +168,10 @@ export default function LoginPage() {
       }
 
       await verifyOTP(confirmationResult, otp);
+      
+      // Set token expiry for 24-hour timeout
+      setTokenExpiry();
+      
       // Redirect to dashboard on successful verification
       router.push("/dashboard");
     } catch (err) {
