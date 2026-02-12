@@ -82,9 +82,9 @@ export function withAuth(Component, options = {}) {
       return (
         <div style={{
           display: "flex",
-          align-items: "center",
-          justify-content: "center",
-          min-height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
         }}>
           <p>Loading...</p>
         </div>
