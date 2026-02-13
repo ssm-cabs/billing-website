@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import CustomDropdown from "../entries/CustomDropdown";
 import { createVehicle, fetchVehicles, isFirebaseConfigured } from "@/lib/api";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./vehicles.module.css";
@@ -15,6 +16,19 @@ const initialState = {
   driver_phone: "",
   notes: "",
 };
+
+const cabTypeOptions = [
+  { label: "Sedan", value: "Sedan" },
+  { label: "Premium Sedan", value: "Premium Sedan" },
+  { label: "SUV", value: "SUV" },
+  { label: "Premium SUV", value: "Premium SUV" },
+];
+
+const vehicleStatusOptions = [
+  { label: "Active", value: "active" },
+  { label: "Inactive", value: "inactive" },
+  { label: "Maintenance", value: "maintenance" },
+];
 
 export default function VehiclesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("vehicles");
@@ -56,6 +70,11 @@ export default function VehiclesPage() {
     
     setMessage("");
     setError("");
+
+    if (!form.cab_type) {
+      setError("Cab type is required");
+      return;
+    }
 
     const payload = {
       ...form,
@@ -126,18 +145,16 @@ export default function VehiclesPage() {
           </label>
           <label className={styles.field}>
             Cab type
-            <select
-              name="cab_type"
+            <CustomDropdown
+              options={cabTypeOptions}
               value={form.cab_type}
-              onChange={updateField}
-              required
-            >
-              <option value="">Select cab type</option>
-              <option value="Sedan">Sedan</option>
-              <option value="Premium Sedan">Premium Sedan</option>
-              <option value="SUV">SUV</option>
-              <option value="Premium SUV">Premium SUV</option>
-            </select>
+              onChange={(value) =>
+                setForm((prev) => ({ ...prev, cab_type: value }))
+              }
+              getLabel={(option) => option.label}
+              getValue={(option) => option.value}
+              placeholder="Select cab type"
+            />
           </label>
           <label className={styles.field}>
             Capacity
@@ -152,11 +169,14 @@ export default function VehiclesPage() {
           </label>
           <label className={styles.field}>
             Status
-            <select name="status" value={form.status} onChange={updateField}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="maintenance">Maintenance</option>
-            </select>
+            <CustomDropdown
+              options={vehicleStatusOptions}
+              value={form.status}
+              onChange={(value) => setForm((prev) => ({ ...prev, status: value }))}
+              getLabel={(option) => option.label}
+              getValue={(option) => option.value}
+              placeholder="Select status"
+            />
           </label>
           <label className={styles.field}>
             Driver name

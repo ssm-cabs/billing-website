@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import CustomDropdown from "../entries/CustomDropdown";
 import { getCurrentUser, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
@@ -412,22 +413,20 @@ export default function UsersPage() {
                       <span className={styles.permissionLabel}>
                         {module.icon} {module.name}
                       </span>
-                      <select
+                      <CustomDropdown
+                        options={getPermissionOptions(module.id)}
                         value={normalizeModulePermission(
                           module.id,
                           formData.permissions[module.id]
                         )}
-                        onChange={(e) =>
-                          handlePermissionChange(module.id, e.target.value)
+                        onChange={(value) =>
+                          handlePermissionChange(module.id, value)
                         }
-                        className={styles.permissionSelect}
-                      >
-                        {getPermissionOptions(module.id).map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        getLabel={(option) => option.label}
+                        getValue={(option) => option.value}
+                        buttonClassName={styles.permissionSelect}
+                        placeholder="Select permission"
+                      />
                       </div>
                     )
                   )}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import MonthPicker from "@/app/entries/MonthPicker";
+import CustomDropdown from "@/app/entries/CustomDropdown";
 import { usePermissions } from "@/lib/usePermissions";
 import {
   fetchCompanies,
@@ -32,6 +33,12 @@ const OUR_COMPANY = {
   email: "accounts@ssmcabs.com",
   bank_details: "Account: 000111222333 | SBI | IFSC: SBIN0001234",
 };
+
+const getCompanyOptions = (companies) =>
+  companies.map((company) => ({
+    label: company.name,
+    value: company.company_id,
+  }));
 
 export default function InvoicePage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("invoices");
@@ -300,17 +307,14 @@ export default function InvoicePage() {
 
           <label className={styles.field}>
             Company
-            <select
+            <CustomDropdown
+              options={getCompanyOptions(companies)}
               value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
-            >
-              <option value="">Select a company</option>
-              {companies.map((company) => (
-                <option key={company.company_id} value={company.company_id}>
-                  {company.name}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedCompany}
+              getLabel={(option) => option.label}
+              getValue={(option) => option.value}
+              placeholder="Select a company"
+            />
           </label>
 
           <label className={styles.field}>

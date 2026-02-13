@@ -1,8 +1,7 @@
 import ClientEditEntryPage from "./client";
 
-export default async function EditEntryPage({ searchParams }) {
-  const params = await searchParams;
-  const id = typeof params?.id === "string" ? params.id : "";
+export default function EditEntryPage({ searchParams }) {
+  const id = typeof searchParams?.id === "string" ? searchParams.id : "";
 
   return <ClientEditEntryPage id={id} />;
 }

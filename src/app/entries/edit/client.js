@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import DatePicker from "../DatePicker";
+import CustomDropdown from "../CustomDropdown";
 import {
   fetchEntryById,
   updateEntry,
@@ -27,6 +28,12 @@ const initialState = {
   rate: 0,
   notes: "",
 };
+
+const slotOptions = [
+  { label: "4hr", value: "4hr" },
+  { label: "6hr", value: "6hr" },
+  { label: "12hr", value: "12hr" },
+];
 
 const getLoggedInUserName = () => {
   if (typeof window === "undefined") return "";
@@ -286,20 +293,17 @@ export default function ClientEditEntryPage({ id }) {
         </label>
         <label className={styles.field}>
           Company
-          <select
-            name="company_name"
+          <CustomDropdown
+            options={companies}
             value={form.company_name}
-            onChange={updateField}
+            onChange={(value) =>
+              setForm((prev) => ({ ...prev, company_name: value }))
+            }
             disabled
-            required
-          >
-            <option value="">Select company</option>
-            {companies.map((company) => (
-              <option key={company.company_id} value={company.name}>
-                {company.name}
-              </option>
-            ))}
-          </select>
+            getLabel={(company) => company.name}
+            getValue={(company) => company.name}
+            placeholder="Select company"
+          />
           {companyStatus === "loading" && (
             <span className={styles.helper}>Loading companies...</span>
           )}
@@ -311,21 +315,18 @@ export default function ClientEditEntryPage({ id }) {
         </label>
         <label className={styles.field}>
           Vehicle
-          <select
-            name="vehicle_number"
+          <CustomDropdown
+            options={vehicles}
             value={form.vehicle_number}
-            onChange={updateField}
-          >
-            <option value="">Select vehicle</option>
-            {vehicles.map((vehicle) => (
-              <option
-                key={vehicle.vehicle_id}
-                value={vehicle.vehicle_number}
-              >
-                {vehicle.vehicle_number} · {vehicle.driver_name || "Driver"} · {vehicle.cab_type}
-              </option>
-            ))}
-          </select>
+            onChange={(value) =>
+              setForm((prev) => ({ ...prev, vehicle_number: value }))
+            }
+            getLabel={(vehicle) =>
+              `${vehicle.vehicle_number} · ${vehicle.driver_name || "Driver"} · ${vehicle.cab_type}`
+            }
+            getValue={(vehicle) => vehicle.vehicle_number}
+            placeholder="Select vehicle"
+          />
           {vehicleStatus === "loading" && (
             <span className={styles.helper}>Loading vehicles...</span>
           )}
@@ -348,17 +349,14 @@ export default function ClientEditEntryPage({ id }) {
         )}
         <label className={styles.field}>
           Slot
-          <select
-            name="slot"
+          <CustomDropdown
+            options={slotOptions}
             value={form.slot}
-            onChange={updateField}
-            required
-          >
-            <option value="">Select slot</option>
-            <option value="4hr">4hr</option>
-            <option value="6hr">6hr</option>
-            <option value="12hr">12hr</option>
-          </select>
+            onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
+            getLabel={(option) => option.label}
+            getValue={(option) => option.value}
+            placeholder="Select slot"
+          />
         </label>
         {form.vehicle_number && form.slot && (
           <label className={styles.field}>

@@ -35,6 +35,19 @@ const billingCycleOptions = [
   { label: "Daily", value: "daily" },
 ];
 
+const cabTypeOptions = [
+  { label: "Sedan", value: "Sedan" },
+  { label: "Premium Sedan", value: "Premium Sedan" },
+  { label: "SUV", value: "SUV" },
+  { label: "Premium SUV", value: "Premium SUV" },
+];
+
+const slotOptions = [
+  { label: "4hr", value: "4hr" },
+  { label: "6hr", value: "6hr" },
+  { label: "12hr", value: "12hr" },
+];
+
 export default function CompaniesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("companies");
   const [companies, setCompanies] = useState([]);
@@ -75,6 +88,16 @@ export default function CompaniesPage() {
 
   const updatePricingField = (companyId, event) => {
     const { name, value } = event.target;
+    setPricingFormByCompany((prev) => ({
+      ...prev,
+      [companyId]: {
+        ...(prev[companyId] || initialPricing),
+        [name]: value,
+      },
+    }));
+  };
+
+  const setPricingField = (companyId, name, value) => {
     setPricingFormByCompany((prev) => ({
       ...prev,
       [companyId]: {
@@ -137,6 +160,19 @@ export default function CompaniesPage() {
 
   const updateEditPricingField = (companyId, pricingId, event) => {
     const { name, value } = event.target;
+    setPricingEditByCompany((prev) => ({
+      ...prev,
+      [companyId]: {
+        ...(prev[companyId] || {}),
+        [pricingId]: {
+          ...(prev[companyId]?.[pricingId] || {}),
+          [name]: value,
+        },
+      },
+    }));
+  };
+
+  const setEditPricingField = (companyId, pricingId, name, value) => {
     setPricingEditByCompany((prev) => ({
       ...prev,
       [companyId]: {
@@ -370,42 +406,35 @@ export default function CompaniesPage() {
                       >
                         <label className={styles.field}>
                           Cab type
-                          <select
-                            name="cab_type"
+                          <CustomDropdown
+                            options={cabTypeOptions}
                             value={
                               (pricingFormByCompany[company.company_id] ||
                                 initialPricing).cab_type
                             }
-                            onChange={(event) =>
-                              updatePricingField(company.company_id, event)
+                            onChange={(value) =>
+                              setPricingField(company.company_id, "cab_type", value)
                             }
-                            required
-                          >
-                            <option value="">Select cab type</option>
-                            <option value="Sedan">Sedan</option>
-                            <option value="Premium Sedan">Premium Sedan</option>
-                            <option value="SUV">SUV</option>
-                            <option value="Premium SUV">Premium SUV</option>
-                          </select>
+                            getLabel={(option) => option.label}
+                            getValue={(option) => option.value}
+                            placeholder="Select cab type"
+                          />
                         </label>
                         <label className={styles.field}>
                           Slot
-                          <select
-                            name="slot"
+                          <CustomDropdown
+                            options={slotOptions}
                             value={
                               (pricingFormByCompany[company.company_id] ||
                                 initialPricing).slot
                             }
-                            onChange={(event) =>
-                              updatePricingField(company.company_id, event)
+                            onChange={(value) =>
+                              setPricingField(company.company_id, "slot", value)
                             }
-                            required
-                          >
-                            <option value="">Select slot</option>
-                            <option value="4hr">4hr</option>
-                            <option value="6hr">6hr</option>
-                            <option value="12hr">12hr</option>
-                          </select>
+                            getLabel={(option) => option.label}
+                            getValue={(option) => option.value}
+                            placeholder="Select slot"
+                          />
                         </label>
                         <label className={styles.field}>
                           Rate
@@ -448,43 +477,40 @@ export default function CompaniesPage() {
                               >
                                 {isEditing ? (
                                   <>
-                                    <select
-                                      name="cab_type"
+                                    <CustomDropdown
+                                      options={cabTypeOptions}
                                       value={edits.cab_type}
-                                      onChange={(event) =>
-                                        updateEditPricingField(
+                                      onChange={(value) =>
+                                        setEditPricingField(
                                           company.company_id,
                                           pricing.pricing_id,
-                                          event
+                                          "cab_type",
+                                          value
                                         )
                                       }
+                                      getLabel={(option) => option.label}
+                                      getValue={(option) => option.value}
+                                      placeholder="Select cab type"
                                       disabled
-                                    >
-                                      <option value="Sedan">Sedan</option>
-                                      <option value="Premium Sedan">
-                                        Premium Sedan
-                                      </option>
-                                      <option value="SUV">SUV</option>
-                                      <option value="Premium SUV">
-                                        Premium SUV
-                                      </option>
-                                    </select>
-                                    <select
-                                      name="slot"
+                                      buttonClassName={styles.pricingInlineDropdown}
+                                    />
+                                    <CustomDropdown
+                                      options={slotOptions}
                                       value={edits.slot}
-                                      onChange={(event) =>
-                                        updateEditPricingField(
+                                      onChange={(value) =>
+                                        setEditPricingField(
                                           company.company_id,
                                           pricing.pricing_id,
-                                          event
+                                          "slot",
+                                          value
                                         )
                                       }
+                                      getLabel={(option) => option.label}
+                                      getValue={(option) => option.value}
+                                      placeholder="Select slot"
                                       disabled
-                                    >
-                                      <option value="4hr">4hr</option>
-                                      <option value="6hr">6hr</option>
-                                      <option value="12hr">12hr</option>
-                                    </select>
+                                      buttonClassName={styles.pricingInlineDropdown}
+                                    />
                                     <input
                                       type="number"
                                       name="rate"

@@ -6,6 +6,9 @@ export default function CustomDropdown({
   value,
   onChange,
   status,
+  disabled = false,
+  className = "",
+  buttonClassName = "",
   getLabel = (option) => option.name || option,
   getValue = (option) => option.name || option,
   placeholder = "Select option",
@@ -16,6 +19,13 @@ export default function CustomDropdown({
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
   const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (disabled) {
+      setShowDropdown(false);
+      setSearchText("");
+    }
+  }, [disabled]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -55,11 +65,18 @@ export default function CustomDropdown({
       : options;
 
   return (
-    <div className={styles.customDropdownContainer} ref={containerRef}>
+    <div
+      className={`${styles.customDropdownContainer} ${className}`.trim()}
+      ref={containerRef}
+    >
       <button
         type="button"
-        className={styles.dropdownInput}
+        className={`${styles.dropdownInput} ${
+          disabled ? styles.dropdownInputDisabled : ""
+        } ${buttonClassName}`.trim()}
+        disabled={disabled}
         onClick={(e) => {
+          if (disabled) return;
           e.stopPropagation();
           setShowDropdown((prev) => {
             if (prev) {
@@ -73,7 +90,7 @@ export default function CustomDropdown({
         <span className={styles.chevron}>{showDropdown ? "▲" : "▼"}</span>
       </button>
 
-      {showDropdown && (
+      {showDropdown && !disabled && (
         <div className={styles.dropdownModal}>
           {searchable && (
             <input

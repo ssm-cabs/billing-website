@@ -264,6 +264,13 @@
   font-family: inherit;
 }
 
+.pricingInlineDropdown {
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .pricingActions {
   display: flex;
   gap: 8px;
