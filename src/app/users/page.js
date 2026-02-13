@@ -111,6 +111,7 @@ export default function UsersPage() {
   }, [isAuthenticated, authLoading]);
 
   const handleAddClick = () => {
+    if (!canEdit) return;
     setEditingId(null);
     setFormData({
       phone: "",
@@ -124,6 +125,7 @@ export default function UsersPage() {
   };
 
   const handleEditClick = (user) => {
+    if (!canEdit) return;
     setEditingId(user.id);
     setFormData({
       phone: user.phone || "",
@@ -190,6 +192,7 @@ export default function UsersPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!canEdit) return;
     setFormError("");
 
     if (!validateForm()) {
@@ -224,11 +227,13 @@ export default function UsersPage() {
   };
 
   const handleDelete = (userId, userName) => {
+    if (!canEdit) return;
     setDeleteTarget({ id: userId, name: userName });
     setShowDeleteConfirm(true);
   };
 
   const confirmDelete = async () => {
+    if (!canEdit) return;
     if (!deleteTarget.id) return;
     try {
       await deleteUser(deleteTarget.id);
@@ -279,9 +284,11 @@ export default function UsersPage() {
             Add, edit, and manage authorized users for the billing system.
           </p>
         </div>
-        <button className={styles.primaryCta} onClick={handleAddClick}>
-          Add User
-        </button>
+        {canEdit && (
+          <button className={styles.primaryCta} onClick={handleAddClick}>
+            Add User
+          </button>
+        )}
       </header>
 
       {error && <div className={styles.error}>{error}</div>}
@@ -313,7 +320,7 @@ export default function UsersPage() {
                 <th>Name</th>
                 <th>Permissions</th>
                 <th>Status</th>
-                <th>Actions</th>
+                {canEdit && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -337,22 +344,24 @@ export default function UsersPage() {
                       {user.active ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td className={styles.actions} data-label="Actions">
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => handleEditClick(user)}
-                      title="Edit"
-                    >
-                      <span className={styles.editIcon}>✎</span>
-                    </button>
-                    <button
-                      className={styles.deleteBtn}
-                      onClick={() => handleDelete(user.id, user.name)}
-                      title="Delete"
-                    >
-                      ✕
-                    </button>
-                  </td>
+                  {canEdit && (
+                    <td className={styles.actions} data-label="Actions">
+                      <button
+                        className={styles.editBtn}
+                        onClick={() => handleEditClick(user)}
+                        title="Edit"
+                      >
+                        <span className={styles.editIcon}>✎</span>
+                      </button>
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDelete(user.id, user.name)}
+                        title="Delete"
+                      >
+                        ✕
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
