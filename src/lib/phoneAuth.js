@@ -10,7 +10,6 @@ import {
   where,
   getDocs,
   doc,
-  getDoc,
   onSnapshot,
 } from "firebase/firestore";
 import { getDefaultPermissions } from "@/config/modules";
@@ -18,9 +17,8 @@ import { getDefaultPermissions } from "@/config/modules";
 // Track auth state initialization
 let authStateInitialized = false;
 let authStatePromise = null;
-let permissionsUnsubscribe = null;
+let userDocUnsubscribe = null;
 let authUnsubscribe = null;
-const PERMISSIONS_DOC_ID = "permissions";
 
 const normalizePermissions = (permissions) => {
   const defaults = getDefaultPermissions();
@@ -103,36 +101,12 @@ export async function getAuthorizedUser(phoneNumber) {
  */
 export async function getUserData(phoneNumber) {
   try {
-    const baseUserData = await getAuthorizedUser(phoneNumber);
-    if (!baseUserData) return null;
-
-    const userId = baseUserData.user_id;
-    if (!userId) {
-      return {
-        ...baseUserData,
-        permissions: baseUserData.permissions || getDefaultPermissions(),
-      };
-    }
-
-    const permissionsRef = doc(
-      db,
-      "users",
-      userId,
-      "permissions",
-      PERMISSIONS_DOC_ID
-    );
-    const permissionsSnap = await getDoc(permissionsRef);
-    const permissionsData = permissionsSnap.exists() ? permissionsSnap.data() : null;
-    const rawPermissions =
-      permissionsData?.permissions ||
-      permissionsData ||
-      baseUserData.permissions ||
-      getDefaultPermissions();
-    const permissions = normalizePermissions(rawPermissions);
+    const userData = await getAuthorizedUser(phoneNumber);
+    if (!userData) return null;
 
     return {
-      ...baseUserData,
-      permissions,
+      ...userData,
+      permissions: normalizePermissions(userData.permissions),
     };
   } catch (error) {
     console.error("Error fetching user data:", error);
@@ -151,58 +125,67 @@ function updateLocalUserData(updater) {
     const updated = updater(parsed);
     if (!updated) return;
 
+    const permissionsChanged =
+      JSON.stringify(parsed.permissions || {}) !==
+      JSON.stringify(updated.permissions || {});
+
     localStorage.setItem("user_data", JSON.stringify(updated));
     window.dispatchEvent(new Event("user_data_updated"));
+    if (permissionsChanged) {
+      window.dispatchEvent(new Event("permissions_changed"));
+    }
   } catch (error) {
     console.error("Error updating local user_data:", error);
   }
 }
 
-function stopPermissionsListener() {
-  if (permissionsUnsubscribe) {
-    permissionsUnsubscribe();
-    permissionsUnsubscribe = null;
+function stopUserDocListener() {
+  if (userDocUnsubscribe) {
+    userDocUnsubscribe();
+    userDocUnsubscribe = null;
   }
 }
 
-function startPermissionsListener(userId) {
+function startUserDocListener(userId) {
   if (!userId) return;
 
-  stopPermissionsListener();
+  stopUserDocListener();
 
-  const permissionsRef = doc(
-    db,
-    "users",
-    userId,
-    "permissions",
-    PERMISSIONS_DOC_ID
-  );
+  const userRef = doc(db, "users", userId);
+  userDocUnsubscribe = onSnapshot(
+    userRef,
+    async (snapshot) => {
+      if (!snapshot.exists()) return;
 
-  permissionsUnsubscribe = onSnapshot(
-    permissionsRef,
-    (snapshot) => {
-      const permissionsData = snapshot.exists() ? snapshot.data() : null;
-      const rawPermissions =
-        permissionsData?.permissions ||
-        permissionsData ||
-        getDefaultPermissions();
-      const permissions = normalizePermissions(rawPermissions);
+      const userData = {
+        ...snapshot.data(),
+        user_id: snapshot.data().user_id || userId,
+        permissions: normalizePermissions(snapshot.data().permissions),
+      };
+      const isActive = userData.active !== false;
 
       updateLocalUserData((existing) => ({
         ...existing,
-        user_id: existing.user_id || userId,
-        permissions,
+        ...userData,
+        user_id: userData.user_id || existing.user_id || userId,
       }));
+
+      if (!isActive) {
+        await signOutUser();
+        if (typeof window !== "undefined") {
+          window.location.assign("/login");
+        }
+      }
     },
     (error) => {
-      console.error("Permission listener error:", error);
+      console.error("User document listener error:", error);
     }
   );
 }
 
 /**
  * Starts a global listener that tracks auth state and watches
- * /users/<user_id>/permissions/permissions for the signed-in user.
+ * /users/<user_id> for the signed-in user.
  * @returns {Function} - Cleanup function
  */
 export function startAuthPermissionsSync() {
@@ -212,7 +195,7 @@ export function startAuthPermissionsSync() {
 
   if (authUnsubscribe) {
     return () => {
-      stopPermissionsListener();
+      stopUserDocListener();
       authUnsubscribe?.();
       authUnsubscribe = null;
     };
@@ -220,7 +203,7 @@ export function startAuthPermissionsSync() {
 
   authUnsubscribe = onAuthStateChanged(auth, async (user) => {
     if (!user) {
-      stopPermissionsListener();
+      stopUserDocListener();
       return;
     }
 
@@ -243,7 +226,7 @@ export function startAuthPermissionsSync() {
       }
 
       if (userId) {
-        startPermissionsListener(userId);
+        startUserDocListener(userId);
       }
     } catch (error) {
       console.error("Error starting permission sync:", error);
@@ -251,7 +234,7 @@ export function startAuthPermissionsSync() {
   });
 
   return () => {
-    stopPermissionsListener();
+    stopUserDocListener();
     if (authUnsubscribe) {
       authUnsubscribe();
       authUnsubscribe = null;
@@ -345,7 +328,7 @@ export function getCurrentUser() {
  */
 export async function signOutUser() {
   try {
-    stopPermissionsListener();
+    stopUserDocListener();
     // Clear token expiry and user data
     if (typeof window !== "undefined") {
       localStorage.removeItem("session_expiry_time");
