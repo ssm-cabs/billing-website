@@ -8,6 +8,7 @@ import {
   setupRecaptcha,
   sendOTP,
   verifyOTP,
+  signOutUser,
   waitForAuthInit,
   getUserData,
 } from "@/lib/phoneAuth";
@@ -122,6 +123,11 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+      if (authorizedUser.active === false) {
+        setError("Your account is disabled. Please contact your administrator.");
+        setLoading(false);
+        return;
+      }
       setAuthorizedUserData(authorizedUser);
 
       // Send OTP
@@ -180,6 +186,18 @@ export default function LoginPage() {
       // Fetch and save user data with permissions to localStorage
       const phoneNumber = result.user.phoneNumber;
       const userData = await getUserData(phoneNumber);
+      if (!userData) {
+        setError("This phone number is not authorized.");
+        await signOutUser();
+        setLoading(false);
+        return;
+      }
+      if (userData.active === false) {
+        setError("Your account is disabled. Please contact your administrator.");
+        await signOutUser();
+        setLoading(false);
+        return;
+      }
       
       if (userData) {
         localStorage.setItem("user_data", JSON.stringify(userData));
