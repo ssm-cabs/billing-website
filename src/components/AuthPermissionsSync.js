@@ -12,11 +12,16 @@ export function AuthPermissionsSync() {
     const handlePermissionsChanged = () => {
       router.refresh();
     };
+    const handleSessionSignedOut = () => {
+      router.push("/login");
+    };
 
     window.addEventListener("permissions_changed", handlePermissionsChanged);
+    window.addEventListener("session_signed_out", handleSessionSignedOut);
 
     return () => {
       window.removeEventListener("permissions_changed", handlePermissionsChanged);
+      window.removeEventListener("session_signed_out", handleSessionSignedOut);
       cleanup();
     };
   }, [router]);

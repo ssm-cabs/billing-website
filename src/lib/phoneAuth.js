@@ -172,9 +172,6 @@ function startUserDocListener(userId) {
 
       if (!isActive) {
         await signOutUser();
-        if (typeof window !== "undefined") {
-          window.location.assign("/login");
-        }
       }
     },
     (error) => {
@@ -335,6 +332,9 @@ export async function signOutUser() {
       localStorage.removeItem("user_data");
     }
     await auth.signOut();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("session_signed_out"));
+    }
   } catch (error) {
     console.error("Error signing out:", error);
     throw error;
