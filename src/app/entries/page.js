@@ -183,7 +183,7 @@ export default function EntriesPage() {
                     {canEdit && !entry.billed && (
                       <>
                         <Link
-                          href={`/entries/${entry.entry_id}/edit`}
+                          href={`/entries/edit?id=${encodeURIComponent(entry.entry_id)}`}
                           className={styles.textButton}
                         >
                           Edit

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import DatePicker from "../../DatePicker";
+import DatePicker from "../DatePicker";
 import {
   fetchEntryById,
   updateEntry,
@@ -13,7 +13,7 @@ import {
   isFirebaseConfigured,
 } from "@/lib/api";
 import { usePermissions } from "@/lib/usePermissions";
-import styles from "../../edit.module.css";
+import styles from "../edit.module.css";
 
 const initialState = {
   entry_date: "",

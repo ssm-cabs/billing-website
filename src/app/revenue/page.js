@@ -100,7 +100,7 @@ export default function RevenuePage() {
       return {
         totalRevenue: 0,
         totalEntries: 0,
-        averageRate: 0,
+        averageRevenuePerDay: 0,
         projectedRevenue: 0,
         daysElapsed,
         totalDays,
@@ -113,7 +113,8 @@ export default function RevenuePage() {
       0
     );
     const totalEntries = entries.length;
-    const averageRate = totalEntries ? totalRevenue / totalEntries : 0;
+    const averageRevenuePerDay =
+      totalRevenue > 0 ? totalRevenue / Math.max(1, daysElapsed) : 0;
 
     const revenueByCompany = entries.reduce((acc, entry) => {
       const name = entry.company_name || "Unknown";
@@ -131,7 +132,7 @@ export default function RevenuePage() {
     return {
       totalRevenue,
       totalEntries,
-      averageRate,
+      averageRevenuePerDay,
       projectedRevenue,
       daysElapsed,
       totalDays,
@@ -277,13 +278,18 @@ export default function RevenuePage() {
 
       <section className={styles.stats}>
         <div className={styles.card}>
+          <p>Total entries</p>
+          <h2>{revenueStats.totalEntries}</h2>
+          <span>{getMonthLabel(month)}</span>
+        </div>
+        <div className={styles.card}>
           <p>Total revenue</p>
           <h2>{formatCurrency(revenueStats.totalRevenue)}</h2>
           <span>{getMonthLabel(month)}</span>
         </div>
         <div className={styles.card}>
-          <p>Total entries</p>
-          <h2>{revenueStats.totalEntries}</h2>
+          <p>Average revenue</p>
+          <h2>{formatCurrency(revenueStats.averageRevenuePerDay)}</h2>
           <span>{getMonthLabel(month)}</span>
         </div>
         <div className={styles.card}>
@@ -292,11 +298,6 @@ export default function RevenuePage() {
           <span>
             {revenueStats.daysElapsed} of {revenueStats.totalDays} days
           </span>
-        </div>
-        <div className={styles.card}>
-          <p>Average rate</p>
-          <h2>{formatCurrency(revenueStats.averageRate)}</h2>
-          <span>Per ride</span>
         </div>
         <div className={styles.card}>
           <p>Top company</p>
