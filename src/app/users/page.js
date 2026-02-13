@@ -343,7 +343,7 @@ export default function UsersPage() {
                       onClick={() => handleEditClick(user)}
                       title="Edit"
                     >
-                      ✎
+                      <span className={styles.editIcon}>✎</span>
                     </button>
                     <button
                       className={styles.deleteBtn}

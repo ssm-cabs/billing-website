@@ -151,40 +151,50 @@
   white-space: nowrap;
 }
 
-.textButton {
-  background: none;
-  border: none;
-  color: #1e1916;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.editBtn,
+.deleteBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
+  border-radius: 6px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background 0.2s;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
-.textButton:hover {
-  background: rgba(30, 25, 22, 0.08);
+.editBtn {
+  color: #ea5a32;
 }
 
-.deleteButton {
-  background: none;
-  border: none;
-  color: #c23d2b;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background 0.2s;
+.editIcon {
+  display: inline-block;
+  transform: rotate(90deg);
 }
 
-.deleteButton:hover {
-  background: rgba(194, 61, 43, 0.1);
+.editBtn:hover {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
+}
+
+.deleteBtn {
+  color: #c74624;
+}
+
+.deleteBtn:hover {
+  background: #c74624;
+  color: #fff;
+  border-color: #c74624;
 }
 
 .table td input,

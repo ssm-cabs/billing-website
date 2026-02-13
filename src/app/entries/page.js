@@ -181,21 +181,25 @@ export default function EntriesPage() {
                   <td data-label="Notes">{entry.notes || "-"}</td>
                   <td data-label="Actions" className={styles.actionsCell}>
                     {canEdit && !entry.billed && (
-                      <>
+                      <div className={styles.actions}>
                         <Link
                           href={`/entries/edit?id=${encodeURIComponent(entry.entry_id)}`}
-                          className={styles.textButton}
+                          className={styles.editBtn}
+                          title="Edit"
+                          aria-label="Edit"
                         >
-                          Edit
+                          <span className={styles.editIcon}>✎</span>
                         </Link>
                         <button
                           type="button"
-                          className={styles.deleteButton}
+                          className={styles.deleteBtn}
                           onClick={() => handleDeleteEntry(entry.entry_id)}
+                          title="Delete"
+                          aria-label="Delete"
                         >
-                          Delete
+                          ✕
                         </button>
-                      </>
+                      </div>
                     )}
                   </td>
                 </tr>
