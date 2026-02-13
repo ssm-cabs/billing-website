@@ -113,6 +113,7 @@ export default function InvoicePage() {
   }, [selectedCompany, selectedMonth]);
 
   const handleGenerateInvoice = async () => {
+    if (!canEdit) return;
     if (!selectedCompany || !selectedMonth) {
       setError("Please select a company and month");
       return;
@@ -325,19 +326,29 @@ export default function InvoicePage() {
             />
           </label>
 
-          <button
-            className={styles.primaryButton}
-            onClick={
-              invoiceAlreadyExists ? handleViewInvoice : () => setShowGenerateConfirm(true)
-            }
-            disabled={status === "loading"}
-          >
-            {status === "loading"
-              ? "Generating..."
-              : invoiceAlreadyExists
-              ? "View Invoice"
-              : "Generate Invoice"}
-          </button>
+          {canEdit ? (
+            <button
+              className={styles.primaryButton}
+              onClick={
+                invoiceAlreadyExists ? handleViewInvoice : () => setShowGenerateConfirm(true)
+              }
+              disabled={status === "loading"}
+            >
+              {status === "loading"
+                ? "Generating..."
+                : invoiceAlreadyExists
+                ? "View Invoice"
+                : "Generate Invoice"}
+            </button>
+          ) : (
+            <button
+              className={styles.primaryButton}
+              onClick={handleViewInvoice}
+              disabled={!invoiceAlreadyExists || status === "loading"}
+            >
+              View Invoice
+            </button>
+          )}
         </div>
 
         <div className={styles.invoicesList}>
@@ -613,7 +624,7 @@ export default function InvoicePage() {
         </div>
       )}
 
-      {showGenerateConfirm && (
+      {canEdit && showGenerateConfirm && (
         <div className={styles.modalOverlay} onClick={() => setShowGenerateConfirm(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3 className={styles.modalTitle}>Generate Invoice</h3>
