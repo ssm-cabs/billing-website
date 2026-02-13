@@ -51,6 +51,18 @@ export function usePermissions(collection) {
     };
 
     checkPermissions();
+
+    const handleUserDataUpdate = () => {
+      checkPermissions();
+    };
+
+    window.addEventListener("user_data_updated", handleUserDataUpdate);
+    window.addEventListener("storage", handleUserDataUpdate);
+
+    return () => {
+      window.removeEventListener("user_data_updated", handleUserDataUpdate);
+      window.removeEventListener("storage", handleUserDataUpdate);
+    };
   }, [collection, router]);
 
   return { canView, canEdit, loading };

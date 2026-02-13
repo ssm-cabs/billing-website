@@ -8,8 +8,6 @@ import {
   setupRecaptcha,
   sendOTP,
   verifyOTP,
-  getCurrentUser,
-  signOutUser,
   waitForAuthInit,
   getUserData,
 } from "@/lib/phoneAuth";
@@ -181,10 +179,11 @@ export default function LoginPage() {
       
       // Fetch and save user data with permissions to localStorage
       const phoneNumber = result.user.phoneNumber;
-      const userData = authorizedUserData || await getUserData(phoneNumber);
+      const userData = await getUserData(phoneNumber);
       
       if (userData) {
         localStorage.setItem("user_data", JSON.stringify(userData));
+        window.dispatchEvent(new Event("user_data_updated"));
         console.log("User data saved to localStorage");
       }
       

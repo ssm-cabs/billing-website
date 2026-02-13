@@ -4,11 +4,36 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth, db } from "./firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  onSnapshot,
+} from "firebase/firestore";
+import { getDefaultPermissions } from "@/config/modules";
 
 // Track auth state initialization
 let authStateInitialized = false;
 let authStatePromise = null;
+let permissionsUnsubscribe = null;
+let authUnsubscribe = null;
+const PERMISSIONS_DOC_ID = "permissions";
+
+const normalizePermissions = (permissions) => {
+  const defaults = getDefaultPermissions();
+  if (!permissions || typeof permissions !== "object") return defaults;
+
+  return Object.keys(defaults).reduce((acc, key) => {
+    const value = permissions[key];
+    acc[key] = value === "read" || value === "edit" || value === "none"
+      ? value
+      : defaults[key];
+    return acc;
+  }, {});
+};
 
 /**
  * Wait for Firebase auth state to initialize
@@ -59,7 +84,12 @@ export async function getAuthorizedUser(phoneNumber) {
     const q = query(usersRef, where("phone", "==", phoneNumber));
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) return null;
-    return querySnapshot.docs[0].data();
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data();
+    return {
+      ...userData,
+      user_id: userData.user_id || userDoc.id,
+    };
   } catch (error) {
     console.error("Error fetching authorized user:", error);
     throw error;
@@ -72,7 +102,161 @@ export async function getAuthorizedUser(phoneNumber) {
  * @returns {Promise<Object|null>} - User data or null if not found
  */
 export async function getUserData(phoneNumber) {
-  return getAuthorizedUser(phoneNumber);
+  try {
+    const baseUserData = await getAuthorizedUser(phoneNumber);
+    if (!baseUserData) return null;
+
+    const userId = baseUserData.user_id;
+    if (!userId) {
+      return {
+        ...baseUserData,
+        permissions: baseUserData.permissions || getDefaultPermissions(),
+      };
+    }
+
+    const permissionsRef = doc(
+      db,
+      "users",
+      userId,
+      "permissions",
+      PERMISSIONS_DOC_ID
+    );
+    const permissionsSnap = await getDoc(permissionsRef);
+    const permissionsData = permissionsSnap.exists() ? permissionsSnap.data() : null;
+    const rawPermissions =
+      permissionsData?.permissions ||
+      permissionsData ||
+      baseUserData.permissions ||
+      getDefaultPermissions();
+    const permissions = normalizePermissions(rawPermissions);
+
+    return {
+      ...baseUserData,
+      permissions,
+    };
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    throw error;
+  }
+}
+
+function updateLocalUserData(updater) {
+  if (typeof window === "undefined") return;
+
+  try {
+    const existing = localStorage.getItem("user_data");
+    if (!existing) return;
+
+    const parsed = JSON.parse(existing);
+    const updated = updater(parsed);
+    if (!updated) return;
+
+    localStorage.setItem("user_data", JSON.stringify(updated));
+    window.dispatchEvent(new Event("user_data_updated"));
+  } catch (error) {
+    console.error("Error updating local user_data:", error);
+  }
+}
+
+function stopPermissionsListener() {
+  if (permissionsUnsubscribe) {
+    permissionsUnsubscribe();
+    permissionsUnsubscribe = null;
+  }
+}
+
+function startPermissionsListener(userId) {
+  if (!userId) return;
+
+  stopPermissionsListener();
+
+  const permissionsRef = doc(
+    db,
+    "users",
+    userId,
+    "permissions",
+    PERMISSIONS_DOC_ID
+  );
+
+  permissionsUnsubscribe = onSnapshot(
+    permissionsRef,
+    (snapshot) => {
+      const permissionsData = snapshot.exists() ? snapshot.data() : null;
+      const rawPermissions =
+        permissionsData?.permissions ||
+        permissionsData ||
+        getDefaultPermissions();
+      const permissions = normalizePermissions(rawPermissions);
+
+      updateLocalUserData((existing) => ({
+        ...existing,
+        user_id: existing.user_id || userId,
+        permissions,
+      }));
+    },
+    (error) => {
+      console.error("Permission listener error:", error);
+    }
+  );
+}
+
+/**
+ * Starts a global listener that tracks auth state and watches
+ * /users/<user_id>/permissions/permissions for the signed-in user.
+ * @returns {Function} - Cleanup function
+ */
+export function startAuthPermissionsSync() {
+  if (!auth || typeof window === "undefined") {
+    return () => {};
+  }
+
+  if (authUnsubscribe) {
+    return () => {
+      stopPermissionsListener();
+      authUnsubscribe?.();
+      authUnsubscribe = null;
+    };
+  }
+
+  authUnsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      stopPermissionsListener();
+      return;
+    }
+
+    try {
+      const existing = localStorage.getItem("user_data");
+      let userId = null;
+
+      if (existing) {
+        const parsed = JSON.parse(existing);
+        userId = parsed?.user_id || null;
+      }
+
+      if (!userId && user.phoneNumber) {
+        const latestUserData = await getUserData(user.phoneNumber);
+        if (latestUserData) {
+          localStorage.setItem("user_data", JSON.stringify(latestUserData));
+          window.dispatchEvent(new Event("user_data_updated"));
+          userId = latestUserData.user_id;
+        }
+      }
+
+      if (userId) {
+        startPermissionsListener(userId);
+      }
+    } catch (error) {
+      console.error("Error starting permission sync:", error);
+    }
+  });
+
+  return () => {
+    stopPermissionsListener();
+    if (authUnsubscribe) {
+      authUnsubscribe();
+      authUnsubscribe = null;
+    }
+  };
 }
 
 /**
@@ -161,6 +345,7 @@ export function getCurrentUser() {
  */
 export async function signOutUser() {
   try {
+    stopPermissionsListener();
     // Clear token expiry and user data
     if (typeof window !== "undefined") {
       localStorage.removeItem("session_expiry_time");

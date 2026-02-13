@@ -1,14 +1,34 @@
 import {
   collection,
-  addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   doc,
   getDocs,
+  getDoc,
   query,
   orderBy,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { getDefaultPermissions } from "@/config/modules";
+
+const PERMISSIONS_DOC_ID = "permissions";
+
+const getPermissionsDocRef = (userId) =>
+  doc(db, "users", userId, "permissions", PERMISSIONS_DOC_ID);
+
+const normalizePermissions = (permissions) => {
+  const defaults = getDefaultPermissions();
+  if (!permissions || typeof permissions !== "object") return defaults;
+
+  return Object.keys(defaults).reduce((acc, key) => {
+    const value = permissions[key];
+    acc[key] = value === "read" || value === "edit" || value === "none"
+      ? value
+      : defaults[key];
+    return acc;
+  }, {});
+};
 
 /**
  * Fetch all users from the users collection
@@ -19,14 +39,30 @@ export async function fetchAllUsers() {
     const usersRef = collection(db, "users");
     const q = query(usersRef, orderBy("name", "asc"));
     const querySnapshot = await getDocs(q);
-    
-    const users = [];
-    querySnapshot.forEach((doc) => {
-      users.push({
-        id: doc.id,
-        ...doc.data(),
-      });
-    });
+
+    const users = await Promise.all(
+      querySnapshot.docs.map(async (userDoc) => {
+        const baseData = userDoc.data();
+        const permissionsSnap = await getDoc(getPermissionsDocRef(userDoc.id));
+        const permissionsData = permissionsSnap.exists()
+          ? permissionsSnap.data()
+          : null;
+        const rawPermissions =
+          permissionsData?.permissions ||
+          permissionsData ||
+          baseData.permissions ||
+          getDefaultPermissions();
+        const permissions = normalizePermissions(rawPermissions);
+
+        return {
+          id: userDoc.id,
+          ...baseData,
+          user_id: baseData.user_id || userDoc.id,
+          permissions,
+        };
+      })
+    );
+
     return users;
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -42,12 +78,22 @@ export async function fetchAllUsers() {
 export async function addUser(userData) {
   try {
     const usersRef = collection(db, "users");
-    const docRef = await addDoc(usersRef, {
-      ...userData,
+    const userRef = doc(usersRef);
+    const { permissions, ...profileData } = userData;
+
+    await setDoc(userRef, {
+      ...profileData,
+      user_id: userRef.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
-    return docRef.id;
+
+    await setDoc(getPermissionsDocRef(userRef.id), {
+      ...normalizePermissions(permissions),
+      updated_at: new Date().toISOString(),
+    });
+
+    return userRef.id;
   } catch (error) {
     console.error("Error adding user:", error);
     throw error;
@@ -63,10 +109,20 @@ export async function addUser(userData) {
 export async function updateUser(userId, userData) {
   try {
     const userRef = doc(db, "users", userId);
+    const { permissions, ...profileData } = userData;
+
     await updateDoc(userRef, {
-      ...userData,
+      ...profileData,
+      user_id: userId,
       updated_at: new Date().toISOString(),
     });
+
+    if (permissions) {
+      await setDoc(getPermissionsDocRef(userId), {
+        ...normalizePermissions(permissions),
+        updated_at: new Date().toISOString(),
+      });
+    }
   } catch (error) {
     console.error("Error updating user:", error);
     throw error;
@@ -81,7 +137,8 @@ export async function updateUser(userId, userData) {
 export async function deleteUser(userId) {
   try {
     const userRef = doc(db, "users", userId);
-    await deleteDoc(userRef);
+    const permissionsRef = getPermissionsDocRef(userId);
+    await Promise.all([deleteDoc(userRef), deleteDoc(permissionsRef)]);
   } catch (error) {
     console.error("Error deleting user:", error);
     throw error;

@@ -1,5 +1,6 @@
 import { Fraunces, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { AuthPermissionsSync } from "@/components/AuthPermissionsSync";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${spaceGrotesk.variable} ${fraunces.variable}`}>
+        <AuthPermissionsSync />
         {children}
       </body>
     </html>
