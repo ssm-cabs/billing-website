@@ -146,8 +146,12 @@
 }
 
 .actions {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex: 0 0 auto;
 }
 
 .actions a {
@@ -162,6 +166,13 @@
 
 .error {
   color: #c23d2b;
+}
+
+.quickActionsPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 @media (max-width: 960px) {

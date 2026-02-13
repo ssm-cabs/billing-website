@@ -214,7 +214,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${styles.quickActionsPanel}`}>
           <div className={styles.panelHeader}>
             <h3>Quick actions</h3>
           </div>
