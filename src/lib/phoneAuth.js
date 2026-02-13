@@ -210,7 +210,10 @@ export function startAuthPermissionsSync() {
 
       if (existing) {
         const parsed = JSON.parse(existing);
-        userId = parsed?.user_id || null;
+        const sameUser = parsed?.phone && user.phoneNumber
+          ? parsed.phone === user.phoneNumber
+          : false;
+        userId = sameUser ? parsed?.user_id || null : null;
       }
 
       if (!userId && user.phoneNumber) {
