@@ -82,6 +82,7 @@
   border: 1px solid rgba(30, 25, 22, 0.16);
   background: #fff;
   color: var(--page-ink);
+  font: inherit;
 }
 
 .checkbox {
@@ -260,6 +261,7 @@
   background: #fff;
   color: var(--page-ink);
   font-size: 12px;
+  font-family: inherit;
 }
 
 .pricingActions {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import CustomDropdown from "../entries/CustomDropdown";
 import {
   createCompany,
   createPricing,
@@ -28,6 +29,11 @@ const initialPricing = {
   slot: "",
   rate: "",
 };
+
+const billingCycleOptions = [
+  { label: "Monthly", value: "monthly" },
+  { label: "Daily", value: "daily" },
+];
 
 export default function CompaniesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("companies");
@@ -250,14 +256,16 @@ export default function CompaniesPage() {
           </label>
           <label className={styles.field}>
             Billing cycle
-            <select
-              name="billing_cycle"
+            <CustomDropdown
+              options={billingCycleOptions}
               value={form.billing_cycle}
-              onChange={updateField}
-            >
-              <option value="monthly">Monthly</option>
-              <option value="daily">Daily</option>
-            </select>
+              onChange={(value) =>
+                setForm((prev) => ({ ...prev, billing_cycle: value }))
+              }
+              getLabel={(option) => option.label}
+              getValue={(option) => option.value}
+              placeholder="Select billing cycle"
+            />
           </label>
           <label className={styles.field}>
             Contact name
