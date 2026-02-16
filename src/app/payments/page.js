@@ -75,17 +75,14 @@ export default function PaymentsPage() {
     setStatus("loading");
     setError("");
     try {
-      const data = await fetchPayments({
-        month,
-        vehicleNumber: vehicleFilter === "all" ? "" : vehicleFilter,
-      });
+      const data = await fetchPayments({ month });
       setPayments(data);
       setStatus("success");
     } catch (err) {
       setError(err.message || "Unable to load payments.");
       setStatus("error");
     }
-  }, [month, vehicleFilter]);
+  }, [month]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -123,6 +120,13 @@ export default function PaymentsPage() {
       })),
     [vehicles]
   );
+
+  const filteredPayments = useMemo(() => {
+    if (vehicleFilter === "all") {
+      return payments;
+    }
+    return payments.filter((payment) => payment.vehicle_number === vehicleFilter);
+  }, [payments, vehicleFilter]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -295,10 +299,14 @@ export default function PaymentsPage() {
               {status === "loading" && <span>Loading...</span>}
             </div>
             {status === "error" && <p className={styles.error}>{error}</p>}
-            {status === "success" && payments.length === 0 && (
-              <p>No payments found for this month.</p>
+            {status === "success" && filteredPayments.length === 0 && (
+              <p>
+                {payments.length === 0
+                  ? "No payments found for this month."
+                  : "No payments found for selected filters."}
+              </p>
             )}
-            {payments.length > 0 && (
+            {filteredPayments.length > 0 && (
               <div className={styles.table}>
                 <div className={styles.tableHeader}>
                   <span>Date</span>
@@ -309,7 +317,7 @@ export default function PaymentsPage() {
                   <span>Status</span>
                   <span>Actions</span>
                 </div>
-                {payments.map((payment) => (
+                {filteredPayments.map((payment) => (
                   <div key={payment.payment_id} className={styles.tableRow}>
                     <span>{payment.payment_date || "-"}</span>
                     <span>

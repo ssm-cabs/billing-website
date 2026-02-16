@@ -500,21 +500,11 @@ export async function updateVehicle(vehicleId, payload) {
 
 export async function fetchPayments({
   month = "",
-  vehicleNumber = "",
-  driverPhone = "",
-  status = "",
 } = {}) {
   if (!isFirebaseConfigured || !db) {
     const filtered = mockPayments
       .map((payment) => normalizePayment(payment))
-      .filter((payment) => (month ? payment.payment_month === month : true))
-      .filter((payment) =>
-        vehicleNumber ? payment.vehicle_number === vehicleNumber : true
-      )
-      .filter((payment) =>
-        driverPhone ? payment.driver_phone === driverPhone : true
-      )
-      .filter((payment) => (status ? payment.status === status : true));
+      .filter((payment) => (month ? payment.payment_month === month : true));
 
     return filtered.sort((a, b) =>
       String(b.payment_date).localeCompare(String(a.payment_date))
@@ -522,19 +512,17 @@ export async function fetchPayments({
   }
 
   const paymentsRef = collection(db, "payments");
-  const snapshot = await getDocs(paymentsRef);
+  const paymentsQuery = month
+    ? query(paymentsRef, where("payment_month", "==", month))
+    : paymentsRef;
+  const snapshot = await getDocs(paymentsQuery);
   const normalized = snapshot.docs.map((docSnap) =>
     normalizePayment(docSnap.data(), docSnap.id)
   );
 
-  return normalized
-    .filter((payment) => (month ? payment.payment_month === month : true))
-    .filter((payment) =>
-      vehicleNumber ? payment.vehicle_number === vehicleNumber : true
-    )
-    .filter((payment) => (driverPhone ? payment.driver_phone === driverPhone : true))
-    .filter((payment) => (status ? payment.status === status : true))
-    .sort((a, b) => String(b.payment_date).localeCompare(String(a.payment_date)));
+  return normalized.sort((a, b) =>
+    String(b.payment_date).localeCompare(String(a.payment_date))
+  );
 }
 
 export async function createPayment(payload) {
