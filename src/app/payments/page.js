@@ -49,8 +49,8 @@ const initialState = {
   driver_name: "",
   driver_phone: "",
   amount: "",
-  payment_mode: "bank_transfer",
-  status: "pending",
+  payment_mode: "upi",
+  status: "paid",
   notes: "",
 };
 
@@ -70,6 +70,21 @@ export default function PaymentsPage() {
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
+  const getInitialFormState = useCallback(
+    () => ({
+      ...initialState,
+      payment_date: getToday(),
+      amount: "",
+    }),
+    []
+  );
+
+  const closePaymentForm = useCallback(() => {
+    setShowForm(false);
+    setEditingId("");
+    setForm(getInitialFormState());
+  }, [getInitialFormState]);
 
   const loadPayments = useCallback(async () => {
     setStatus("loading");
@@ -152,7 +167,7 @@ export default function PaymentsPage() {
   const handleAddClick = () => {
     if (!canEdit) return;
     setEditingId("");
-    setForm(initialState);
+    setForm(getInitialFormState());
     setError("");
     setMessage("");
     setShowForm(true);
@@ -166,9 +181,12 @@ export default function PaymentsPage() {
       vehicle_number: payment.vehicle_number || "",
       driver_name: payment.driver_name || "",
       driver_phone: payment.driver_phone || "",
-      amount: payment.amount || "",
-      payment_mode: payment.payment_mode || "bank_transfer",
-      status: payment.status || "pending",
+      amount:
+        payment.amount === null || payment.amount === undefined
+          ? ""
+          : String(payment.amount),
+      payment_mode: payment.payment_mode || "upi",
+      status: payment.status || "paid",
       notes: payment.notes || "",
     });
     setError("");
@@ -201,7 +219,7 @@ export default function PaymentsPage() {
     setError("");
     setMessage("");
 
-    const amount = Number(form.amount || 0);
+    const amount = Number(String(form.amount).trim() || 0);
     if (!Number.isFinite(amount) || amount <= 0) {
       setError("Amount must be greater than 0.");
       return;
@@ -227,9 +245,7 @@ export default function PaymentsPage() {
             : "Payment added."
           : "Demo mode: payment prepared."
       );
-      setShowForm(false);
-      setEditingId("");
-      setForm(initialState);
+      closePaymentForm();
       await loadPayments();
     } catch (err) {
       setError(err.message || "Failed to save payment.");
@@ -361,14 +377,14 @@ export default function PaymentsPage() {
           </section>
 
           {canEdit && showForm && (
-            <div className={styles.modalOverlay} onClick={() => setShowForm(false)}>
+            <div className={styles.modalOverlay} onClick={closePaymentForm}>
               <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
                 <div className={styles.modalHeader}>
                   <h2>{editingId ? "Edit Payment" : "Add Payment"}</h2>
                   <button
                     type="button"
                     className={styles.closeBtn}
-                    onClick={() => setShowForm(false)}
+                    onClick={closePaymentForm}
                   >
                     ✕
                   </button>
@@ -417,9 +433,8 @@ export default function PaymentsPage() {
                   <label className={styles.field}>
                     Amount
                     <input
-                      type="number"
+                      type="text"
                       name="amount"
-                      min="1"
                       value={form.amount}
                       onChange={updateField}
                       placeholder="15000"
@@ -464,7 +479,7 @@ export default function PaymentsPage() {
                     <button
                       type="button"
                       className={styles.secondaryCta}
-                      onClick={() => setShowForm(false)}
+                      onClick={closePaymentForm}
                     >
                       Cancel
                     </button>

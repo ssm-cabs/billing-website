@@ -144,8 +144,8 @@ function normalizePayment(payment = {}, paymentId = "") {
     payment_date: paymentDate,
     payment_month: paymentMonth,
     amount: Number(payment.amount) || 0,
-    status: payment.status || "pending",
-    payment_mode: payment.payment_mode || "bank_transfer",
+    status: payment.status || "paid",
+    payment_mode: payment.payment_mode || "upi",
   };
 }
 
