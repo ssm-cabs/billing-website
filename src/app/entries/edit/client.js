@@ -426,31 +426,31 @@ export default function ClientEditEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          Hours
+          Extra hours
           <input
             type="number"
             name="hours"
             value={form.hours}
             onChange={updateField}
             min="0"
-            step="0.1"
-            placeholder="e.g. 8"
+            step="1"
+            placeholder="e.g. 2"
           />
         </label>
         <label className={styles.field}>
-          Kms
+          Extra kms
           <input
             type="number"
             name="kms"
             value={form.kms}
             onChange={updateField}
             min="0"
-            step="0.1"
-            placeholder="e.g. 120"
+            step="1"
+            placeholder="e.g. 18"
           />
         </label>
         <label className={styles.field}>
-          Tolls
+          Toll Charges
           <input
             type="number"
             name="tolls"
