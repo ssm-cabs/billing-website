@@ -980,21 +980,6 @@ export async function generateVehicleInvoice(vehicleId, month) {
 
   await setDoc(invoiceRef, invoice);
 
-  const batchSize = 450;
-  for (let i = 0; i < lineItems.length; i += batchSize) {
-    const batch = writeBatch(db);
-    const chunk = lineItems.slice(i, i + batchSize);
-    for (const lineItem of chunk) {
-      const entryRef = doc(db, "entries", lineItem.entry_id);
-      batch.update(entryRef, {
-        vehicle_invoice_id: invoiceId,
-        billed_for_vehicle: true,
-        updated_at: serverTimestamp(),
-      });
-    }
-    await batch.commit();
-  }
-
   return { invoice_id: invoiceId };
 }
 
