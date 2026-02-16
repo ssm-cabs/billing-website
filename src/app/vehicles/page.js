@@ -540,18 +540,22 @@ export default function VehiclesPage() {
                                 <div className={styles.inlineActions}>
                                   <button
                                     type="button"
-                                    className={styles.secondaryCta}
+                                    className={styles.editBtn}
                                     onClick={() => startEdit(vehicle)}
+                                    title="Edit"
+                                    aria-label="Edit"
                                   >
-                                    Edit
+                                    <span className={styles.editIcon}>✎</span>
                                   </button>
                                   {vehicle.ownership_type === "leased" && (
                                     <button
                                       type="button"
-                                      className={styles.linkButton}
+                                      className={styles.editBtn}
                                       onClick={() => openPricingModal(vehicle.vehicle_id)}
+                                      title="Manage pricing"
+                                      aria-label="Manage pricing"
                                     >
-                                      Manage pricing
+                                      <span className={styles.pricingIcon}>₹</span>
                                     </button>
                                   )}
                                 </div>
