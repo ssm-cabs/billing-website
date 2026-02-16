@@ -53,7 +53,7 @@
 .primaryCta {
   padding: 12px 20px;
   border-radius: 999px;
-  background: #ea5a32;
+  background: #1e1916;
   color: #fff;
   font-size: 13px;
   text-transform: uppercase;
@@ -66,7 +66,7 @@
 }
 
 .primaryCta:hover {
-  background: #c74624;
+  background: #000;
   transform: translateY(-2px);
 }
 
@@ -206,6 +206,11 @@
 .status.inactive {
   background: #ffebee;
   color: #c62828;
+}
+
+.status.admin {
+  background: #e8edf7;
+  color: #1f3f76;
 }
 
 .actions {

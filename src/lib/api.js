@@ -426,6 +426,23 @@ export async function createVehicle(payload) {
   return { vehicle_id: docRef.id };
 }
 
+export async function updateVehicle(vehicleId, payload) {
+  if (!vehicleId) {
+    throw new Error("vehicleId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, vehicle_id: vehicleId };
+  }
+
+  const vehicleRef = doc(db, "vehicles", vehicleId);
+  await updateDoc(vehicleRef, {
+    ...payload,
+    updated_at: serverTimestamp(),
+  });
+  return { vehicle_id: vehicleId };
+}
+
 export async function invoiceExists(companyId, month) {
   if (!companyId || !month) {
     return false;

@@ -126,6 +126,7 @@ export default function UsersPage() {
 
   const handleEditClick = (user) => {
     if (!canEdit) return;
+    if (user.admin === true) return;
     setEditingId(user.id);
     setFormData({
       phone: user.phone || "",
@@ -228,6 +229,8 @@ export default function UsersPage() {
 
   const handleDelete = (userId, userName) => {
     if (!canEdit) return;
+    const user = users.find((u) => u.id === userId);
+    if (user?.admin === true) return;
     setDeleteTarget({ id: userId, name: userName });
     setShowDeleteConfirm(true);
   };
@@ -338,28 +341,36 @@ export default function UsersPage() {
                   <td data-label="Status">
                     <span
                       className={`${styles.status} ${
-                        user.active ? styles.active : styles.inactive
+                        user.admin
+                          ? styles.admin
+                          : user.active
+                          ? styles.active
+                          : styles.inactive
                       }`}
                     >
-                      {user.active ? "Active" : "Inactive"}
+                      {user.admin ? "Admin" : user.active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   {canEdit && (
                     <td className={styles.actions} data-label="Actions">
-                      <button
-                        className={styles.editBtn}
-                        onClick={() => handleEditClick(user)}
-                        title="Edit"
-                      >
-                        <span className={styles.editIcon}>✎</span>
-                      </button>
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={() => handleDelete(user.id, user.name)}
-                        title="Delete"
-                      >
-                        ✕
-                      </button>
+                      {!user.admin && (
+                        <>
+                          <button
+                            className={styles.editBtn}
+                            onClick={() => handleEditClick(user)}
+                            title="Edit"
+                          >
+                            <span className={styles.editIcon}>✎</span>
+                          </button>
+                          <button
+                            className={styles.deleteBtn}
+                            onClick={() => handleDelete(user.id, user.name)}
+                            title="Delete"
+                          >
+                            ✕
+                          </button>
+                        </>
+                      )}
                     </td>
                   )}
                 </tr>

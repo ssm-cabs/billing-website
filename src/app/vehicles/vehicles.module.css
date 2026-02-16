@@ -6,6 +6,10 @@
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
   margin-bottom: 28px;
 }
 
@@ -50,18 +54,7 @@
   font-weight: 600;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
-  gap: 32px;
-  align-items: start;
-}
-
 .form {
-  background: #fff;
-  border-radius: 20px;
-  padding: 24px;
-  border: 1px solid rgba(30, 25, 22, 0.1);
   display: grid;
   gap: 16px;
 }
@@ -85,8 +78,9 @@
 }
 
 .actions {
-  display: grid;
+  display: flex;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .primaryCta {
@@ -99,6 +93,7 @@
   letter-spacing: 0.4px;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .message {
@@ -118,6 +113,11 @@
   border: 1px solid rgba(30, 25, 22, 0.1);
 }
 
+.gridSingle {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
 .listHeader {
   display: flex;
   justify-content: space-between;
@@ -135,6 +135,13 @@
   border-radius: 16px;
   padding: 16px;
   display: grid;
+  gap: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
 }
 
@@ -166,8 +173,82 @@
   color: #1f6a3c;
 }
 
+.secondaryCta {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff;
+  color: #1e1916;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+}
+
+.inlineEdit {
+  display: grid;
+  gap: 10px;
+}
+
+.inlineActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ghostCta {
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff;
+  color: #1e1916;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid rgba(30, 25, 22, 0.1);
+  padding: 24px;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.closeBtn {
+  border: 1px solid rgba(30, 25, 22, 0.14);
+  background: #fff;
+  color: #1e1916;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 @media (max-width: 960px) {
-  .grid {
-    grid-template-columns: 1fr;
+  .header {
+    flex-direction: column;
   }
 }
