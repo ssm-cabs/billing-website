@@ -218,7 +218,7 @@ export default function InvoicePage() {
     const invoiceId =
       invoiceType === "company"
         ? `${selectedCompany}-${selectedMonth}`
-        : `vehicle-${selectedVehicle}-${selectedMonth}`;
+        : `${selectedVehicle}-${selectedMonth}`;
     setExpandedInvoice(invoiceId);
     // Scroll to the invoice section
     setTimeout(() => {

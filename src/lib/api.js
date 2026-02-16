@@ -844,7 +844,7 @@ export async function vehicleInvoiceExists(vehicleId, month) {
     return false;
   }
 
-  const invoiceId = `vehicle-${vehicleId}-${month}`;
+  const invoiceId = `${vehicleId}-${month}`;
   const invoiceRef = doc(db, "invoices", invoiceId);
   const invoiceSnap = await getDoc(invoiceRef);
   return invoiceSnap.exists();
@@ -858,7 +858,7 @@ export async function generateVehicleInvoice(vehicleId, month) {
   if (!isFirebaseConfigured || !db) {
     return {
       ok: true,
-      invoice_id: `vehicle-${vehicleId}-${month}`,
+      invoice_id: `${vehicleId}-${month}`,
     };
   }
 
@@ -873,7 +873,7 @@ export async function generateVehicleInvoice(vehicleId, month) {
     throw new Error("Vehicle invoice can only be generated for leased vehicles");
   }
 
-  const invoiceId = `vehicle-${vehicleId}-${month}`;
+  const invoiceId = `${vehicleId}-${month}`;
   const invoiceRef = doc(db, "invoices", invoiceId);
   const invoiceSnap = await getDoc(invoiceRef);
   if (invoiceSnap.exists()) {
