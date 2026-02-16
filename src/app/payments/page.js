@@ -337,15 +337,19 @@ export default function PaymentsPage() {
                             type="button"
                             className={styles.editBtn}
                             onClick={() => handleEditClick(payment)}
+                            title="Edit"
+                            aria-label="Edit"
                           >
-                            Edit
+                            <span className={styles.editIcon}>✎</span>
                           </button>
                           <button
                             type="button"
                             className={styles.deleteBtn}
                             onClick={() => handleDeleteClick(payment.payment_id)}
+                            title="Delete"
+                            aria-label="Delete"
                           >
-                            Delete
+                            ✕
                           </button>
                         </>
                       )}
