@@ -19,6 +19,96 @@ import { canViewCollection } from "@/lib/usePermissions";
 import { MODULES } from "@/config/modules";
 import styles from "./dashboard.module.css";
 
+const QUICK_ACTION_ICON_META = {
+  entries: { accent: "#8f5a3c", bg: "#f8eee6" },
+  revenue: { accent: "#2b7a53", bg: "#e8f6ef" },
+  companies: { accent: "#4d5c9a", bg: "#eef1fb" },
+  vehicles: { accent: "#8f5a3c", bg: "#f8eee6" },
+  payments: { accent: "#00707a", bg: "#e8f7f8" },
+  invoices: { accent: "#6a4d9b", bg: "#f1ecfb" },
+  users: { accent: "#9a4a6f", bg: "#fbeef5" },
+};
+
+function QuickActionIcon({ moduleId }) {
+  const sharedProps = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.8",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+  };
+
+  switch (moduleId) {
+    case "entries":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1" {...sharedProps} />
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" {...sharedProps} />
+          <path d="M9 12v-1h6v1" {...sharedProps} />
+          <path d="M11 17h2" {...sharedProps} />
+          <path d="M12 11v6" {...sharedProps} />
+        </svg>
+      );
+    case "revenue":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17" {...sharedProps} />
+          <path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" {...sharedProps} />
+          <path d="m2 16 6 6" {...sharedProps} />
+          <circle cx="16" cy="9" r="2.9" {...sharedProps} />
+          <circle cx="6" cy="5" r="3" {...sharedProps} />
+        </svg>
+      );
+    case "companies":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10 12h4" {...sharedProps} />
+          <path d="M10 8h4" {...sharedProps} />
+          <path d="M14 21v-3a2 2 0 0 0-4 0v3" {...sharedProps} />
+          <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2" {...sharedProps} />
+          <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" {...sharedProps} />
+        </svg>
+      );
+    case "vehicles":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8" {...sharedProps} />
+          <path d="M7 14h.01" {...sharedProps} />
+          <path d="M17 14h.01" {...sharedProps} />
+          <rect x="3" y="10" width="18" height="8" rx="2" {...sharedProps} />
+          <path d="M5 18v2" {...sharedProps} />
+          <path d="M19 18v2" {...sharedProps} />
+        </svg>
+      );
+    case "payments":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" {...sharedProps} />
+          <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" {...sharedProps} />
+        </svg>
+      );
+    case "invoices":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8" {...sharedProps} />
+          <path d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z" {...sharedProps} />
+          <path d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1" {...sharedProps} />
+        </svg>
+      );
+    case "users":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" {...sharedProps} />
+          <path d="M16 3.128a4 4 0 0 1 0 7.744" {...sharedProps} />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" {...sharedProps} />
+          <circle cx="9" cy="7" r="4" {...sharedProps} />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 const getMonthValue = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -224,11 +314,28 @@ export default function DashboardPage() {
                 const order = ["entries", "revenue", "companies", "vehicles", "payments", "invoices", "users"];
                 return order.indexOf(a.id) - order.indexOf(b.id);
               })
-              .map((module) => (
-                <Link key={module.id} href={module.path}>
-                  {module.name}
+              .map((module) => {
+                const iconTheme =
+                  QUICK_ACTION_ICON_META[module.id] || QUICK_ACTION_ICON_META.entries;
+                return (
+                <Link
+                  key={module.id}
+                  href={module.path}
+                  className={styles.actionCard}
+                  style={{
+                    "--action-accent": iconTheme.accent,
+                    "--action-bg": iconTheme.bg,
+                  }}
+                >
+                  <span className={styles.actionIcon} aria-hidden="true">
+                    <QuickActionIcon moduleId={module.id} />
+                  </span>
+                  <span className={styles.actionBody}>
+                    <span className={styles.actionTitle}>{module.name}</span>
+                    <span className={styles.actionDescription}>{module.description}</span>
+                  </span>
                 </Link>
-              ))}
+              )})}
           </div>
         </div>
       </section>
