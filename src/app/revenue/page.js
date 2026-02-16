@@ -166,6 +166,20 @@ export default function RevenuePage() {
     );
   }, [entries, companies]);
 
+  const vehicleBreakdown = useMemo(() => {
+    const revenueByVehicle = entries.reduce((acc, entry) => {
+      const vehicleNumber = entry.vehicle_number || "Unknown";
+      if (!acc[vehicleNumber]) {
+        acc[vehicleNumber] = { vehicleNumber, rides: 0, revenue: 0 };
+      }
+      acc[vehicleNumber].rides += 1;
+      acc[vehicleNumber].revenue += Number(entry.rate) || 0;
+      return acc;
+    }, {});
+
+    return Object.values(revenueByVehicle).sort((a, b) => b.revenue - a.revenue);
+  }, [entries]);
+
   const dailyRevenue = useMemo(() => {
     const { year, month: monthNumber, totalDays } = getMonthMeta(month);
     const today = new Date();
@@ -353,6 +367,37 @@ export default function RevenuePage() {
                   Peak day: Day {dailyRevenue.peakDay} ({formatCurrency(dailyRevenue.peakValue)})
                 </span>
               </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className={styles.chartSection}>
+        <div className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h3>Vehicle revenue</h3>
+            {status === "loading" && <span>Loading...</span>}
+          </div>
+          {status === "error" && (
+            <p className={styles.error}>{error}</p>
+          )}
+          {status === "success" && vehicleBreakdown.length === 0 && (
+            <p>No entries found for this month.</p>
+          )}
+          {vehicleBreakdown.length > 0 && (
+            <div className={styles.table}>
+              <div className={styles.tableHeader}>
+                <span>Vehicle</span>
+                <span>Rides</span>
+                <span>Revenue</span>
+              </div>
+              {vehicleBreakdown.map((vehicle) => (
+                <div key={vehicle.vehicleNumber} className={styles.tableRow}>
+                  <span>{vehicle.vehicleNumber}</span>
+                  <span>{vehicle.rides}</span>
+                  <span>{formatCurrency(vehicle.revenue)}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
