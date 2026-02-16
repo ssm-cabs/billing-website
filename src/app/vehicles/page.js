@@ -16,7 +16,7 @@ const initialState = {
   vehicle_number: "",
   cab_type: "",
   capacity: "",
-  status: "active",
+  active: true,
   driver_name: "",
   driver_phone: "",
   notes: "",
@@ -30,9 +30,8 @@ const cabTypeOptions = [
 ];
 
 const vehicleStatusOptions = [
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-  { label: "Maintenance", value: "maintenance" },
+  { label: "Active", value: true },
+  { label: "Inactive", value: false },
 ];
 
 export default function VehiclesPage() {
@@ -45,7 +44,7 @@ export default function VehiclesPage() {
   const [editForm, setEditForm] = useState({
     driver_name: "",
     driver_phone: "",
-    status: "active",
+    active: true,
   });
   const [editSaving, setEditSaving] = useState(false);
   const [error, setError] = useState("");
@@ -122,7 +121,7 @@ export default function VehiclesPage() {
     setEditForm({
       driver_name: vehicle.driver_name || "",
       driver_phone: vehicle.driver_phone || "",
-      status: vehicle.status || "active",
+      active: vehicle.active !== false,
     });
     setMessage("");
     setError("");
@@ -149,7 +148,7 @@ export default function VehiclesPage() {
       await updateVehicle(vehicleId, {
         driver_name: editForm.driver_name.trim(),
         driver_phone: editForm.driver_phone.trim(),
-        status: editForm.status || "active",
+        active: editForm.active,
       });
       setMessage(
         isFirebaseConfigured
@@ -272,11 +271,11 @@ export default function VehiclesPage() {
                         Status
                         <CustomDropdown
                           options={vehicleStatusOptions}
-                          value={editForm.status}
+                          value={editForm.active}
                           onChange={(value) =>
                             setEditForm((prev) => ({
                               ...prev,
-                              status: value,
+                              active: value,
                             }))
                           }
                           getLabel={(option) => option.label}
@@ -372,8 +371,8 @@ export default function VehiclesPage() {
                 Status
                 <CustomDropdown
                   options={vehicleStatusOptions}
-                  value={form.status}
-                  onChange={(value) => setForm((prev) => ({ ...prev, status: value }))}
+                  value={form.active}
+                  onChange={(value) => setForm((prev) => ({ ...prev, active: value }))}
                   getLabel={(option) => option.label}
                   getValue={(option) => option.value}
                   placeholder="Select status"

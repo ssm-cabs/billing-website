@@ -86,6 +86,7 @@ const mockVehicles = [
     vehicle_number: "TN 09 AB 1234",
     cab_type: "SUV",
     capacity: 6,
+    active: true,
     status: "active",
     driver_name: "Arun",
     driver_phone: "+91 90000 01001",
@@ -96,12 +97,27 @@ const mockVehicles = [
     vehicle_number: "TN 10 CD 5678",
     cab_type: "Sedan",
     capacity: 4,
+    active: true,
     status: "active",
     driver_name: "Suresh",
     driver_phone: "+91 90000 01002",
     notes: "",
   },
 ];
+
+function normalizeVehicle(vehicle = {}, vehicleId = "") {
+  const isActive =
+    typeof vehicle.active === "boolean"
+      ? vehicle.active
+      : vehicle.status !== "inactive";
+
+  return {
+    ...vehicle,
+    vehicle_id: vehicle.vehicle_id || vehicleId,
+    active: isActive,
+    status: isActive ? "active" : "inactive",
+  };
+}
 
 export async function fetchEntries({ company = "", month = "", orderByField = "", orderByDirection = "asc", limitCount = 0 } = {}) {
   if (!isFirebaseConfigured || !db) {
@@ -325,15 +341,14 @@ export async function deletePricing(companyId, pricingId) {
 
 export async function fetchVehicles() {
   if (!isFirebaseConfigured || !db) {
-    return mockVehicles;
+    return mockVehicles.map((vehicle) => normalizeVehicle(vehicle));
   }
 
   const vehiclesRef = collection(db, "vehicles");
   const snapshot = await getDocs(vehiclesRef);
-  return snapshot.docs.map((docSnap) => ({
-    vehicle_id: docSnap.id,
-    ...docSnap.data(),
-  }));
+  return snapshot.docs.map((docSnap) =>
+    normalizeVehicle(docSnap.data(), docSnap.id)
+  );
 }
 
 export async function countActiveCompanies() {
@@ -351,15 +366,13 @@ export async function countActiveCompanies() {
 
 export async function countActiveVehicles() {
   if (!isFirebaseConfigured || !db) {
-    return mockVehicles.filter((v) => v.status !== "inactive").length;
+    return mockVehicles.filter((v) => normalizeVehicle(v).active).length;
   }
 
   const vehiclesRef = collection(db, "vehicles");
-  const [totalSnapshot, inactiveSnapshot] = await Promise.all([
-    getCountFromServer(vehiclesRef),
-    getCountFromServer(query(vehiclesRef, where("status", "==", "inactive"))),
-  ]);
-  return totalSnapshot.data().count - inactiveSnapshot.data().count;
+  const snapshot = await getDocs(vehiclesRef);
+  return snapshot.docs.filter((docSnap) => normalizeVehicle(docSnap.data()).active)
+    .length;
 }
 
 export async function countUsers() {
@@ -415,8 +428,14 @@ export async function createVehicle(payload) {
   }
 
   const docRef = doc(collection(db, "vehicles"));
+  const active =
+    typeof payload?.active === "boolean"
+      ? payload.active
+      : payload?.status !== "inactive";
   const vehicle = {
     ...payload,
+    active,
+    status: active ? "active" : "inactive",
     vehicle_id: docRef.id,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
@@ -435,9 +454,15 @@ export async function updateVehicle(vehicleId, payload) {
     return { ok: true, vehicle_id: vehicleId };
   }
 
+  const active =
+    typeof payload?.active === "boolean"
+      ? payload.active
+      : payload?.status !== "inactive";
   const vehicleRef = doc(db, "vehicles", vehicleId);
   await updateDoc(vehicleRef, {
     ...payload,
+    active,
+    status: active ? "active" : "inactive",
     updated_at: serverTimestamp(),
   });
   return { vehicle_id: vehicleId };

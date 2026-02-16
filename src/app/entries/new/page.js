@@ -81,7 +81,7 @@ export default function NewEntryPage() {
       setVehicleStatus("loading");
       try {
         const data = await fetchVehicles();
-        setVehicles(data.filter((vehicle) => vehicle.status !== "inactive"));
+        setVehicles(data.filter((vehicle) => vehicle.active !== false));
         setVehicleStatus("success");
       } catch (err) {
         setVehicleStatus("error");
