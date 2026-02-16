@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   getCountFromServer,
+  deleteField,
   limit,
   orderBy,
   query,
@@ -823,7 +824,10 @@ export async function invoiceExists(companyId, month) {
   const invoiceId = `${companyId}-${month}`;
   const invoiceRef = doc(db, "invoices", invoiceId);
   const invoiceSnap = await getDoc(invoiceRef);
-  return invoiceSnap.exists();
+  if (!invoiceSnap.exists()) {
+    return false;
+  }
+  return String(invoiceSnap.data().status || "draft").toLowerCase() !== "draft";
 }
 
 export async function generateInvoice(companyId, month) {
@@ -842,7 +846,10 @@ export async function generateInvoice(companyId, month) {
   const invoiceId = `${companyId}-${month}`;
   const invoiceRef = doc(db, "invoices", invoiceId);
   const invoiceSnap = await getDoc(invoiceRef);
-  if (invoiceSnap.exists()) {
+  const existingInvoiceStatus = invoiceSnap.exists()
+    ? String(invoiceSnap.data().status || "draft").toLowerCase()
+    : "";
+  if (invoiceSnap.exists() && existingInvoiceStatus !== "draft") {
     throw new Error(
       `Invoice already exists for this company and month. Current status: ${invoiceSnap.data().status || "draft"}`
     );
@@ -860,6 +867,28 @@ export async function generateInvoice(companyId, month) {
 
   // Fetch entries for the month by company ID.
   const entriesRef = collection(db, "entries");
+
+  // Regenerating a draft invoice: release currently linked entries first.
+  if (invoiceSnap.exists() && existingInvoiceStatus === "draft") {
+    const linkedEntriesSnapshot = await getDocs(
+      query(entriesRef, where("invoice_id", "==", invoiceId))
+    );
+
+    const batchSize = 450;
+    for (let i = 0; i < linkedEntriesSnapshot.docs.length; i += batchSize) {
+      const batch = writeBatch(db);
+      const chunk = linkedEntriesSnapshot.docs.slice(i, i + batchSize);
+      for (const entryDoc of chunk) {
+        batch.update(entryDoc.ref, {
+          billed: false,
+          invoice_id: deleteField(),
+          updated_at: serverTimestamp(),
+        });
+      }
+      await batch.commit();
+    }
+  }
+
   let entriesQuery = query(
     entriesRef,
     where("company_id", "==", companyId),
@@ -950,7 +979,10 @@ export async function vehicleInvoiceExists(vehicleId, month) {
   const invoiceId = `${vehicleId}-${month}`;
   const invoiceRef = doc(db, "invoices", invoiceId);
   const invoiceSnap = await getDoc(invoiceRef);
-  return invoiceSnap.exists();
+  if (!invoiceSnap.exists()) {
+    return false;
+  }
+  return String(invoiceSnap.data().status || "draft").toLowerCase() !== "draft";
 }
 
 export async function generateVehicleInvoice(vehicleId, month) {
@@ -979,7 +1011,10 @@ export async function generateVehicleInvoice(vehicleId, month) {
   const invoiceId = `${vehicleId}-${month}`;
   const invoiceRef = doc(db, "invoices", invoiceId);
   const invoiceSnap = await getDoc(invoiceRef);
-  if (invoiceSnap.exists()) {
+  if (
+    invoiceSnap.exists() &&
+    String(invoiceSnap.data().status || "draft").toLowerCase() !== "draft"
+  ) {
     throw new Error(
       `Invoice already exists for this vehicle and month. Current status: ${invoiceSnap.data().status || "draft"}`
     );

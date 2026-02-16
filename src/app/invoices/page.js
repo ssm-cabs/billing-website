@@ -216,11 +216,13 @@ export default function InvoicePage() {
       if (isCompany) {
         await generateInvoice(selectedCompany, selectedCompanyMonth);
         await loadCompanyInvoices(selectedCompany);
-        setCompanyInvoiceAlreadyExists(true);
+        const exists = await invoiceExists(selectedCompany, selectedCompanyMonth);
+        setCompanyInvoiceAlreadyExists(exists);
       } else {
         await generateVehicleInvoice(selectedVehicle, selectedVehicleMonth);
         await loadVehicleInvoices(selectedVehicle);
-        setVehicleInvoiceAlreadyExists(true);
+        const exists = await vehicleInvoiceExists(selectedVehicle, selectedVehicleMonth);
+        setVehicleInvoiceAlreadyExists(exists);
       }
 
       setMessage(
