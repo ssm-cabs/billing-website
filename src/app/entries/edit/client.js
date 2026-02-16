@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DatePicker from "../DatePicker";
 import CustomDropdown from "../CustomDropdown";
@@ -47,8 +47,10 @@ const getLoggedInUserName = () => {
   }
 };
 
-export default function ClientEditEntryPage({ id }) {
+export default function ClientEditEntryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const { canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
@@ -262,7 +264,7 @@ export default function ClientEditEntryPage({ id }) {
             <p className={styles.eyebrow}>Access Denied</p>
             <h1>Permission Required</h1>
             <p className={styles.lead}>
-              You don't have permission to edit entries.
+              You don&apos;t have permission to edit entries.
             </p>
           </div>
         </header>
