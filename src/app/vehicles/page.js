@@ -519,22 +519,6 @@ export default function VehiclesPage() {
                                 onSubmit={(event) => handlePricingSubmit(event, vehicle)}
                               >
                                 <label className={styles.field}>
-                                  Cab type
-                                  <CustomDropdown
-                                    options={cabTypeOptions}
-                                    value={
-                                      (pricingFormByVehicle[vehicle.vehicle_id] ||
-                                        initialPricing).cab_type
-                                    }
-                                    onChange={(value) =>
-                                      setPricingField(vehicle.vehicle_id, "cab_type", value)
-                                    }
-                                    getLabel={(option) => option.label}
-                                    getValue={(option) => option.value}
-                                    placeholder="Select cab type"
-                                  />
-                                </label>
-                                <label className={styles.field}>
                                   Slot
                                   <CustomDropdown
                                     options={slotOptions}
@@ -587,23 +571,7 @@ export default function VehiclesPage() {
                                   <div key={pricing.pricing_id} className={styles.pricingRow}>
                                     {isEditing ? (
                                       <>
-                                        <CustomDropdown
-                                          options={cabTypeOptions}
-                                          value={edits.cab_type}
-                                          onChange={(value) =>
-                                            setEditPricingField(
-                                              vehicle.vehicle_id,
-                                              pricing.pricing_id,
-                                              "cab_type",
-                                              value
-                                            )
-                                          }
-                                          getLabel={(option) => option.label}
-                                          getValue={(option) => option.value}
-                                          placeholder="Select cab type"
-                                          disabled
-                                          buttonClassName={styles.pricingInlineDropdown}
-                                        />
+                                        <span>{edits.cab_type}</span>
                                         <CustomDropdown
                                           options={slotOptions}
                                           value={edits.slot}
