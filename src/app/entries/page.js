@@ -17,6 +17,7 @@ export default function EntriesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [entries, setEntries] = useState([]);
   const [company, setCompany] = useState("all");
+  const [vehicle, setVehicle] = useState("all");
   const [month, setMonth] = useState(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -29,6 +30,23 @@ export default function EntriesPage() {
   const [companyStatus, setCompanyStatus] = useState("idle");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteEntryId, setDeleteEntryId] = useState(null);
+
+  const vehicleOptions = useMemo(() => {
+    const uniqueVehicleNumbers = Array.from(
+      new Set(entries.map((entry) => entry.vehicle_number).filter(Boolean))
+    );
+    return uniqueVehicleNumbers.map((vehicleNumber) => ({
+      label: vehicleNumber,
+      value: vehicleNumber,
+    }));
+  }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    if (vehicle === "all") {
+      return entries;
+    }
+    return entries.filter((entry) => entry.vehicle_number === vehicle);
+  }, [entries, vehicle]);
 
   useEffect(() => {
     const load = async () => {
@@ -120,6 +138,13 @@ export default function EntriesPage() {
 
       <section className={styles.filters}>
         <label className={styles.field}>
+          Month
+          <MonthPicker
+            value={month}
+            onChange={setMonth}
+          />
+        </label>
+        <label className={styles.field}>
           Company
           <CustomDropdown
             options={companies}
@@ -133,10 +158,15 @@ export default function EntriesPage() {
           />
         </label>
         <label className={styles.field}>
-          Month
-          <MonthPicker
-            value={month}
-            onChange={setMonth}
+          Vehicle
+          <CustomDropdown
+            options={vehicleOptions}
+            value={vehicle}
+            onChange={setVehicle}
+            getLabel={(v) => v.label}
+            getValue={(v) => v.value}
+            placeholder="Select vehicle"
+            defaultOption={{ label: "All Vehicles", value: "all" }}
           />
         </label>
       </section>
@@ -144,10 +174,14 @@ export default function EntriesPage() {
       <section className={styles.tableWrap}>
         {status === "loading" && <p>Loading entries...</p>}
         {status === "error" && <p className={styles.error}>{error}</p>}
-        {status === "success" && entries.length === 0 && (
-          <p>No entries yet. Add the first ride entry.</p>
+        {status === "success" && filteredEntries.length === 0 && (
+          <p>
+            {entries.length === 0
+              ? "No entries yet. Add the first ride entry."
+              : "No entries found for selected filters."}
+          </p>
         )}
-        {entries.length > 0 && (
+        {filteredEntries.length > 0 && (
           <table className={styles.table}>
             <thead>
               <tr>
@@ -164,7 +198,7 @@ export default function EntriesPage() {
               </tr>
             </thead>
             <tbody>
-              {entries.map((entry) => (
+              {filteredEntries.map((entry) => (
                 <tr key={entry.entry_id}>
                   <td data-label="Date">{entry.entry_date}</td>
                   <td data-label="Company">{entry.company_name}</td>
