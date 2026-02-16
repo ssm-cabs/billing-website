@@ -72,7 +72,7 @@ export default function VehiclesPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [expandedVehicleId, setExpandedVehicleId] = useState(null);
+  const [pricingModalVehicleId, setPricingModalVehicleId] = useState(null);
   const [pricingByVehicle, setPricingByVehicle] = useState({});
   const [pricingFormByVehicle, setPricingFormByVehicle] = useState({});
   const [pricingStatus, setPricingStatus] = useState({});
@@ -121,13 +121,8 @@ export default function VehiclesPage() {
     }));
   };
 
-  const togglePricing = async (vehicleId) => {
-    if (expandedVehicleId === vehicleId) {
-      setExpandedVehicleId(null);
-      return;
-    }
-
-    setExpandedVehicleId(vehicleId);
+  const openPricingModal = async (vehicleId) => {
+    setPricingModalVehicleId(vehicleId);
     if (!pricingByVehicle[vehicleId]) {
       setPricingStatus((prev) => ({ ...prev, [vehicleId]: "loading" }));
       try {
@@ -138,6 +133,10 @@ export default function VehiclesPage() {
         setPricingStatus((prev) => ({ ...prev, [vehicleId]: "error" }));
       }
     }
+  };
+
+  const closePricingModal = () => {
+    setPricingModalVehicleId(null);
   };
 
   const handlePricingSubmit = async (event, vehicle) => {
@@ -352,6 +351,8 @@ export default function VehiclesPage() {
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
+  const pricingVehicle =
+    vehicles.find((vehicle) => vehicle.vehicle_id === pricingModalVehicleId) || null;
 
   return (
     <div className={styles.page}>
@@ -548,11 +549,9 @@ export default function VehiclesPage() {
                                     <button
                                       type="button"
                                       className={styles.linkButton}
-                                      onClick={() => togglePricing(vehicle.vehicle_id)}
+                                      onClick={() => openPricingModal(vehicle.vehicle_id)}
                                     >
-                                      {expandedVehicleId === vehicle.vehicle_id
-                                        ? "Hide pricing"
-                                        : "Manage pricing"}
+                                      Manage pricing
                                     </button>
                                   )}
                                 </div>
@@ -560,173 +559,6 @@ export default function VehiclesPage() {
                             </td>
                           )}
                         </tr>
-                        {vehicle.ownership_type === "leased" &&
-                          expandedVehicleId === vehicle.vehicle_id && (
-                            <tr>
-                              <td
-                                colSpan={canEdit ? 8 : 7}
-                                className={styles.pricingCell}
-                              >
-                                <div className={styles.pricingSection}>
-                            {canEdit && (
-                              <form
-                                className={styles.pricingForm}
-                                onSubmit={(event) => handlePricingSubmit(event, vehicle)}
-                              >
-                                <label className={styles.field}>
-                                  Slot
-                                  <CustomDropdown
-                                    options={slotOptions}
-                                    value={
-                                      (pricingFormByVehicle[vehicle.vehicle_id] ||
-                                        initialPricing).slot
-                                    }
-                                    onChange={(value) =>
-                                      setPricingField(vehicle.vehicle_id, "slot", value)
-                                    }
-                                    getLabel={(option) => option.label}
-                                    getValue={(option) => option.value}
-                                    placeholder="Select slot"
-                                  />
-                                </label>
-                                <label className={styles.field}>
-                                  Rate
-                                  <input
-                                    type="number"
-                                    name="rate"
-                                    value={
-                                      (pricingFormByVehicle[vehicle.vehicle_id] ||
-                                        initialPricing).rate
-                                    }
-                                    onChange={(event) =>
-                                      updatePricingField(vehicle.vehicle_id, event)
-                                    }
-                                    min="0"
-                                    required
-                                  />
-                                </label>
-                                <button className={styles.secondaryButton} type="submit">
-                                  Add rate
-                                </button>
-                              </form>
-                            )}
-                            <div className={styles.pricingList}>
-                              <div className={styles.pricingHeader}>
-                                <span>Cab type</span>
-                                <span>Slot</span>
-                                <span>Rate</span>
-                              </div>
-                              {(pricingByVehicle[vehicle.vehicle_id] || []).map((pricing) => {
-                                const edits =
-                                  pricingEditByVehicle?.[vehicle.vehicle_id]?.[
-                                    pricing.pricing_id
-                                  ];
-                                const isEditing = Boolean(edits);
-                                return (
-                                  <div key={pricing.pricing_id} className={styles.pricingRow}>
-                                    {isEditing ? (
-                                      <>
-                                        <span>{edits.cab_type}</span>
-                                        <CustomDropdown
-                                          options={slotOptions}
-                                          value={edits.slot}
-                                          onChange={(value) =>
-                                            setEditPricingField(
-                                              vehicle.vehicle_id,
-                                              pricing.pricing_id,
-                                              "slot",
-                                              value
-                                            )
-                                          }
-                                          getLabel={(option) => option.label}
-                                          getValue={(option) => option.value}
-                                          placeholder="Select slot"
-                                          disabled
-                                          buttonClassName={styles.pricingInlineDropdown}
-                                        />
-                                        <input
-                                          type="number"
-                                          name="rate"
-                                          value={edits.rate}
-                                          onChange={(event) =>
-                                            updateEditPricingField(
-                                              vehicle.vehicle_id,
-                                              pricing.pricing_id,
-                                              event
-                                            )
-                                          }
-                                          min="0"
-                                        />
-                                      </>
-                                    ) : (
-                                      <>
-                                        <span>{pricing.cab_type}</span>
-                                        <span>{pricing.slot}</span>
-                                        <span>₹ {pricing.rate}</span>
-                                      </>
-                                    )}
-                                    <div className={styles.pricingActions}>
-                                      {canEdit && (
-                                        <>
-                                          {isEditing ? (
-                                            <button
-                                              type="button"
-                                              className={styles.textButton}
-                                              onClick={() =>
-                                                savePricingEdit(
-                                                  vehicle.vehicle_id,
-                                                  pricing.pricing_id
-                                                )
-                                              }
-                                            >
-                                              Save
-                                            </button>
-                                          ) : (
-                                            <>
-                                              <button
-                                                type="button"
-                                                className={styles.textButton}
-                                                onClick={() =>
-                                                  startEditPricing(vehicle.vehicle_id, pricing)
-                                                }
-                                              >
-                                                Update
-                                              </button>
-                                              <button
-                                                type="button"
-                                                className={styles.deleteButton}
-                                                onClick={() =>
-                                                  handleDeletePricing(
-                                                    vehicle.vehicle_id,
-                                                    pricing.pricing_id
-                                                  )
-                                                }
-                                              >
-                                                Delete
-                                              </button>
-                                            </>
-                                          )}
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                              {pricingStatus[vehicle.vehicle_id] === "loading" && (
-                                <p className={styles.pricingNotice}>Loading pricing...</p>
-                              )}
-                              {pricingStatus[vehicle.vehicle_id] === "error" && (
-                                <p className={styles.error}>Unable to load pricing.</p>
-                              )}
-                              {pricingStatus[vehicle.vehicle_id] === "success" &&
-                                (pricingByVehicle[vehicle.vehicle_id] || []).length === 0 && (
-                                  <p className={styles.pricingNotice}>No pricing rules yet.</p>
-                                )}
-                            </div>
-                          </div>
-                              </td>
-                            </tr>
-                          )}
                       </Fragment>
                     );
                   })}
@@ -736,6 +568,175 @@ export default function VehiclesPage() {
           )}
         </div>
       </section>
+
+      {canEdit && pricingVehicle && (
+        <div className={styles.modalOverlay} onClick={closePricingModal}>
+          <div
+            className={`${styles.modal} ${styles.pricingModal}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <h2>Manage Pricing: {pricingVehicle.vehicle_number}</h2>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={closePricingModal}
+              >
+                ✕
+              </button>
+            </div>
+            <div className={`${styles.pricingSection} ${styles.pricingSectionModal}`}>
+              <form
+                className={styles.pricingForm}
+                onSubmit={(event) => handlePricingSubmit(event, pricingVehicle)}
+              >
+                <label className={styles.field}>
+                  Slot
+                  <CustomDropdown
+                    options={slotOptions}
+                    value={
+                      (pricingFormByVehicle[pricingVehicle.vehicle_id] || initialPricing).slot
+                    }
+                    onChange={(value) =>
+                      setPricingField(pricingVehicle.vehicle_id, "slot", value)
+                    }
+                    getLabel={(option) => option.label}
+                    getValue={(option) => option.value}
+                    placeholder="Select slot"
+                  />
+                </label>
+                <label className={styles.field}>
+                  Rate
+                  <input
+                    type="number"
+                    name="rate"
+                    value={
+                      (pricingFormByVehicle[pricingVehicle.vehicle_id] || initialPricing).rate
+                    }
+                    onChange={(event) =>
+                      updatePricingField(pricingVehicle.vehicle_id, event)
+                    }
+                    min="0"
+                    required
+                  />
+                </label>
+                <button className={styles.secondaryButton} type="submit">
+                  Add rate
+                </button>
+              </form>
+              <div className={styles.pricingList}>
+                <div className={styles.pricingHeader}>
+                  <span>Cab type</span>
+                  <span>Slot</span>
+                  <span>Rate</span>
+                </div>
+                {(pricingByVehicle[pricingVehicle.vehicle_id] || []).map((pricing) => {
+                  const edits =
+                    pricingEditByVehicle?.[pricingVehicle.vehicle_id]?.[
+                      pricing.pricing_id
+                    ];
+                  const isEditing = Boolean(edits);
+                  return (
+                    <div key={pricing.pricing_id} className={styles.pricingRow}>
+                      {isEditing ? (
+                        <>
+                          <span>{edits.cab_type}</span>
+                          <CustomDropdown
+                            options={slotOptions}
+                            value={edits.slot}
+                            onChange={(value) =>
+                              setEditPricingField(
+                                pricingVehicle.vehicle_id,
+                                pricing.pricing_id,
+                                "slot",
+                                value
+                              )
+                            }
+                            getLabel={(option) => option.label}
+                            getValue={(option) => option.value}
+                            placeholder="Select slot"
+                            disabled
+                            buttonClassName={styles.pricingInlineDropdown}
+                          />
+                          <input
+                            type="number"
+                            name="rate"
+                            value={edits.rate}
+                            onChange={(event) =>
+                              updateEditPricingField(
+                                pricingVehicle.vehicle_id,
+                                pricing.pricing_id,
+                                event
+                              )
+                            }
+                            min="0"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <span>{pricing.cab_type}</span>
+                          <span>{pricing.slot}</span>
+                          <span>₹ {pricing.rate}</span>
+                        </>
+                      )}
+                      <div className={styles.pricingActions}>
+                        {isEditing ? (
+                          <button
+                            type="button"
+                            className={styles.textButton}
+                            onClick={() =>
+                              savePricingEdit(
+                                pricingVehicle.vehicle_id,
+                                pricing.pricing_id
+                              )
+                            }
+                          >
+                            Save
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className={styles.textButton}
+                              onClick={() =>
+                                startEditPricing(pricingVehicle.vehicle_id, pricing)
+                              }
+                            >
+                              Update
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.deleteButton}
+                              onClick={() =>
+                                handleDeletePricing(
+                                  pricingVehicle.vehicle_id,
+                                  pricing.pricing_id
+                                )
+                              }
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {pricingStatus[pricingVehicle.vehicle_id] === "loading" && (
+                  <p className={styles.pricingNotice}>Loading pricing...</p>
+                )}
+                {pricingStatus[pricingVehicle.vehicle_id] === "error" && (
+                  <p className={styles.error}>Unable to load pricing.</p>
+                )}
+                {pricingStatus[pricingVehicle.vehicle_id] === "success" &&
+                  (pricingByVehicle[pricingVehicle.vehicle_id] || []).length === 0 && (
+                    <p className={styles.pricingNotice}>No pricing rules yet.</p>
+                  )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {canEdit && showForm && (
         <div className={styles.modalOverlay} onClick={() => setShowForm(false)}>

@@ -247,9 +247,6 @@
   min-width: 120px;
 }
 
-.pricingCell {
-  background: #fff;
-}
 
 .cards {
   display: grid;
@@ -340,6 +337,11 @@
   padding-top: 16px;
   display: grid;
   gap: 16px;
+}
+
+.pricingSectionModal {
+  border-top: none;
+  padding-top: 0;
 }
 
 .pricingForm {
@@ -478,6 +480,10 @@
   padding: 24px;
 }
 
+.pricingModal {
+  max-width: 760px;
+}
+
 .modalHeader {
   display: flex;
   align-items: center;
@@ -559,8 +565,4 @@
     justify-content: flex-start;
   }
 
-  .pricingCell {
-    display: block;
-    padding-top: 8px;
-  }
 }
