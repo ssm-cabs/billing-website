@@ -422,8 +422,12 @@ export default function PaymentsPage() {
                       <span className={`${styles.status} ${styles[payment.status] || ""}`}>
                         {payment.status}
                       </span>
-                      <span className={styles.notesCell} title={notesText}>
-                        {notesText}
+                      <span
+                        className={styles.notesCell}
+                        title={notesText}
+                        data-full-text={notesText}
+                      >
+                        <span className={styles.notesText}>{notesText}</span>
                       </span>
                     </div>
                   );
