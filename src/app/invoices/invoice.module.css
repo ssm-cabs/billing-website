@@ -92,11 +92,56 @@
   align-items: start;
 }
 
+.invoiceTypeTiles {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.invoiceTypeTile {
+  border: 1px solid rgba(30, 25, 22, 0.14);
+  background: #fff;
+  color: #5e534c;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.invoiceTypeTile:hover {
+  background: #f7f3ef;
+  border-color: #1e1916;
+  color: #1e1916;
+}
+
+.invoiceTypeTileActive {
+  background: #1e1916;
+  color: #fff;
+  border-color: #1e1916;
+}
+
+.invoiceTypeTileActive:hover {
+  background: #1e1916;
+  color: #fff;
+  border-color: #1e1916;
+}
+
 .controls {
   background: #fff;
   padding: 24px;
   border-radius: 16px;
   border: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.controlsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .controls h2 {
@@ -179,6 +224,12 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .invoicesList h2 {
@@ -586,6 +637,10 @@
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .invoiceTypeTiles {
+    flex-wrap: wrap;
   }
 
   .invoiceHeader {
