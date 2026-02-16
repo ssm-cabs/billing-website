@@ -38,6 +38,12 @@ service cloud.firestore {
     // Fleet and driver details are internal data.
     match /vehicles/{vehicleId} {
       allow read, write: if isSignedIn();
+
+      // PRICING SUBCOLLECTION
+      // Leased-vehicle slot pricing is internal operational data.
+      match /pricing/{pricingId} {
+        allow read, write: if isSignedIn();
+      }
     }
 
     // INVOICES

@@ -5,8 +5,12 @@ import Link from "next/link";
 import CustomDropdown from "../entries/CustomDropdown";
 import {
   createVehicle,
+  createVehiclePricing,
+  deleteVehiclePricing,
+  fetchVehiclePricing,
   fetchVehicles,
   isFirebaseConfigured,
+  updateVehiclePricing,
   updateVehicle,
 } from "@/lib/api";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
@@ -41,6 +45,17 @@ const ownershipTypeOptions = [
   { label: "Leased Vehicle", value: "leased" },
 ];
 
+const slotOptions = [
+  { label: "4hr", value: "4hr" },
+  { label: "8hr", value: "8hr" },
+];
+
+const initialPricing = {
+  cab_type: "",
+  slot: "",
+  rate: "",
+};
+
 export default function VehiclesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("vehicles");
   const [vehicles, setVehicles] = useState([]);
@@ -56,6 +71,11 @@ export default function VehiclesPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [expandedVehicleId, setExpandedVehicleId] = useState(null);
+  const [pricingByVehicle, setPricingByVehicle] = useState({});
+  const [pricingFormByVehicle, setPricingFormByVehicle] = useState({});
+  const [pricingStatus, setPricingStatus] = useState({});
+  const [pricingEditByVehicle, setPricingEditByVehicle] = useState({});
 
   const loadVehicles = async () => {
     setStatus("loading");
@@ -77,6 +97,144 @@ export default function VehiclesPage() {
   const updateField = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const setPricingField = (vehicleId, name, value) => {
+    setPricingFormByVehicle((prev) => ({
+      ...prev,
+      [vehicleId]: {
+        ...(prev[vehicleId] || initialPricing),
+        [name]: value,
+      },
+    }));
+  };
+
+  const updatePricingField = (vehicleId, event) => {
+    const { name, value } = event.target;
+    setPricingFormByVehicle((prev) => ({
+      ...prev,
+      [vehicleId]: {
+        ...(prev[vehicleId] || initialPricing),
+        [name]: value,
+      },
+    }));
+  };
+
+  const togglePricing = async (vehicleId) => {
+    if (expandedVehicleId === vehicleId) {
+      setExpandedVehicleId(null);
+      return;
+    }
+
+    setExpandedVehicleId(vehicleId);
+    if (!pricingByVehicle[vehicleId]) {
+      setPricingStatus((prev) => ({ ...prev, [vehicleId]: "loading" }));
+      try {
+        const data = await fetchVehiclePricing(vehicleId);
+        setPricingByVehicle((prev) => ({ ...prev, [vehicleId]: data }));
+        setPricingStatus((prev) => ({ ...prev, [vehicleId]: "success" }));
+      } catch (_) {
+        setPricingStatus((prev) => ({ ...prev, [vehicleId]: "error" }));
+      }
+    }
+  };
+
+  const handlePricingSubmit = async (event, vehicle) => {
+    event.preventDefault();
+    const payload = pricingFormByVehicle[vehicle.vehicle_id] || initialPricing;
+    const rateValue = payload.rate ? Number(payload.rate) : 0;
+
+    try {
+      await createVehiclePricing(vehicle.vehicle_id, {
+        ...payload,
+        cab_type: payload.cab_type || vehicle.cab_type || "",
+        rate: rateValue,
+      });
+      const data = await fetchVehiclePricing(vehicle.vehicle_id);
+      setPricingByVehicle((prev) => ({ ...prev, [vehicle.vehicle_id]: data }));
+      setPricingFormByVehicle((prev) => ({
+        ...prev,
+        [vehicle.vehicle_id]: initialPricing,
+      }));
+      setPricingStatus((prev) => ({ ...prev, [vehicle.vehicle_id]: "success" }));
+    } catch (_) {
+      setPricingStatus((prev) => ({ ...prev, [vehicle.vehicle_id]: "error" }));
+    }
+  };
+
+  const startEditPricing = (vehicleId, pricing) => {
+    setPricingEditByVehicle((prev) => ({
+      ...prev,
+      [vehicleId]: {
+        ...(prev[vehicleId] || {}),
+        [pricing.pricing_id]: {
+          cab_type: pricing.cab_type || "",
+          slot: pricing.slot || "",
+          rate: pricing.rate ?? "",
+        },
+      },
+    }));
+  };
+
+  const updateEditPricingField = (vehicleId, pricingId, event) => {
+    const { name, value } = event.target;
+    setPricingEditByVehicle((prev) => ({
+      ...prev,
+      [vehicleId]: {
+        ...(prev[vehicleId] || {}),
+        [pricingId]: {
+          ...(prev[vehicleId]?.[pricingId] || {}),
+          [name]: value,
+        },
+      },
+    }));
+  };
+
+  const setEditPricingField = (vehicleId, pricingId, name, value) => {
+    setPricingEditByVehicle((prev) => ({
+      ...prev,
+      [vehicleId]: {
+        ...(prev[vehicleId] || {}),
+        [pricingId]: {
+          ...(prev[vehicleId]?.[pricingId] || {}),
+          [name]: value,
+        },
+      },
+    }));
+  };
+
+  const savePricingEdit = async (vehicleId, pricingId) => {
+    const payload = pricingEditByVehicle?.[vehicleId]?.[pricingId];
+    if (!payload) return;
+    const rateValue = payload.rate ? Number(payload.rate) : 0;
+
+    try {
+      await updateVehiclePricing(vehicleId, pricingId, {
+        ...payload,
+        rate: rateValue,
+      });
+      const data = await fetchVehiclePricing(vehicleId);
+      setPricingByVehicle((prev) => ({ ...prev, [vehicleId]: data }));
+      setPricingEditByVehicle((prev) => {
+        const vehicleEdits = { ...(prev[vehicleId] || {}) };
+        delete vehicleEdits[pricingId];
+        return { ...prev, [vehicleId]: vehicleEdits };
+      });
+      setPricingStatus((prev) => ({ ...prev, [vehicleId]: "success" }));
+    } catch (_) {
+      setPricingStatus((prev) => ({ ...prev, [vehicleId]: "error" }));
+    }
+  };
+
+  const handleDeletePricing = async (vehicleId, pricingId) => {
+    try {
+      await deleteVehiclePricing(vehicleId, pricingId);
+      const data = await fetchVehiclePricing(vehicleId);
+      setPricingByVehicle((prev) => ({ ...prev, [vehicleId]: data }));
+      setPricingStatus((prev) => ({ ...prev, [vehicleId]: "success" }));
+    } catch (_) {
+      setPricingStatus((prev) => ({ ...prev, [vehicleId]: "error" }));
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -338,7 +496,212 @@ export default function VehiclesPage() {
                         <span>{vehicle.driver_name || "-"}</span>
                         <span>{vehicle.driver_phone || "-"}</span>
                       </div>
-                      <span className={styles.statusTag}>{vehicle.status}</span>
+                      <div className={styles.cardFooter}>
+                        <span className={styles.statusTag}>{vehicle.status}</span>
+                        {vehicle.ownership_type === "leased" && (
+                          <button
+                            type="button"
+                            className={styles.linkButton}
+                            onClick={() => togglePricing(vehicle.vehicle_id)}
+                          >
+                            {expandedVehicleId === vehicle.vehicle_id
+                              ? "Hide pricing"
+                              : "Manage pricing"}
+                          </button>
+                        )}
+                      </div>
+                      {vehicle.ownership_type === "leased" &&
+                        expandedVehicleId === vehicle.vehicle_id && (
+                          <div className={styles.pricingSection}>
+                            {canEdit && (
+                              <form
+                                className={styles.pricingForm}
+                                onSubmit={(event) => handlePricingSubmit(event, vehicle)}
+                              >
+                                <label className={styles.field}>
+                                  Cab type
+                                  <CustomDropdown
+                                    options={cabTypeOptions}
+                                    value={
+                                      (pricingFormByVehicle[vehicle.vehicle_id] ||
+                                        initialPricing).cab_type
+                                    }
+                                    onChange={(value) =>
+                                      setPricingField(vehicle.vehicle_id, "cab_type", value)
+                                    }
+                                    getLabel={(option) => option.label}
+                                    getValue={(option) => option.value}
+                                    placeholder="Select cab type"
+                                  />
+                                </label>
+                                <label className={styles.field}>
+                                  Slot
+                                  <CustomDropdown
+                                    options={slotOptions}
+                                    value={
+                                      (pricingFormByVehicle[vehicle.vehicle_id] ||
+                                        initialPricing).slot
+                                    }
+                                    onChange={(value) =>
+                                      setPricingField(vehicle.vehicle_id, "slot", value)
+                                    }
+                                    getLabel={(option) => option.label}
+                                    getValue={(option) => option.value}
+                                    placeholder="Select slot"
+                                  />
+                                </label>
+                                <label className={styles.field}>
+                                  Rate
+                                  <input
+                                    type="number"
+                                    name="rate"
+                                    value={
+                                      (pricingFormByVehicle[vehicle.vehicle_id] ||
+                                        initialPricing).rate
+                                    }
+                                    onChange={(event) =>
+                                      updatePricingField(vehicle.vehicle_id, event)
+                                    }
+                                    min="0"
+                                    required
+                                  />
+                                </label>
+                                <button className={styles.secondaryButton} type="submit">
+                                  Add rate
+                                </button>
+                              </form>
+                            )}
+                            <div className={styles.pricingList}>
+                              <div className={styles.pricingHeader}>
+                                <span>Cab type</span>
+                                <span>Slot</span>
+                                <span>Rate</span>
+                              </div>
+                              {(pricingByVehicle[vehicle.vehicle_id] || []).map((pricing) => {
+                                const edits =
+                                  pricingEditByVehicle?.[vehicle.vehicle_id]?.[
+                                    pricing.pricing_id
+                                  ];
+                                const isEditing = Boolean(edits);
+                                return (
+                                  <div key={pricing.pricing_id} className={styles.pricingRow}>
+                                    {isEditing ? (
+                                      <>
+                                        <CustomDropdown
+                                          options={cabTypeOptions}
+                                          value={edits.cab_type}
+                                          onChange={(value) =>
+                                            setEditPricingField(
+                                              vehicle.vehicle_id,
+                                              pricing.pricing_id,
+                                              "cab_type",
+                                              value
+                                            )
+                                          }
+                                          getLabel={(option) => option.label}
+                                          getValue={(option) => option.value}
+                                          placeholder="Select cab type"
+                                          disabled
+                                          buttonClassName={styles.pricingInlineDropdown}
+                                        />
+                                        <CustomDropdown
+                                          options={slotOptions}
+                                          value={edits.slot}
+                                          onChange={(value) =>
+                                            setEditPricingField(
+                                              vehicle.vehicle_id,
+                                              pricing.pricing_id,
+                                              "slot",
+                                              value
+                                            )
+                                          }
+                                          getLabel={(option) => option.label}
+                                          getValue={(option) => option.value}
+                                          placeholder="Select slot"
+                                          disabled
+                                          buttonClassName={styles.pricingInlineDropdown}
+                                        />
+                                        <input
+                                          type="number"
+                                          name="rate"
+                                          value={edits.rate}
+                                          onChange={(event) =>
+                                            updateEditPricingField(
+                                              vehicle.vehicle_id,
+                                              pricing.pricing_id,
+                                              event
+                                            )
+                                          }
+                                          min="0"
+                                        />
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span>{pricing.cab_type}</span>
+                                        <span>{pricing.slot}</span>
+                                        <span>₹ {pricing.rate}</span>
+                                      </>
+                                    )}
+                                    <div className={styles.pricingActions}>
+                                      {canEdit && (
+                                        <>
+                                          {isEditing ? (
+                                            <button
+                                              type="button"
+                                              className={styles.textButton}
+                                              onClick={() =>
+                                                savePricingEdit(
+                                                  vehicle.vehicle_id,
+                                                  pricing.pricing_id
+                                                )
+                                              }
+                                            >
+                                              Save
+                                            </button>
+                                          ) : (
+                                            <>
+                                              <button
+                                                type="button"
+                                                className={styles.textButton}
+                                                onClick={() =>
+                                                  startEditPricing(vehicle.vehicle_id, pricing)
+                                                }
+                                              >
+                                                Update
+                                              </button>
+                                              <button
+                                                type="button"
+                                                className={styles.deleteButton}
+                                                onClick={() =>
+                                                  handleDeletePricing(
+                                                    vehicle.vehicle_id,
+                                                    pricing.pricing_id
+                                                  )
+                                                }
+                                              >
+                                                Delete
+                                              </button>
+                                            </>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              {pricingStatus[vehicle.vehicle_id] === "loading" && (
+                                <p className={styles.pricingNotice}>Loading pricing...</p>
+                              )}
+                              {pricingStatus[vehicle.vehicle_id] === "error" && (
+                                <p className={styles.error}>Unable to load pricing.</p>
+                              )}
+                              {pricingStatus[vehicle.vehicle_id] === "success" &&
+                                (pricingByVehicle[vehicle.vehicle_id] || []).length === 0 && (
+                                  <p className={styles.pricingNotice}>No pricing rules yet.</p>
+                                )}
+                            </div>
+                          </div>
+                        )}
                     </>
                   )}
                 </article>

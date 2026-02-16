@@ -80,6 +80,13 @@ const mockPricing = {
   ],
 };
 
+const mockVehiclePricing = {
+  "tn-09-ab-1234": [
+    { pricing_id: "SUV-4hr", cab_type: "SUV", slot: "4hr", rate: 1300 },
+    { pricing_id: "SUV-8hr", cab_type: "SUV", slot: "8hr", rate: 2200 },
+  ],
+};
+
 const mockVehicles = [
   {
     vehicle_id: "tn-09-ab-1234",
@@ -141,6 +148,7 @@ function normalizeVehicle(vehicle = {}, vehicleId = "") {
   return {
     ...vehicle,
     vehicle_id: vehicle.vehicle_id || vehicleId,
+    ownership_type: vehicle.ownership_type || "own",
     active: isActive,
     status: isActive ? "active" : "inactive",
   };
@@ -406,6 +414,88 @@ export async function fetchVehicles() {
   return snapshot.docs.map((docSnap) =>
     normalizeVehicle(docSnap.data(), docSnap.id)
   );
+}
+
+export async function fetchVehiclePricing(vehicleId) {
+  if (!vehicleId) {
+    throw new Error("vehicleId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return mockVehiclePricing[vehicleId] || [];
+  }
+
+  const pricingRef = collection(db, "vehicles", vehicleId, "pricing");
+  const snapshot = await getDocs(pricingRef);
+  return snapshot.docs.map((docSnap) => ({
+    pricing_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+}
+
+export async function createVehiclePricing(vehicleId, payload) {
+  if (!vehicleId) {
+    throw new Error("vehicleId is required");
+  }
+
+  if (!payload?.cab_type || !payload?.slot) {
+    throw new Error("cab_type and slot are required");
+  }
+  assertValidSlot(payload.slot);
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, pricing_id: `${payload.cab_type}-${payload.slot}` };
+  }
+
+  const pricingId = `${payload.cab_type}-${payload.slot}`;
+  const docRef = doc(collection(db, "vehicles", vehicleId, "pricing"), pricingId);
+  const pricing = {
+    ...payload,
+    pricing_id: pricingId,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, pricing);
+  return { pricing_id: docRef.id };
+}
+
+export async function updateVehiclePricing(vehicleId, pricingId, payload) {
+  if (!vehicleId || !pricingId) {
+    throw new Error("vehicleId and pricingId are required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, pricing_id: pricingId };
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload || {}, "slot")) {
+    assertValidSlot(payload.slot);
+  }
+
+  const docRef = doc(collection(db, "vehicles", vehicleId, "pricing"), pricingId);
+  const pricing = {
+    ...payload,
+    pricing_id: pricingId,
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, pricing, { merge: true });
+  return { pricing_id: pricingId };
+}
+
+export async function deleteVehiclePricing(vehicleId, pricingId) {
+  if (!vehicleId || !pricingId) {
+    throw new Error("vehicleId and pricingId are required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, pricing_id: pricingId };
+  }
+
+  const docRef = doc(collection(db, "vehicles", vehicleId, "pricing"), pricingId);
+  await deleteDoc(docRef);
+  return { pricing_id: pricingId };
 }
 
 export async function countActiveCompanies() {

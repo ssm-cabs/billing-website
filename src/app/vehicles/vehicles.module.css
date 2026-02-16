@@ -147,6 +147,13 @@
   gap: 12px;
 }
 
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
 .card h3 {
   margin: 0;
 }
@@ -188,9 +195,122 @@
   font-family: inherit;
 }
 
+.linkButton {
+  border: none;
+  background: none;
+  color: var(--page-ink);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0;
+}
+
 .inlineEdit {
   display: grid;
   gap: 10px;
+}
+
+.pricingSection {
+  border-top: 1px solid rgba(30, 25, 22, 0.08);
+  padding-top: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.pricingForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.secondaryButton {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 25, 22, 0.2);
+  background: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pricingList {
+  display: grid;
+  gap: 8px;
+}
+
+.pricingHeader,
+.pricingRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.pricingHeader {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+}
+
+.pricingRow {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.06);
+  align-items: center;
+}
+
+.pricingRow input {
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff;
+  color: var(--page-ink);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.pricingInlineDropdown {
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.pricingActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.textButton {
+  border: none;
+  background: none;
+  color: var(--page-ink);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.deleteButton {
+  border: none;
+  background: none;
+  color: #b93524;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pricingNotice {
+  color: var(--page-muted);
+  font-size: 12px;
 }
 
 .inlineActions {
@@ -255,5 +375,9 @@
 @media (max-width: 960px) {
   .header {
     flex-direction: column;
+  }
+
+  .pricingForm {
+    grid-template-columns: 1fr;
   }
 }

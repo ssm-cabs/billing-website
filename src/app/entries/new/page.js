@@ -9,6 +9,7 @@ import {
   createEntry,
   fetchCompanies,
   fetchPricing,
+  fetchVehiclePricing,
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
@@ -59,6 +60,7 @@ export default function NewEntryPage() {
   const [vehicles, setVehicles] = useState([]);
   const [vehicleStatus, setVehicleStatus] = useState("idle");
   const [pricing, setPricing] = useState([]);
+  const [vehiclePricing, setVehiclePricing] = useState([]);
   const [pricingStatus, setPricingStatus] = useState("idle");
 
   useEffect(() => {
@@ -117,6 +119,27 @@ export default function NewEntryPage() {
   }, [form.company_name, companies]);
 
   useEffect(() => {
+    const loadVehiclePricing = async () => {
+      const selectedVehicle = vehicles.find(
+        (v) => v.vehicle_number === form.vehicle_number
+      );
+      if (!selectedVehicle || selectedVehicle.ownership_type !== "leased") {
+        setVehiclePricing([]);
+        return;
+      }
+
+      try {
+        const data = await fetchVehiclePricing(selectedVehicle.vehicle_id);
+        setVehiclePricing(data);
+      } catch (_) {
+        setVehiclePricing([]);
+      }
+    };
+
+    loadVehiclePricing();
+  }, [form.vehicle_number, vehicles]);
+
+  useEffect(() => {
     const loggedInName = getLoggedInUserName();
     if (loggedInName) {
       setForm((prev) => ({ ...prev, user_name: loggedInName }));
@@ -127,7 +150,9 @@ export default function NewEntryPage() {
     const selectedVehicle = vehicles.find(
       (v) => v.vehicle_number === form.vehicle_number
     );
-    const matchingPrice = pricing.find(
+    const activePricingSource =
+      selectedVehicle?.ownership_type === "leased" ? vehiclePricing : pricing;
+    const matchingPrice = activePricingSource.find(
       (p) => p.cab_type === selectedVehicle?.cab_type && p.slot === form.slot
     );
 
@@ -136,7 +161,7 @@ export default function NewEntryPage() {
       cab_type: selectedVehicle?.cab_type || "",
       rate: matchingPrice?.rate || 0,
     }));
-  }, [form.vehicle_number, form.slot, pricing, vehicles]);
+  }, [form.vehicle_number, form.slot, pricing, vehiclePricing, vehicles]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
