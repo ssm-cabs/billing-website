@@ -36,6 +36,11 @@ const billingCycleOptions = [
   { label: "Daily", value: "daily" },
 ];
 
+const companyStatusOptions = [
+  { label: "Active", value: true },
+  { label: "Inactive", value: false },
+];
+
 const cabTypeOptions = [
   { label: "Sedan", value: "Sedan" },
   { label: "Premium Sedan", value: "Premium Sedan" },
@@ -51,11 +56,13 @@ const slotOptions = [
 export default function CompaniesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("companies");
   const [companies, setCompanies] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
+  const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [expandedCompanyId, setExpandedCompanyId] = useState(null);
+  const [pricingModalCompanyId, setPricingModalCompanyId] = useState(null);
   const [pricingByCompany, setPricingByCompany] = useState({});
   const [pricingFormByCompany, setPricingFormByCompany] = useState({});
   const [pricingStatus, setPricingStatus] = useState({});
@@ -75,7 +82,11 @@ export default function CompaniesPage() {
   };
 
   useEffect(() => {
-    loadCompanies();
+    const initialize = async () => {
+      await loadCompanies();
+    };
+
+    initialize();
   }, []);
 
   const updateField = (event) => {
@@ -107,23 +118,22 @@ export default function CompaniesPage() {
     }));
   };
 
-  const togglePricing = async (companyId) => {
-    if (expandedCompanyId === companyId) {
-      setExpandedCompanyId(null);
-      return;
-    }
-
-    setExpandedCompanyId(companyId);
+  const openPricingModal = async (companyId) => {
+    setPricingModalCompanyId(companyId);
     if (!pricingByCompany[companyId]) {
       setPricingStatus((prev) => ({ ...prev, [companyId]: "loading" }));
       try {
         const data = await fetchPricing(companyId);
         setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
         setPricingStatus((prev) => ({ ...prev, [companyId]: "success" }));
-      } catch (err) {
+      } catch (_) {
         setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
       }
     }
+  };
+
+  const closePricingModal = () => {
+    setPricingModalCompanyId(null);
   };
 
   const handlePricingSubmit = async (event, companyId) => {
@@ -139,7 +149,8 @@ export default function CompaniesPage() {
         ...prev,
         [companyId]: initialPricing,
       }));
-    } catch (err) {
+      setPricingStatus((prev) => ({ ...prev, [companyId]: "success" }));
+    } catch (_) {
       setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
     }
   };
@@ -202,7 +213,8 @@ export default function CompaniesPage() {
         delete companyEdits[pricingId];
         return { ...prev, [companyId]: companyEdits };
       });
-    } catch (err) {
+      setPricingStatus((prev) => ({ ...prev, [companyId]: "success" }));
+    } catch (_) {
       setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
     }
   };
@@ -212,19 +224,20 @@ export default function CompaniesPage() {
       await deletePricing(companyId, pricingId);
       const data = await fetchPricing(companyId);
       setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
-    } catch (err) {
+      setPricingStatus((prev) => ({ ...prev, [companyId]: "success" }));
+    } catch (_) {
       setPricingStatus((prev) => ({ ...prev, [companyId]: "error" }));
     }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     if (!canEdit) {
       setError("You don't have permission to create companies");
       return;
     }
-    
+
     setMessage("");
     setError("");
 
@@ -239,16 +252,40 @@ export default function CompaniesPage() {
         contact_phone: normalizePhoneNumber(form.contact_phone),
       });
       setMessage(
-        isFirebaseConfigured
-          ? "Company added."
-          : "Demo mode: company prepared."
+        isFirebaseConfigured ? "Company added." : "Demo mode: company prepared."
       );
       setForm(initialState);
+      setShowForm(false);
       await loadCompanies();
     } catch (err) {
       setError(err.message || "Failed to add company.");
     }
   };
+
+  const handleAddCompanyClick = () => {
+    if (!canEdit) return;
+    setForm(initialState);
+    setMessage("");
+    setError("");
+    setShowForm(true);
+  };
+
+  const filteredCompanies = companies.filter((company) =>
+    [
+      company.name,
+      company.company_id,
+      company.billing_cycle,
+      company.contact_name,
+      company.contact_phone,
+      company.address,
+    ]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
+  const pricingCompany =
+    companies.find((company) => company.company_id === pricingModalCompanyId) || null;
 
   return (
     <div className={styles.page}>
@@ -257,371 +294,423 @@ export default function CompaniesPage() {
           <p>Loading permissions...</p>
         </div>
       )}
-      
+
       {!permissionsLoading && (
         <>
-      <header className={styles.header}>
-        <div>
-          <Link className={styles.backLink} href="/dashboard">
-            ← Back
-          </Link>
-          <p className={styles.eyebrow}>Companies</p>
-          <h1>Corporate Companies</h1>
-          <p className={styles.lead}>
-            Manage corporate clients, contacts, and billing cycles.
-          </p>
-        </div>
-      </header>
+          <header className={styles.header}>
+            <div>
+              <Link className={styles.backLink} href="/dashboard">
+                ← Back
+              </Link>
+              <p className={styles.eyebrow}>Companies</p>
+              <h1>Corporate Companies</h1>
+              <p className={styles.lead}>
+                Manage corporate clients, contacts, and billing cycles.
+              </p>
+            </div>
+            {canEdit && (
+              <button className={styles.primaryCta} onClick={handleAddCompanyClick}>
+                Add Company
+              </button>
+            )}
+          </header>
 
-      {!isFirebaseConfigured && (
-        <div className={styles.notice}>
-          Add Firebase config to
-          <span className={styles.noticeHighlight}>
-            NEXT_PUBLIC_FIREBASE_*
-          </span>
-          to load live data.
-        </div>
-      )}
-
-      <section className={styles.grid}>
-        {canEdit && (
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <h2>Add Company</h2>
-          <label className={styles.field}>
-            Company name
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={updateField}
-              placeholder="Acme Corp"
-              required
-            />
-          </label>
-          <label className={styles.field}>
-            Billing cycle
-            <CustomDropdown
-              options={billingCycleOptions}
-              value={form.billing_cycle}
-              onChange={(value) =>
-                setForm((prev) => ({ ...prev, billing_cycle: value }))
-              }
-              getLabel={(option) => option.label}
-              getValue={(option) => option.value}
-              placeholder="Select billing cycle"
-            />
-          </label>
-          <label className={styles.field}>
-            Contact name
-            <input
-              type="text"
-              name="contact_name"
-              value={form.contact_name}
-              onChange={updateField}
-              placeholder="Contact person"
-            />
-          </label>
-          <label className={styles.field}>
-            Contact phone
-            <input
-              type="tel"
-              name="contact_phone"
-              value={form.contact_phone}
-              onChange={updateField}
-              onBlur={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  contact_phone: normalizePhoneNumber(event.target.value),
-                }))
-              }
-              placeholder="+919000000000"
-            />
-          </label>
-          <label className={styles.field}>
-            Address
-            <textarea
-              name="address"
-              value={form.address}
-              onChange={updateField}
-              rows={3}
-            />
-          </label>
-          <label className={styles.checkbox}>
-            <input
-              type="checkbox"
-              name="active"
-              checked={form.active}
-              onChange={updateField}
-            />
-            Active company
-          </label>
-
-          <div className={styles.actions}>
-            <button className={styles.primaryCta} type="submit">
-              Save Company
-            </button>
-            {message && <p className={styles.message}>{message}</p>}
-            {error && <p className={styles.error}>{error}</p>}
-          </div>
-        </form>
-        )}
-
-        <div className={styles.list}>
-          <div className={styles.listHeader}>
-            <h2>Company List</h2>
-            {status === "loading" && <span>Loading...</span>}
-          </div>
-          {status === "error" && <p className={styles.error}>{error}</p>}
-          {status === "success" && companies.length === 0 && (
-            <p>No companies yet. Add your first corporate client.</p>
-          )}
-          {companies.length > 0 && (
-            <div className={styles.cards}>
-              {companies.map((company) => (
-                <article key={company.company_id} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <h3>{company.name}</h3>
-                      <p>{company.billing_cycle || "monthly"} billing</p>
-                    </div>
-                    <p className={styles.companyId}>ID: {company.company_id}</p>
-                  </div>
-                  <div className={styles.meta}>
-                    <span>{company.contact_name || "-"}</span>
-                    <span>{company.contact_phone || "-"}</span>
-                    <span>{company.address || "-"}</span>
-                  </div>
-                  <div className={styles.cardFooter}>
-                    <span
-                      className={
-                        company.active ? styles.activeTag : styles.inactiveTag
-                      }
-                    >
-                      {company.active ? "Active" : "Inactive"}
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => togglePricing(company.company_id)}
-                    >
-                      {expandedCompanyId === company.company_id
-                        ? "Hide pricing"
-                        : "Manage pricing"}
-                    </button>
-                  </div>
-                  {expandedCompanyId === company.company_id && (
-                    <div className={styles.pricingSection}>
-                      {canEdit && (
-                      <form
-                        className={styles.pricingForm}
-                        onSubmit={(event) =>
-                          handlePricingSubmit(event, company.company_id)
-                        }
-                      >
-                        <label className={styles.field}>
-                          Cab type
-                          <CustomDropdown
-                            options={cabTypeOptions}
-                            value={
-                              (pricingFormByCompany[company.company_id] ||
-                                initialPricing).cab_type
-                            }
-                            onChange={(value) =>
-                              setPricingField(company.company_id, "cab_type", value)
-                            }
-                            getLabel={(option) => option.label}
-                            getValue={(option) => option.value}
-                            placeholder="Select cab type"
-                          />
-                        </label>
-                        <label className={styles.field}>
-                          Slot
-                          <CustomDropdown
-                            options={slotOptions}
-                            value={
-                              (pricingFormByCompany[company.company_id] ||
-                                initialPricing).slot
-                            }
-                            onChange={(value) =>
-                              setPricingField(company.company_id, "slot", value)
-                            }
-                            getLabel={(option) => option.label}
-                            getValue={(option) => option.value}
-                            placeholder="Select slot"
-                          />
-                        </label>
-                        <label className={styles.field}>
-                          Rate
-                          <input
-                            type="number"
-                            name="rate"
-                            value={
-                              (pricingFormByCompany[company.company_id] ||
-                                initialPricing).rate
-                            }
-                            onChange={(event) =>
-                              updatePricingField(company.company_id, event)
-                            }
-                            min="0"
-                            required
-                          />
-                        </label>
-                        <button className={styles.secondaryButton} type="submit">
-                          Add rate
-                        </button>
-                      </form>
-                      )}
-                      <div className={styles.pricingList}>
-                        <div className={styles.pricingHeader}>
-                          <span>Cab type</span>
-                          <span>Slot</span>
-                          <span>Rate</span>
-                        </div>
-                        {(pricingByCompany[company.company_id] || []).map(
-                          (pricing) => {
-                            const edits =
-                              pricingEditByCompany?.[company.company_id]?.[
-                                pricing.pricing_id
-                              ];
-                            const isEditing = Boolean(edits);
-                            return (
-                              <div
-                                key={pricing.pricing_id}
-                                className={styles.pricingRow}
-                              >
-                                {isEditing ? (
-                                  <>
-                                    <CustomDropdown
-                                      options={cabTypeOptions}
-                                      value={edits.cab_type}
-                                      onChange={(value) =>
-                                        setEditPricingField(
-                                          company.company_id,
-                                          pricing.pricing_id,
-                                          "cab_type",
-                                          value
-                                        )
-                                      }
-                                      getLabel={(option) => option.label}
-                                      getValue={(option) => option.value}
-                                      placeholder="Select cab type"
-                                      disabled
-                                      buttonClassName={styles.pricingInlineDropdown}
-                                    />
-                                    <CustomDropdown
-                                      options={slotOptions}
-                                      value={edits.slot}
-                                      onChange={(value) =>
-                                        setEditPricingField(
-                                          company.company_id,
-                                          pricing.pricing_id,
-                                          "slot",
-                                          value
-                                        )
-                                      }
-                                      getLabel={(option) => option.label}
-                                      getValue={(option) => option.value}
-                                      placeholder="Select slot"
-                                      disabled
-                                      buttonClassName={styles.pricingInlineDropdown}
-                                    />
-                                    <input
-                                      type="number"
-                                      name="rate"
-                                      value={edits.rate}
-                                      onChange={(event) =>
-                                        updateEditPricingField(
-                                          company.company_id,
-                                          pricing.pricing_id,
-                                          event
-                                        )
-                                      }
-                                      min="0"
-                                    />
-                                  </>
-                                ) : (
-                                  <>
-                                    <span>{pricing.cab_type}</span>
-                                    <span>{pricing.slot}</span>
-                                    <span>₹ {pricing.rate}</span>
-                                  </>
-                                )}
-                                <div className={styles.pricingActions}>
-                                  {canEdit && (
-                                  <>
-                                  {isEditing ? (
-                                    <button
-                                      type="button"
-                                      className={styles.textButton}
-                                      onClick={() =>
-                                        savePricingEdit(
-                                          company.company_id,
-                                          pricing.pricing_id
-                                        )
-                                      }
-                                    >
-                                      Save
-                                    </button>
-                                  ) : (
-                                    <>
-                                      <button
-                                        type="button"
-                                        className={styles.textButton}
-                                        onClick={() =>
-                                          startEditPricing(
-                                            company.company_id,
-                                            pricing
-                                          )
-                                        }
-                                      >
-                                        Update
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className={styles.deleteButton}
-                                        onClick={() =>
-                                          handleDeletePricing(
-                                            company.company_id,
-                                            pricing.pricing_id
-                                          )
-                                        }
-                                      >
-                                        Delete
-                                      </button>
-                                    </>
-                                  )}
-                                  </>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          }
-                        )}
-                        {pricingStatus[company.company_id] === "loading" && (
-                          <p className={styles.pricingNotice}>Loading pricing...</p>
-                        )}
-                        {pricingStatus[company.company_id] === "error" && (
-                          <p className={styles.error}>
-                            Unable to load pricing.
-                          </p>
-                        )}
-                        {pricingStatus[company.company_id] === "success" &&
-                          (pricingByCompany[company.company_id] || []).length ===
-                            0 && (
-                            <p className={styles.pricingNotice}>
-                              No pricing rules yet.
-                            </p>
-                          )}
-                      </div>
-                    </div>
-                  )}
-                </article>
-              ))}
+          {!isFirebaseConfigured && (
+            <div className={styles.notice}>
+              Add Firebase config to
+              <span className={styles.noticeHighlight}>NEXT_PUBLIC_FIREBASE_*</span>
+              to load live data.
             </div>
           )}
-        </div>
-      </section>
-      </>
+
+          <section className={styles.gridSingle}>
+            <div className={styles.list}>
+              <div className={styles.listHeader}>
+                <h2>Company List</h2>
+                {status === "loading" && <span>Loading...</span>}
+              </div>
+              {status === "error" && <p className={styles.error}>{error}</p>}
+              {message && <p className={styles.message}>{message}</p>}
+              {canView && (
+                <div className={styles.searchBar}>
+                  <input
+                    type="text"
+                    placeholder="Search by name, contact, phone, or billing cycle..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    className={styles.searchInput}
+                  />
+                </div>
+              )}
+              {status === "success" && companies.length === 0 && (
+                <p>No companies yet. Add your first corporate client.</p>
+              )}
+              {status === "success" && companies.length > 0 && filteredCompanies.length === 0 && (
+                <p>No companies match your search.</p>
+              )}
+              {filteredCompanies.length > 0 && (
+                <div className={styles.tableContainer}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Company</th>
+                        <th>Billing Cycle</th>
+                        <th>Contact Name</th>
+                        <th>Contact Phone</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                        {canEdit && <th>Actions</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredCompanies.map((company) => (
+                        <tr key={company.company_id}>
+                          <td className={styles.name} data-label="Company">
+                            {company.name || "-"}
+                          </td>
+                          <td data-label="Billing Cycle">
+                            {company.billing_cycle || "monthly"}
+                          </td>
+                          <td data-label="Contact Name">{company.contact_name || "-"}</td>
+                          <td className={styles.phone} data-label="Contact Phone">
+                            {company.contact_phone || "-"}
+                          </td>
+                          <td data-label="Address">{company.address || "-"}</td>
+                          <td data-label="Status">
+                            <span
+                              className={`${styles.status} ${
+                                company.active !== false ? styles.active : styles.inactive
+                              }`}
+                            >
+                              {company.active !== false ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          {canEdit && (
+                            <td className={styles.rowActions} data-label="Actions">
+                              <div className={styles.inlineActions}>
+                                <button
+                                  type="button"
+                                  className={styles.editBtn}
+                                  onClick={() => openPricingModal(company.company_id)}
+                                  title="Manage pricing"
+                                  aria-label="Manage pricing"
+                                >
+                                  <span className={styles.pricingIcon}>₹</span>
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {canEdit && pricingCompany && (
+            <div className={styles.modalOverlay} onClick={closePricingModal}>
+              <div
+                className={`${styles.modal} ${styles.pricingModal}`}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className={styles.modalHeader}>
+                  <h2>Manage Pricing: {pricingCompany.name}</h2>
+                  <button
+                    type="button"
+                    className={styles.closeBtn}
+                    onClick={closePricingModal}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className={`${styles.pricingSection} ${styles.pricingSectionModal}`}>
+                  <form
+                    className={styles.pricingForm}
+                    onSubmit={(event) => handlePricingSubmit(event, pricingCompany.company_id)}
+                  >
+                    <label className={styles.field}>
+                      Cab type
+                      <CustomDropdown
+                        options={cabTypeOptions}
+                        value={
+                          (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
+                            .cab_type
+                        }
+                        onChange={(value) =>
+                          setPricingField(pricingCompany.company_id, "cab_type", value)
+                        }
+                        getLabel={(option) => option.label}
+                        getValue={(option) => option.value}
+                        placeholder="Select cab type"
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      Slot
+                      <CustomDropdown
+                        options={slotOptions}
+                        value={
+                          (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
+                            .slot
+                        }
+                        onChange={(value) =>
+                          setPricingField(pricingCompany.company_id, "slot", value)
+                        }
+                        getLabel={(option) => option.label}
+                        getValue={(option) => option.value}
+                        placeholder="Select slot"
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      Rate
+                      <input
+                        type="number"
+                        name="rate"
+                        value={
+                          (pricingFormByCompany[pricingCompany.company_id] || initialPricing).rate
+                        }
+                        onChange={(event) =>
+                          updatePricingField(pricingCompany.company_id, event)
+                        }
+                        min="0"
+                        required
+                      />
+                    </label>
+                    <button className={styles.secondaryButton} type="submit">
+                      Add rate
+                    </button>
+                  </form>
+
+                  <div className={styles.pricingList}>
+                    <div className={styles.pricingHeader}>
+                      <span>Cab type</span>
+                      <span>Slot</span>
+                      <span>Rate</span>
+                    </div>
+                    {(pricingByCompany[pricingCompany.company_id] || []).map((pricing) => {
+                      const edits =
+                        pricingEditByCompany?.[pricingCompany.company_id]?.[pricing.pricing_id];
+                      const isEditing = Boolean(edits);
+                      return (
+                        <div key={pricing.pricing_id} className={styles.pricingRow}>
+                          {isEditing ? (
+                            <>
+                              <CustomDropdown
+                                options={cabTypeOptions}
+                                value={edits.cab_type}
+                                onChange={(value) =>
+                                  setEditPricingField(
+                                    pricingCompany.company_id,
+                                    pricing.pricing_id,
+                                    "cab_type",
+                                    value
+                                  )
+                                }
+                                getLabel={(option) => option.label}
+                                getValue={(option) => option.value}
+                                placeholder="Select cab type"
+                                disabled
+                                buttonClassName={styles.pricingInlineDropdown}
+                              />
+                              <CustomDropdown
+                                options={slotOptions}
+                                value={edits.slot}
+                                onChange={(value) =>
+                                  setEditPricingField(
+                                    pricingCompany.company_id,
+                                    pricing.pricing_id,
+                                    "slot",
+                                    value
+                                  )
+                                }
+                                getLabel={(option) => option.label}
+                                getValue={(option) => option.value}
+                                placeholder="Select slot"
+                                disabled
+                                buttonClassName={styles.pricingInlineDropdown}
+                              />
+                              <input
+                                type="number"
+                                name="rate"
+                                value={edits.rate}
+                                onChange={(event) =>
+                                  updateEditPricingField(
+                                    pricingCompany.company_id,
+                                    pricing.pricing_id,
+                                    event
+                                  )
+                                }
+                                min="0"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <span>{pricing.cab_type}</span>
+                              <span>{pricing.slot}</span>
+                              <span>₹ {pricing.rate}</span>
+                            </>
+                          )}
+                          <div className={styles.pricingActions}>
+                            {isEditing ? (
+                              <button
+                                type="button"
+                                className={styles.textButton}
+                                onClick={() =>
+                                  savePricingEdit(pricingCompany.company_id, pricing.pricing_id)
+                                }
+                              >
+                                Save
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className={styles.textButton}
+                                  onClick={() =>
+                                    startEditPricing(pricingCompany.company_id, pricing)
+                                  }
+                                >
+                                  Update
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.deleteButton}
+                                  onClick={() =>
+                                    handleDeletePricing(
+                                      pricingCompany.company_id,
+                                      pricing.pricing_id
+                                    )
+                                  }
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {pricingStatus[pricingCompany.company_id] === "loading" && (
+                      <p className={styles.pricingNotice}>Loading pricing...</p>
+                    )}
+                    {pricingStatus[pricingCompany.company_id] === "error" && (
+                      <p className={styles.error}>Unable to load pricing.</p>
+                    )}
+                    {pricingStatus[pricingCompany.company_id] === "success" &&
+                      (pricingByCompany[pricingCompany.company_id] || []).length === 0 && (
+                        <p className={styles.pricingNotice}>No pricing rules yet.</p>
+                      )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {canEdit && showForm && (
+            <div className={styles.modalOverlay} onClick={() => setShowForm(false)}>
+              <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+                <div className={styles.modalHeader}>
+                  <h2>Add Company</h2>
+                  <button
+                    type="button"
+                    className={styles.closeBtn}
+                    onClick={() => setShowForm(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <form className={styles.form} onSubmit={handleSubmit}>
+                  <label className={styles.field}>
+                    Company name
+                    <input
+                      type="text"
+                      name="name"
+                      value={form.name}
+                      onChange={updateField}
+                      placeholder="Acme Corp"
+                      required
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    Billing cycle
+                    <CustomDropdown
+                      options={billingCycleOptions}
+                      value={form.billing_cycle}
+                      onChange={(value) =>
+                        setForm((prev) => ({ ...prev, billing_cycle: value }))
+                      }
+                      getLabel={(option) => option.label}
+                      getValue={(option) => option.value}
+                      placeholder="Select billing cycle"
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    Contact name
+                    <input
+                      type="text"
+                      name="contact_name"
+                      value={form.contact_name}
+                      onChange={updateField}
+                      placeholder="Contact person"
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    Contact phone
+                    <input
+                      type="tel"
+                      name="contact_phone"
+                      value={form.contact_phone}
+                      onChange={updateField}
+                      onBlur={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          contact_phone: normalizePhoneNumber(event.target.value),
+                        }))
+                      }
+                      placeholder="+919000000000"
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    Address
+                    <textarea
+                      name="address"
+                      value={form.address}
+                      onChange={updateField}
+                      rows={3}
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    Status
+                    <CustomDropdown
+                      options={companyStatusOptions}
+                      value={form.active}
+                      onChange={(value) => setForm((prev) => ({ ...prev, active: value }))}
+                      getLabel={(option) => option.label}
+                      getValue={(option) => option.value}
+                      placeholder="Select status"
+                    />
+                  </label>
+
+                  <div className={styles.actions}>
+                    <button
+                      type="button"
+                      className={styles.ghostCta}
+                      onClick={() => setShowForm(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button className={styles.primaryCta} type="submit">
+                      Save Company
+                    </button>
+                  </div>
+                  {message && <p className={styles.message}>{message}</p>}
+                  {error && <p className={styles.error}>{error}</p>}
+                </form>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
