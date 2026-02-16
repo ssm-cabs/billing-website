@@ -375,7 +375,6 @@ export default function PaymentsPage() {
                   <span>Vehicle</span>
                   <span>Contact</span>
                   <span>Driver</span>
-                  <span>Fuel (L)</span>
                   <span>Amount</span>
                   <span>Mode</span>
                   <span>Status</span>
@@ -394,7 +393,6 @@ export default function PaymentsPage() {
                       <span>{payment.vehicle_number || "-"}</span>
                       <span>{payment.driver_phone || "-"}</span>
                       <span>{payment.driver_name || "-"}</span>
-                      <span>{payment.transaction_type === "fueling" ? payment.fuel_liters || "-" : "-"}</span>
                       <span>{formatCurrency(payment.amount)}</span>
                       <span>{payment.payment_mode ? payment.payment_mode.replace(/_/g, " ") : "-"}</span>
                       <span className={`${styles.status} ${styles[payment.status] || ""}`}>
