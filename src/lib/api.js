@@ -185,13 +185,6 @@ function getEntryMonth(entryDate = "") {
   return String(entryDate || "").slice(0, 7);
 }
 
-function getMonthDateRange(month = "") {
-  return {
-    start: `${month}-01`,
-    end: `${month}-31`,
-  };
-}
-
 function maybeAddEntryMonth(data = {}) {
   const entryMonth = data.entry_month || getEntryMonth(data.entry_date);
   return entryMonth ? { ...data, entry_month: entryMonth } : { ...data };
@@ -261,33 +254,7 @@ export async function fetchEntries({
     ? query(entriesRef, ...constraints)
     : entriesRef;
 
-  let snapshot = await getDocs(entriesQuery);
-
-  // Backward-compatible fallback for older records that don't yet have entry_month.
-  if (snapshot.empty && month) {
-    const legacyConstraints = [];
-    if (company) {
-      legacyConstraints.push(where("company_name", "==", company));
-    }
-    if (vehicle) {
-      legacyConstraints.push(where("vehicle_number", "==", vehicle));
-    }
-    const { start, end } = getMonthDateRange(month);
-    legacyConstraints.push(where("entry_date", ">=", start));
-    legacyConstraints.push(where("entry_date", "<=", end));
-    if (typeof billed === "boolean") {
-      legacyConstraints.push(where("billed", "==", billed));
-    }
-    if (orderByField) {
-      legacyConstraints.push(orderBy(orderByField, orderByDirection));
-    }
-    if (limitCount > 0) {
-      legacyConstraints.push(limit(limitCount));
-    }
-
-    snapshot = await getDocs(query(entriesRef, ...legacyConstraints));
-  }
-
+  const snapshot = await getDocs(entriesQuery);
   return snapshot.docs.map((docSnap) => ({
     entry_id: docSnap.id,
     ...maybeAddEntryMonth(docSnap.data()),
@@ -668,19 +635,6 @@ export async function countEntriesByMonth(month = "") {
     ? query(entriesRef, ...constraints)
     : entriesRef;
   const snapshot = await getCountFromServer(countQuery);
-
-  if (month && snapshot.data().count === 0) {
-    const { start, end } = getMonthDateRange(month);
-    const legacySnapshot = await getCountFromServer(
-      query(
-        entriesRef,
-        where("entry_date", ">=", start),
-        where("entry_date", "<=", end)
-      )
-    );
-    return legacySnapshot.data().count;
-  }
-
   return snapshot.data().count;
 }
 
@@ -786,31 +740,8 @@ export async function fetchPayments({
     constraints.push(startAfter(lastDoc));
   }
 
-  let paymentsQuery = query(paymentsRef, ...constraints);
-  let snapshot = await getDocs(paymentsQuery);
-
-  if (snapshot.empty && vehicleId && vehicle) {
-    const legacyConstraints = [];
-    if (month) {
-      legacyConstraints.push(where("payment_month", "==", month));
-    }
-    legacyConstraints.push(where("vehicle_number", "==", vehicle));
-    if (transactionType) {
-      legacyConstraints.push(where("transaction_type", "==", transactionType));
-    }
-    if (status) {
-      legacyConstraints.push(where("status", "==", status));
-    }
-    legacyConstraints.push(orderBy("payment_date", "desc"));
-    if (limitCount > 0) {
-      legacyConstraints.push(limit(limitCount));
-    }
-    if (lastDoc) {
-      legacyConstraints.push(startAfter(lastDoc));
-    }
-    paymentsQuery = query(paymentsRef, ...legacyConstraints);
-    snapshot = await getDocs(paymentsQuery);
-  }
+  const paymentsQuery = query(paymentsRef, ...constraints);
+  const snapshot = await getDocs(paymentsQuery);
 
   return snapshot.docs.map((docSnap) => normalizePayment(docSnap.data(), docSnap.id));
 }
@@ -935,24 +866,12 @@ export async function generateInvoice(companyId, month) {
     where("entry_month", "==", month),
     where("billed", "==", false)
   );
-  let entriesSnapshot = await getDocs(entriesQuery);
-
-  // Backward-compatible fallback for old entries keyed by company_name + date range.
-  if (entriesSnapshot.empty) {
-    const { start, end } = getMonthDateRange(month);
-    entriesQuery = query(
-      entriesRef,
-      where("company_name", "==", companyName),
-      where("entry_date", ">=", start),
-      where("entry_date", "<=", end)
-    );
-    entriesSnapshot = await getDocs(entriesQuery);
-  }
+  const entriesSnapshot = await getDocs(entriesQuery);
 
   const entries = entriesSnapshot.docs.map((doc) => ({
     entry_id: doc.id,
     ...doc.data(),
-  })).filter((entry) => entry.billed !== true);
+  }));
 
   // Calculate total
   let total = 0;
@@ -1073,24 +992,12 @@ export async function generateVehicleInvoice(vehicleId, month) {
     where("entry_month", "==", month),
     where("billed", "==", false)
   );
-  let entriesSnapshot = await getDocs(entriesQuery);
-
-  // Backward-compatible fallback for old entries keyed by vehicle_number + date range.
-  if (entriesSnapshot.empty) {
-    const { start, end } = getMonthDateRange(month);
-    entriesQuery = query(
-      entriesRef,
-      where("vehicle_number", "==", vehicleData.vehicle_number),
-      where("entry_date", ">=", start),
-      where("entry_date", "<=", end)
-    );
-    entriesSnapshot = await getDocs(entriesQuery);
-  }
+  const entriesSnapshot = await getDocs(entriesQuery);
 
   const entries = entriesSnapshot.docs.map((docSnap) => ({
     entry_id: docSnap.id,
     ...docSnap.data(),
-  })).filter((entry) => entry.billed !== true);
+  }));
 
   const vehiclePricing = await fetchVehiclePricing(vehicleId);
   const pricingBySlot = new Map(
