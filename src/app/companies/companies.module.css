@@ -246,6 +246,22 @@
   align-items: center;
 }
 
+.inlineInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.inlineInput:focus {
+  outline: none;
+  border-color: #ea5a32;
+  box-shadow: 0 0 0 3px rgba(234, 90, 50, 0.1);
+}
+
 .editBtn {
   width: 32px;
   height: 32px;
@@ -260,6 +276,11 @@
   justify-content: center;
   color: #ea5a32;
   font-family: inherit;
+}
+
+.editIcon {
+  display: inline-block;
+  transform: rotate(90deg);
 }
 
 .editBtn:hover {
@@ -283,6 +304,30 @@
   letter-spacing: 0.6px;
   cursor: pointer;
   font-family: inherit;
+}
+
+.secondaryCta {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff;
+  color: #1e1916;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.linkButton {
+  border: none;
+  background: none;
+  color: var(--page-ink);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0;
 }
 
 .pricingSection {

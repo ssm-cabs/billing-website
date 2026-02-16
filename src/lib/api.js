@@ -321,6 +321,26 @@ export async function createCompany(payload) {
   return { company_id: docRef.id };
 }
 
+export async function updateCompany(companyId, payload) {
+  if (!companyId) {
+    throw new Error("companyId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, company_id: companyId };
+  }
+
+  const docRef = doc(db, "companies", companyId);
+  const company = {
+    ...payload,
+    company_id: companyId,
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, company, { merge: true });
+  return { company_id: companyId };
+}
+
 export async function fetchPricing(companyId) {
   if (!companyId) {
     throw new Error("companyId is required");

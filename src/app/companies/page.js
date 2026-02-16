@@ -10,6 +10,7 @@ import {
   fetchCompanies,
   fetchPricing,
   isFirebaseConfigured,
+  updateCompany,
   updatePricing,
 } from "@/lib/api";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
@@ -60,6 +61,13 @@ export default function CompaniesPage() {
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
   const [showForm, setShowForm] = useState(false);
+  const [editingCompanyId, setEditingCompanyId] = useState("");
+  const [editForm, setEditForm] = useState({
+    contact_name: "",
+    contact_phone: "",
+    address: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [pricingModalCompanyId, setPricingModalCompanyId] = useState(null);
@@ -270,6 +278,59 @@ export default function CompaniesPage() {
     setShowForm(true);
   };
 
+  const startEdit = (company) => {
+    setEditingCompanyId(company.company_id);
+    setEditForm({
+      contact_name: company.contact_name || "",
+      contact_phone: company.contact_phone || "",
+      address: company.address || "",
+    });
+    setMessage("");
+    setError("");
+  };
+
+  const cancelEdit = () => {
+    setEditingCompanyId("");
+    setEditSaving(false);
+  };
+
+  const handleEditSubmit = async (companyId) => {
+    if (!canEdit) {
+      setError("You don't have permission to update companies");
+      return;
+    }
+
+    setEditSaving(true);
+    setMessage("");
+    setError("");
+
+    if (
+      editForm.contact_phone &&
+      !isValidPhoneNumber(normalizePhoneNumber(editForm.contact_phone))
+    ) {
+      setError("Invalid contact phone format (+91XXXXXXXXXX)");
+      setEditSaving(false);
+      return;
+    }
+
+    try {
+      await updateCompany(companyId, {
+        contact_name: editForm.contact_name.trim(),
+        contact_phone: normalizePhoneNumber(editForm.contact_phone),
+        address: editForm.address.trim(),
+      });
+      setMessage(
+        isFirebaseConfigured ? "Company updated." : "Demo mode: company update prepared."
+      );
+      cancelEdit();
+      await loadCompanies();
+    } catch (err) {
+      setError(err.message || "Failed to update company.");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const filteredCompanies = companies.filter((company) =>
     [
       company.name,
@@ -363,7 +424,10 @@ export default function CompaniesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredCompanies.map((company) => (
+                      {filteredCompanies.map((company) => {
+                        const isEditing = editingCompanyId === company.company_id;
+
+                        return (
                         <tr key={company.company_id}>
                           <td className={styles.name} data-label="Company">
                             {company.name || "-"}
@@ -371,11 +435,66 @@ export default function CompaniesPage() {
                           <td data-label="Billing Cycle">
                             {company.billing_cycle || "monthly"}
                           </td>
-                          <td data-label="Contact Name">{company.contact_name || "-"}</td>
-                          <td className={styles.phone} data-label="Contact Phone">
-                            {company.contact_phone || "-"}
+                          <td data-label="Contact Name">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={editForm.contact_name}
+                                onChange={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    contact_name: event.target.value,
+                                  }))
+                                }
+                                placeholder="Contact person"
+                                className={styles.inlineInput}
+                              />
+                            ) : (
+                              company.contact_name || "-"
+                            )}
                           </td>
-                          <td data-label="Address">{company.address || "-"}</td>
+                          <td className={styles.phone} data-label="Contact Phone">
+                            {isEditing ? (
+                              <input
+                                type="tel"
+                                value={editForm.contact_phone}
+                                onChange={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    contact_phone: event.target.value,
+                                  }))
+                                }
+                                onBlur={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    contact_phone: normalizePhoneNumber(event.target.value),
+                                  }))
+                                }
+                                placeholder="+919000000000"
+                                className={styles.inlineInput}
+                              />
+                            ) : (
+                              company.contact_phone || "-"
+                            )}
+                          </td>
+                          <td data-label="Address">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={editForm.address}
+                                onChange={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    address: event.target.value,
+                                  }))
+                                }
+                                placeholder="Address"
+                                className={styles.inlineInput}
+                              />
+                            ) : (
+                              company.address || "-"
+                            )}
+                          </td>
                           <td data-label="Status">
                             <span
                               className={`${styles.status} ${
@@ -387,21 +506,52 @@ export default function CompaniesPage() {
                           </td>
                           {canEdit && (
                             <td className={styles.rowActions} data-label="Actions">
-                              <div className={styles.inlineActions}>
-                                <button
-                                  type="button"
-                                  className={styles.editBtn}
-                                  onClick={() => openPricingModal(company.company_id)}
-                                  title="Manage pricing"
-                                  aria-label="Manage pricing"
-                                >
-                                  <span className={styles.pricingIcon}>₹</span>
-                                </button>
-                              </div>
+                              {isEditing ? (
+                                <div className={styles.inlineActions}>
+                                  <button
+                                    type="button"
+                                    className={styles.secondaryCta}
+                                    onClick={() => handleEditSubmit(company.company_id)}
+                                    disabled={editSaving}
+                                  >
+                                    {editSaving ? "Saving..." : "Save"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={styles.linkButton}
+                                    onClick={cancelEdit}
+                                    disabled={editSaving}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className={styles.inlineActions}>
+                                  <button
+                                    type="button"
+                                    className={styles.editBtn}
+                                    onClick={() => startEdit(company)}
+                                    title="Edit contact details"
+                                    aria-label="Edit contact details"
+                                  >
+                                    <span className={styles.editIcon}>✎</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={styles.editBtn}
+                                    onClick={() => openPricingModal(company.company_id)}
+                                    title="Manage pricing"
+                                    aria-label="Manage pricing"
+                                  >
+                                    <span className={styles.pricingIcon}>₹</span>
+                                  </button>
+                                </div>
+                              )}
                             </td>
                           )}
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
