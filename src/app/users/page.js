@@ -48,6 +48,8 @@ const normalizePermissions = (permissions = {}) =>
     ])
   );
 
+const HIDDEN_PERMISSION_MODULES = new Set(["payments"]);
+
 export default function UsersPage() {
   const router = useRouter();
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("users");
@@ -161,7 +163,7 @@ export default function UsersPage() {
   const getPermissionsSummary = (permissions) => {
     if (!permissions) return "None";
     const activePerm = Object.entries(permissions)
-      .filter(([_, perm]) => perm !== "none")
+      .filter(([moduleId, perm]) => !HIDDEN_PERMISSION_MODULES.has(moduleId) && perm !== "none")
       .map(([collection, perm]) => `${collection}: ${perm}`);
     return activePerm.length > 0 ? activePerm.join(", ") : "None";
   };
@@ -425,7 +427,7 @@ export default function UsersPage() {
               <div className={styles.formGroup}>
                 <label>Permissions</label>
                 <div className={styles.permissionsGrid}>
-                  {MODULES.map((module) => (
+                  {MODULES.filter((module) => !HIDDEN_PERMISSION_MODULES.has(module.id)).map((module) => (
                     <div key={module.id} className={styles.permissionItem}>
                       <span className={styles.permissionLabel}>
                         {module.icon} {module.name}
