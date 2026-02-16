@@ -15,6 +15,7 @@ import {
   updateUser,
   deleteUser,
 } from "@/lib/usersApi";
+import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import styles from "./users.module.css";
 
 const getPermissionOptions = (moduleId) => {
@@ -174,21 +175,11 @@ export default function UsersPage() {
       setFormError("Name is required");
       return false;
     }
-    if (!/^\+\d{10,15}$/.test(formData.phone.trim())) {
+    if (!isValidPhoneNumber(formData.phone.trim())) {
       setFormError("Invalid phone format (+91XXXXXXXXXX)");
       return false;
     }
     return true;
-  };
-
-  const formatPhoneForStorage = (phone) => {
-    const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.length === 10) {
-      return "+91" + cleaned;
-    } else if (cleaned.length === 12 && cleaned.startsWith("91")) {
-      return "+" + cleaned;
-    }
-    return "+" + cleaned;
   };
 
   const handleSubmit = async (e) => {
@@ -204,7 +195,7 @@ export default function UsersPage() {
     try {
       const dataToSave = {
         ...formData,
-        phone: formatPhoneForStorage(formData.phone),
+        phone: normalizePhoneNumber(formData.phone),
         permissions: normalizePermissions(formData.permissions),
       };
 
@@ -408,6 +399,12 @@ export default function UsersPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleFormChange}
+                  onBlur={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      phone: normalizePhoneNumber(e.target.value),
+                    }))
+                  }
                   placeholder="+919876543210"
                   required
                 />

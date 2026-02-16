@@ -9,6 +9,7 @@ import {
   isFirebaseConfigured,
   updateVehicle,
 } from "@/lib/api";
+import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./vehicles.module.css";
 
@@ -94,8 +95,14 @@ export default function VehiclesPage() {
       return;
     }
 
+    if (form.driver_phone && !isValidPhoneNumber(normalizePhoneNumber(form.driver_phone))) {
+      setError("Invalid driver phone format (+91XXXXXXXXXX)");
+      return;
+    }
+
     const payload = {
       ...form,
+      driver_phone: normalizePhoneNumber(form.driver_phone),
       capacity: form.capacity ? Number(form.capacity) : null,
     };
 
@@ -150,10 +157,16 @@ export default function VehiclesPage() {
     setMessage("");
     setError("");
 
+    if (editForm.driver_phone && !isValidPhoneNumber(normalizePhoneNumber(editForm.driver_phone))) {
+      setError("Invalid driver phone format (+91XXXXXXXXXX)");
+      setEditSaving(false);
+      return;
+    }
+
     try {
       await updateVehicle(vehicleId, {
         driver_name: editForm.driver_name.trim(),
-        driver_phone: editForm.driver_phone.trim(),
+        driver_phone: normalizePhoneNumber(editForm.driver_phone),
         active: editForm.active,
       });
       setMessage(
@@ -270,7 +283,13 @@ export default function VehiclesPage() {
                               driver_phone: event.target.value,
                             }))
                           }
-                          placeholder="+91 90000 00000"
+                          onBlur={(event) =>
+                            setEditForm((prev) => ({
+                              ...prev,
+                              driver_phone: normalizePhoneNumber(event.target.value),
+                            }))
+                          }
+                          placeholder="+919000000000"
                         />
                       </label>
                       <label className={styles.field}>
@@ -419,7 +438,13 @@ export default function VehiclesPage() {
                   name="driver_phone"
                   value={form.driver_phone}
                   onChange={updateField}
-                  placeholder="+91 90000 00000"
+                  onBlur={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      driver_phone: normalizePhoneNumber(event.target.value),
+                    }))
+                  }
+                  placeholder="+919000000000"
                 />
               </label>
               <label className={styles.field}>

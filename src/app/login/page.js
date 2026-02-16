@@ -13,6 +13,7 @@ import {
   getUserData,
 } from "@/lib/phoneAuth";
 import { setTokenExpiry } from "@/lib/useSessionTimeout";
+import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -80,18 +81,6 @@ export default function LoginPage() {
     };
   }, []);
 
-  const formatPhoneNumber = (value) => {
-    // Remove all non-digits
-    const cleaned = value.replace(/\D/g, "");
-    // Add country code if not present
-    if (cleaned.length === 10) {
-      return "+91" + cleaned;
-    } else if (cleaned.length === 12 && cleaned.startsWith("91")) {
-      return "+" + cleaned;
-    }
-    return "+" + cleaned;
-  };
-
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -105,14 +94,15 @@ export default function LoginPage() {
         return;
       }
 
-      const formattedPhone = formatPhoneNumber(phoneNumber);
+      const formattedPhone = normalizePhoneNumber(phoneNumber);
 
       // Validate phone number format
-      if (!/^\+\d{10,15}$/.test(formattedPhone)) {
+      if (!isValidPhoneNumber(formattedPhone)) {
         setError("Please enter a valid phone number");
         setLoading(false);
         return;
       }
+      setPhoneNumber(formattedPhone);
 
       // Check if user is authorized and keep profile for post-OTP session state.
       const authorizedUser = await getAuthorizedUser(formattedPhone);
@@ -252,6 +242,7 @@ export default function LoginPage() {
                 placeholder="Enter your phone number"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
+                onBlur={(e) => setPhoneNumber(normalizePhoneNumber(e.target.value))}
                 disabled={loading}
                 required
               />

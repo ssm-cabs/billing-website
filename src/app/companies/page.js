@@ -12,6 +12,7 @@ import {
   isFirebaseConfigured,
   updatePricing,
 } from "@/lib/api";
+import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./companies.module.css";
 
@@ -228,8 +229,16 @@ export default function CompaniesPage() {
     setMessage("");
     setError("");
 
+    if (form.contact_phone && !isValidPhoneNumber(normalizePhoneNumber(form.contact_phone))) {
+      setError("Invalid contact phone format (+91XXXXXXXXXX)");
+      return;
+    }
+
     try {
-      await createCompany(form);
+      await createCompany({
+        ...form,
+        contact_phone: normalizePhoneNumber(form.contact_phone),
+      });
       setMessage(
         isFirebaseConfigured
           ? "Company added."
@@ -320,7 +329,13 @@ export default function CompaniesPage() {
               name="contact_phone"
               value={form.contact_phone}
               onChange={updateField}
-              placeholder="+91 90000 00000"
+              onBlur={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  contact_phone: normalizePhoneNumber(event.target.value),
+                }))
+              }
+              placeholder="+919000000000"
             />
           </label>
           <label className={styles.field}>
