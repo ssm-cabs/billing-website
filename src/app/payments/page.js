@@ -41,11 +41,19 @@ const paymentStatusOptions = [
   { label: "Cancelled", value: "cancelled" },
 ];
 
+const transactionTypeOptions = [
+  { label: "Driver Payment", value: "driver_payment" },
+  { label: "Fueling", value: "fueling" },
+];
+
 const initialState = {
+  transaction_type: "driver_payment",
   payment_date: getToday(),
   vehicle_number: "",
   driver_name: "",
   driver_phone: "",
+  fuel_liters: "",
+  fuel_station: "",
   amount: "",
   payment_mode: "upi",
   status: "paid",
@@ -118,11 +126,14 @@ export default function PaymentsPage() {
 
   const vehicleOptions = useMemo(
     () =>
-      vehicles.map((vehicle) => ({
+      (form.transaction_type === "fueling"
+        ? vehicles.filter((vehicle) => vehicle.ownership_type === "own")
+        : vehicles
+      ).map((vehicle) => ({
         label: `${vehicle.vehicle_number} · ${vehicle.driver_name || "Driver"}`,
         value: vehicle.vehicle_number,
       })),
-    [vehicles]
+    [vehicles, form.transaction_type]
   );
 
   const vehicleFilterOptions = useMemo(
@@ -183,9 +194,45 @@ export default function PaymentsPage() {
       return;
     }
 
+    if (!form.vehicle_number) {
+      setError("Vehicle is required.");
+      return;
+    }
+
+    const selectedVehicle = vehicles.find(
+      (vehicle) => vehicle.vehicle_number === form.vehicle_number
+    );
+    if (!selectedVehicle) {
+      setError("Selected vehicle is invalid.");
+      return;
+    }
+
+    if (form.transaction_type === "driver_payment" && !String(form.driver_name || "").trim()) {
+      setError("Driver name is required for driver payments.");
+      return;
+    }
+
+    const fuelLitersRaw =
+      form.transaction_type === "fueling" ? String(form.fuel_liters).trim() : "";
+    const fuelLiters =
+      form.transaction_type === "fueling" && fuelLitersRaw
+        ? Number(fuelLitersRaw)
+        : 0;
+
+    if (form.transaction_type === "fueling" && fuelLitersRaw && !Number.isFinite(fuelLiters)) {
+      setError("Fuel liters must be a valid number.");
+      return;
+    }
+
+    if (form.transaction_type === "fueling" && selectedVehicle.ownership_type !== "own") {
+      setError("Fueling is allowed only for own vehicles.");
+      return;
+    }
+
     const payload = {
       ...form,
       amount,
+      fuel_liters: fuelLiters,
       payment_month: String(form.payment_date || "").slice(0, 7),
     };
 
@@ -201,8 +248,8 @@ export default function PaymentsPage() {
 
       setMessage(
         isFirebaseConfigured
-          ? "Payment added."
-          : "Demo mode: payment prepared."
+          ? "Record added."
+          : "Demo mode: record prepared."
       );
       closePaymentForm();
       await loadPayments();
@@ -227,9 +274,9 @@ export default function PaymentsPage() {
                 ← Back
               </Link>
               <p className={styles.eyebrow}>Payments</p>
-              <h1>Driver Payments</h1>
+              <h1>Payments & Fueling</h1>
               <p className={styles.lead}>
-                Track and manage monthly payouts for drivers.
+                Track monthly driver payouts and vehicle fueling expenses.
               </p>
             </div>
             <div className={styles.headerActions}>
@@ -285,30 +332,41 @@ export default function PaymentsPage() {
               <div className={styles.table}>
                 <div className={styles.tableHeader}>
                   <span>Date</span>
+                  <span>Type</span>
                   <span>Vehicle</span>
-                  <span>Number</span>
-                  <span>Name</span>
+                  <span>Contact</span>
+                  <span>Driver</span>
+                  <span>Fuel (L)</span>
                   <span>Amount</span>
                   <span>Mode</span>
                   <span>Status</span>
                   <span>Notes</span>
                 </div>
-                {filteredPayments.map((payment) => (
-                  <div key={payment.payment_id} className={styles.tableRow}>
-                    <span>{payment.payment_date || "-"}</span>
-                    <span>{payment.vehicle_number || "-"}</span>
-                    <span>{payment.driver_phone || "-"}</span>
-                    <span>{payment.driver_name || "-"}</span>
-                    <span>{formatCurrency(payment.amount)}</span>
-                    <span>{payment.payment_mode.replace(/_/g, " ")}</span>
-                    <span className={`${styles.status} ${styles[payment.status] || ""}`}>
-                      {payment.status}
-                    </span>
-                    <span className={styles.notesCell} title={payment.notes || "-"}>
-                      {payment.notes || "-"}
-                    </span>
-                  </div>
-                ))}
+                {filteredPayments.map((payment) => {
+                  const notesText =
+                    payment.transaction_type === "fueling" && payment.fuel_station
+                      ? `${payment.fuel_station}${payment.notes ? ` • ${payment.notes}` : ""}`
+                      : payment.notes || "-";
+
+                  return (
+                    <div key={payment.payment_id} className={styles.tableRow}>
+                      <span>{payment.payment_date || "-"}</span>
+                      <span>{String(payment.transaction_type || "driver_payment").replace(/_/g, " ")}</span>
+                      <span>{payment.vehicle_number || "-"}</span>
+                      <span>{payment.driver_phone || "-"}</span>
+                      <span>{payment.driver_name || "-"}</span>
+                      <span>{payment.transaction_type === "fueling" ? payment.fuel_liters || "-" : "-"}</span>
+                      <span>{formatCurrency(payment.amount)}</span>
+                      <span>{payment.payment_mode ? payment.payment_mode.replace(/_/g, " ") : "-"}</span>
+                      <span className={`${styles.status} ${styles[payment.status] || ""}`}>
+                        {payment.status}
+                      </span>
+                      <span className={styles.notesCell} title={notesText}>
+                        {notesText}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -317,7 +375,7 @@ export default function PaymentsPage() {
             <div className={styles.modalOverlay} onClick={closePaymentForm}>
               <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
                 <div className={styles.modalHeader}>
-                  <h2>Add Payment</h2>
+                  <h2>Add Record</h2>
                   <button
                     type="button"
                     className={styles.closeBtn}
@@ -327,6 +385,36 @@ export default function PaymentsPage() {
                   </button>
                 </div>
                 <form className={styles.form} onSubmit={handleSubmit}>
+                  <label className={styles.field}>
+                    Entry type
+                    <CustomDropdown
+                      options={transactionTypeOptions}
+                      value={form.transaction_type}
+                      onChange={(value) =>
+                        setForm((prev) => {
+                          const shouldClearVehicle =
+                            value === "fueling" &&
+                            prev.vehicle_number &&
+                            vehicles.find(
+                              (vehicle) => vehicle.vehicle_number === prev.vehicle_number
+                            )?.ownership_type !== "own";
+
+                          return {
+                            ...prev,
+                            transaction_type: value,
+                            vehicle_number: shouldClearVehicle ? "" : prev.vehicle_number,
+                            driver_name: value === "fueling" ? "" : prev.driver_name,
+                            driver_phone: value === "fueling" ? "" : prev.driver_phone,
+                            fuel_liters: value === "driver_payment" ? "" : prev.fuel_liters,
+                            fuel_station: value === "driver_payment" ? "" : prev.fuel_station,
+                          };
+                        })
+                      }
+                      getLabel={(option) => option.label}
+                      getValue={(option) => option.value}
+                      placeholder="Select entry type"
+                    />
+                  </label>
                   <label className={styles.field}>
                     Payment date
                     <DatePicker
@@ -344,30 +432,37 @@ export default function PaymentsPage() {
                       getValue={(option) => option.value}
                       placeholder="Select vehicle"
                     />
+                    {form.transaction_type === "fueling" && (
+                      <span>Only own vehicles are available for fueling entries.</span>
+                    )}
                   </label>
+                  {form.transaction_type === "driver_payment" && (
+                    <>
+                      <label className={styles.field}>
+                        Driver name
+                        <input
+                          type="text"
+                          name="driver_name"
+                          value={form.driver_name}
+                          onChange={updateField}
+                          placeholder="Driver name"
+                          required
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        Driver phone
+                        <input
+                          type="tel"
+                          name="driver_phone"
+                          value={form.driver_phone}
+                          onChange={updateField}
+                          placeholder="+919000000000"
+                        />
+                      </label>
+                    </>
+                  )}
                   <label className={styles.field}>
-                    Driver name
-                    <input
-                      type="text"
-                      name="driver_name"
-                      value={form.driver_name}
-                      onChange={updateField}
-                      placeholder="Driver name"
-                      required
-                    />
-                  </label>
-                  <label className={styles.field}>
-                    Driver phone
-                    <input
-                      type="tel"
-                      name="driver_phone"
-                      value={form.driver_phone}
-                      onChange={updateField}
-                      placeholder="+919000000000"
-                    />
-                  </label>
-                  <label className={styles.field}>
-                    Amount
+                    {form.transaction_type === "fueling" ? "Fuel cost" : "Amount"}
                     <input
                       type="text"
                       name="amount"
@@ -377,6 +472,32 @@ export default function PaymentsPage() {
                       required
                     />
                   </label>
+                  {form.transaction_type === "fueling" && (
+                    <>
+                      <label className={styles.field}>
+                        Fuel liters (optional)
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          name="fuel_liters"
+                          value={form.fuel_liters}
+                          onChange={updateField}
+                          placeholder="40"
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        Fuel station (optional)
+                        <input
+                          type="text"
+                          name="fuel_station"
+                          value={form.fuel_station}
+                          onChange={updateField}
+                          placeholder="Station name"
+                        />
+                      </label>
+                    </>
+                  )}
                   <label className={styles.field}>
                     Payment mode
                     <CustomDropdown
@@ -420,7 +541,7 @@ export default function PaymentsPage() {
                       Cancel
                     </button>
                     <button className={styles.primaryCta} type="submit">
-                      Save Payment
+                      Save Record
                     </button>
                   </div>
                   {message && <p className={styles.message}>{message}</p>}
@@ -442,11 +563,11 @@ export default function PaymentsPage() {
                 className={`${styles.modal} ${styles.confirmModal}`}
                 onClick={(event) => event.stopPropagation()}
               >
-                <h3 className={styles.modalTitle}>Confirm Payment</h3>
+                <h3 className={styles.modalTitle}>Confirm Record</h3>
                 <div className={styles.modalNotice}>
-                  Payments are add-only. Existing records cannot be edited or deleted.
+                  Records are add-only. Existing entries cannot be edited or deleted.
                 </div>
-                <p className={styles.modalSubtitle}>Create this payment record now?</p>
+                <p className={styles.modalSubtitle}>Create this record now?</p>
                 <div className={styles.modalActions}>
                   <button
                     type="button"

@@ -108,6 +108,7 @@ const mockVehicles = [
 const mockPayments = [
   {
     payment_id: "pay-001",
+    transaction_type: "driver_payment",
     payment_date: "2026-02-10",
     payment_month: "2026-02",
     vehicle_number: "TN 09 AB 1234",
@@ -148,13 +149,17 @@ function normalizeVehicle(vehicle = {}, vehicleId = "") {
 function normalizePayment(payment = {}, paymentId = "") {
   const paymentDate = payment.payment_date || "";
   const paymentMonth = payment.payment_month || paymentDate.slice(0, 7) || "";
+  const transactionType = payment.transaction_type || "driver_payment";
 
   return {
     ...payment,
     payment_id: payment.payment_id || paymentId,
+    transaction_type: transactionType,
     payment_date: paymentDate,
     payment_month: paymentMonth,
     amount: Number(payment.amount) || 0,
+    fuel_liters: Number(payment.fuel_liters) || 0,
+    fuel_station: payment.fuel_station || "",
     status: payment.status || "paid",
     payment_mode: payment.payment_mode || "upi",
   };
