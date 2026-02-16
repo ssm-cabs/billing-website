@@ -27,6 +27,9 @@ const initialState = {
   cab_type: "",
   user_name: "",
   rate: 0,
+  hours: "",
+  kms: "",
+  tolls: "",
   notes: "",
 };
 
@@ -89,6 +92,9 @@ export default function ClientEditEntryPage() {
           cab_type: entry.cab_type || "",
           user_name: entry.user_name || "",
           rate: entry.rate || 0,
+          hours: entry.hours ?? "",
+          kms: entry.kms ?? "",
+          tolls: entry.tolls ?? "",
           notes: entry.notes || "",
         });
         setLoadError("");
@@ -221,6 +227,9 @@ export default function ClientEditEntryPage() {
       const loggedInName = getLoggedInUserName();
       await updateEntry(id, {
         ...form,
+        hours: form.hours === "" ? null : Number(form.hours),
+        kms: form.kms === "" ? null : Number(form.kms),
+        tolls: form.tolls === "" ? null : Number(form.tolls),
         user_name: loggedInName || form.user_name,
       });
       setStatus("success");
@@ -414,6 +423,42 @@ export default function ClientEditEntryPage() {
             value={form.drop_location}
             onChange={updateField}
             required
+          />
+        </label>
+        <label className={styles.field}>
+          Hours
+          <input
+            type="number"
+            name="hours"
+            value={form.hours}
+            onChange={updateField}
+            min="0"
+            step="0.1"
+            placeholder="e.g. 8"
+          />
+        </label>
+        <label className={styles.field}>
+          Kms
+          <input
+            type="number"
+            name="kms"
+            value={form.kms}
+            onChange={updateField}
+            min="0"
+            step="0.1"
+            placeholder="e.g. 120"
+          />
+        </label>
+        <label className={styles.field}>
+          Tolls
+          <input
+            type="number"
+            name="tolls"
+            value={form.tolls}
+            onChange={updateField}
+            min="0"
+            step="1"
+            placeholder="e.g. 250"
           />
         </label>
         <label className={styles.field}>

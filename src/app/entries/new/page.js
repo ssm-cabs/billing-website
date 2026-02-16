@@ -9,7 +9,6 @@ import {
   createEntry,
   fetchCompanies,
   fetchPricing,
-  fetchVehiclePricing,
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
@@ -45,7 +44,7 @@ const initialState = {
   vehicle_number: "",
   cab_type: "",
   user_name: "",
-  rate: 0,
+  rate: "",
   notes: "",
 };
 
@@ -60,7 +59,6 @@ export default function NewEntryPage() {
   const [vehicles, setVehicles] = useState([]);
   const [vehicleStatus, setVehicleStatus] = useState("idle");
   const [pricing, setPricing] = useState([]);
-  const [vehiclePricing, setVehiclePricing] = useState([]);
   const [pricingStatus, setPricingStatus] = useState("idle");
 
   useEffect(() => {
@@ -118,50 +116,16 @@ export default function NewEntryPage() {
     loadPricing();
   }, [form.company_name, companies]);
 
-  useEffect(() => {
-    const loadVehiclePricing = async () => {
-      const selectedVehicle = vehicles.find(
-        (v) => v.vehicle_number === form.vehicle_number
-      );
-      if (!selectedVehicle || selectedVehicle.ownership_type !== "leased") {
-        setVehiclePricing([]);
-        return;
-      }
-
-      try {
-        const data = await fetchVehiclePricing(selectedVehicle.vehicle_id);
-        setVehiclePricing(data);
-      } catch (_) {
-        setVehiclePricing([]);
-      }
-    };
-
-    loadVehiclePricing();
-  }, [form.vehicle_number, vehicles]);
-
-  useEffect(() => {
-    const loggedInName = getLoggedInUserName();
-    if (loggedInName) {
-      setForm((prev) => ({ ...prev, user_name: loggedInName }));
-    }
-  }, []);
-
-  useEffect(() => {
-    const selectedVehicle = vehicles.find(
-      (v) => v.vehicle_number === form.vehicle_number
-    );
-    const activePricingSource =
-      selectedVehicle?.ownership_type === "leased" ? vehiclePricing : pricing;
-    const matchingPrice = activePricingSource.find(
-      (p) => p.cab_type === selectedVehicle?.cab_type && p.slot === form.slot
-    );
-
-    setForm((prev) => ({
-      ...prev,
-      cab_type: selectedVehicle?.cab_type || "",
-      rate: matchingPrice?.rate || 0,
-    }));
-  }, [form.vehicle_number, form.slot, pricing, vehiclePricing, vehicles]);
+  const selectedVehicle = vehicles.find(
+    (v) => v.vehicle_number === form.vehicle_number
+  );
+  const resolvedCabType = selectedVehicle?.cab_type || "";
+  const matchingPrice = pricing.find(
+    (p) => p.cab_type === resolvedCabType && p.slot === form.slot
+  );
+  const resolvedRate = matchingPrice?.rate || 0;
+  const effectiveRate =
+    form.rate === "" || form.rate === null ? resolvedRate : Number(form.rate) || 0;
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -181,6 +145,8 @@ export default function NewEntryPage() {
       const loggedInName = getLoggedInUserName();
       await createEntry({
         ...form,
+        cab_type: resolvedCabType,
+        rate: effectiveRate,
         user_name: loggedInName || form.user_name,
       });
       setStatus("success");
@@ -190,7 +156,6 @@ export default function NewEntryPage() {
       setForm({
         ...initialState,
         entry_date: getToday(),
-        user_name: loggedInName || "",
       });
       // Redirect to /entries after 1 second
       setTimeout(() => {
@@ -223,7 +188,7 @@ export default function NewEntryPage() {
             <p className={styles.eyebrow}>Access Denied</p>
             <h1>Permission Required</h1>
             <p className={styles.lead}>
-              You don't have permission to create new entries.
+              You don&apos;t have permission to create new entries.
             </p>
           </div>
         </header>
@@ -285,7 +250,7 @@ export default function NewEntryPage() {
             Cab type
             <input
               type="text"
-              value={vehicles.find(v => v.vehicle_number === form.vehicle_number)?.cab_type || ""}
+              value={resolvedCabType}
               disabled
               readOnly
             />
@@ -308,9 +273,10 @@ export default function NewEntryPage() {
             <input
               type="number"
               name="rate"
-              value={form.rate}
+              value={form.rate === "" || form.rate === null ? resolvedRate : form.rate}
               onChange={updateField}
-              placeholder="Enter rate"
+              min="0"
+              placeholder="Auto from company pricing"
             />
           </label>
         )}
