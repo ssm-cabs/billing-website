@@ -151,6 +151,11 @@
   white-space: nowrap;
 }
 
+.notesColumn {
+  width: 190px;
+  max-width: 190px;
+}
+
 .actions {
   display: flex;
   gap: 8px;
@@ -302,6 +307,11 @@
     letter-spacing: 0.5px;
     flex-shrink: 0;
     margin-right: 12px;
+  }
+
+  .notesColumn {
+    width: auto;
+    max-width: none;
   }
 
   .table th {

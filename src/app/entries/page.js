@@ -194,8 +194,8 @@ export default function EntriesPage() {
                 <th>Route</th>
                 <th>User</th>
                 <th>Vehicle</th>
-                <th>Notes</th>
                 <th>Actions</th>
+                <th className={styles.notesColumn}>Notes</th>
               </tr>
             </thead>
             <tbody>
@@ -213,9 +213,6 @@ export default function EntriesPage() {
                   </td>
                   <td data-label="User">{entry.user_name || "-"}</td>
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
-                  <td data-label="Notes">
-                    <NotesPreview text={entry.notes} />
-                  </td>
                   <td data-label="Actions" className={styles.actionsCell}>
                     {canEdit && !entry.billed && (
                       <div className={styles.actions}>
@@ -238,6 +235,9 @@ export default function EntriesPage() {
                         </button>
                       </div>
                     )}
+                  </td>
+                  <td data-label="Notes" className={styles.notesColumn}>
+                    <NotesPreview text={entry.notes} maxWidth={170} />
                   </td>
                 </tr>
               ))}
