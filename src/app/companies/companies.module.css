@@ -246,6 +246,10 @@
   align-items: center;
 }
 
+.inlineDropdown {
+  min-width: 120px;
+}
+
 .inlineInput {
   width: 100%;
   padding: 8px 10px;

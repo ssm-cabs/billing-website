@@ -66,6 +66,7 @@ export default function CompaniesPage() {
     contact_name: "",
     contact_phone: "",
     address: "",
+    active: true,
   });
   const [editSaving, setEditSaving] = useState(false);
   const [error, setError] = useState("");
@@ -284,6 +285,7 @@ export default function CompaniesPage() {
       contact_name: company.contact_name || "",
       contact_phone: company.contact_phone || "",
       address: company.address || "",
+      active: company.active !== false,
     });
     setMessage("");
     setError("");
@@ -318,6 +320,7 @@ export default function CompaniesPage() {
         contact_name: editForm.contact_name.trim(),
         contact_phone: normalizePhoneNumber(editForm.contact_phone),
         address: editForm.address.trim(),
+        active: editForm.active,
       });
       setMessage(
         isFirebaseConfigured ? "Company updated." : "Demo mode: company update prepared."
@@ -496,13 +499,31 @@ export default function CompaniesPage() {
                             )}
                           </td>
                           <td data-label="Status">
-                            <span
-                              className={`${styles.status} ${
-                                company.active !== false ? styles.active : styles.inactive
-                              }`}
-                            >
-                              {company.active !== false ? "Active" : "Inactive"}
-                            </span>
+                            {isEditing ? (
+                              <div className={styles.inlineDropdown}>
+                                <CustomDropdown
+                                  options={companyStatusOptions}
+                                  value={editForm.active}
+                                  onChange={(value) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      active: value,
+                                    }))
+                                  }
+                                  getLabel={(option) => option.label}
+                                  getValue={(option) => option.value}
+                                  placeholder="Select status"
+                                />
+                              </div>
+                            ) : (
+                              <span
+                                className={`${styles.status} ${
+                                  company.active !== false ? styles.active : styles.inactive
+                                }`}
+                              >
+                                {company.active !== false ? "Active" : "Inactive"}
+                              </span>
+                            )}
                           </td>
                           {canEdit && (
                             <td className={styles.rowActions} data-label="Actions">
