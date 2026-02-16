@@ -7,11 +7,9 @@ import DatePicker from "../entries/DatePicker";
 import CustomDropdown from "../entries/CustomDropdown";
 import {
   createPayment,
-  deletePayment,
   fetchPayments,
   fetchVehicles,
   isFirebaseConfigured,
-  updatePayment,
 } from "@/lib/api";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./payments.module.css";
@@ -64,9 +62,6 @@ export default function PaymentsPage() {
   const [vehicleFilter, setVehicleFilter] = useState("all");
   const [form, setForm] = useState(initialState);
   const [showForm, setShowForm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deletePaymentId, setDeletePaymentId] = useState("");
-  const [editingId, setEditingId] = useState("");
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -82,7 +77,6 @@ export default function PaymentsPage() {
 
   const closePaymentForm = useCallback(() => {
     setShowForm(false);
-    setEditingId("");
     setForm(getInitialFormState());
   }, [getInitialFormState]);
 
@@ -166,50 +160,10 @@ export default function PaymentsPage() {
 
   const handleAddClick = () => {
     if (!canEdit) return;
-    setEditingId("");
     setForm(getInitialFormState());
     setError("");
     setMessage("");
     setShowForm(true);
-  };
-
-  const handleEditClick = (payment) => {
-    if (!canEdit) return;
-    setEditingId(payment.payment_id);
-    setForm({
-      payment_date: payment.payment_date || getToday(),
-      vehicle_number: payment.vehicle_number || "",
-      driver_name: payment.driver_name || "",
-      driver_phone: payment.driver_phone || "",
-      amount:
-        payment.amount === null || payment.amount === undefined
-          ? ""
-          : String(payment.amount),
-      payment_mode: payment.payment_mode || "upi",
-      status: payment.status || "paid",
-      notes: payment.notes || "",
-    });
-    setError("");
-    setMessage("");
-    setShowForm(true);
-  };
-
-  const handleDeleteClick = (paymentId) => {
-    if (!canEdit) return;
-    setDeletePaymentId(paymentId);
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDeletePayment = async () => {
-    if (!canEdit || !deletePaymentId) return;
-    try {
-      await deletePayment(deletePaymentId);
-      await loadPayments();
-      setShowDeleteConfirm(false);
-      setDeletePaymentId("");
-    } catch (err) {
-      setError(err.message || "Failed to delete payment.");
-    }
   };
 
   const handleSubmit = async (event) => {
@@ -232,17 +186,11 @@ export default function PaymentsPage() {
     };
 
     try {
-      if (editingId) {
-        await updatePayment(editingId, payload);
-      } else {
-        await createPayment(payload);
-      }
+      await createPayment(payload);
 
       setMessage(
         isFirebaseConfigured
-          ? editingId
-            ? "Payment updated."
-            : "Payment added."
+          ? "Payment added."
           : "Demo mode: payment prepared."
       );
       closePaymentForm();
@@ -326,49 +274,23 @@ export default function PaymentsPage() {
               <div className={styles.table}>
                 <div className={styles.tableHeader}>
                   <span>Date</span>
-                  <span>Driver</span>
+                  <span>Driver Name</span>
+                  <span>Driver Number</span>
                   <span>Vehicle</span>
                   <span>Amount</span>
                   <span>Mode</span>
                   <span>Status</span>
-                  <span>Actions</span>
                 </div>
                 {filteredPayments.map((payment) => (
                   <div key={payment.payment_id} className={styles.tableRow}>
                     <span>{payment.payment_date || "-"}</span>
-                    <span>
-                      {payment.driver_name || "-"}
-                      <small>{payment.driver_phone || "-"}</small>
-                    </span>
+                    <span>{payment.driver_name || "-"}</span>
+                    <span>{payment.driver_phone || "-"}</span>
                     <span>{payment.vehicle_number || "-"}</span>
                     <span>{formatCurrency(payment.amount)}</span>
                     <span>{payment.payment_mode.replace(/_/g, " ")}</span>
                     <span className={`${styles.status} ${styles[payment.status] || ""}`}>
                       {payment.status}
-                    </span>
-                    <span className={styles.actions}>
-                      {canEdit && (
-                        <>
-                          <button
-                            type="button"
-                            className={styles.editBtn}
-                            onClick={() => handleEditClick(payment)}
-                            title="Edit"
-                            aria-label="Edit"
-                          >
-                            <span className={styles.editIcon}>✎</span>
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.deleteBtn}
-                            onClick={() => handleDeleteClick(payment.payment_id)}
-                            title="Delete"
-                            aria-label="Delete"
-                          >
-                            ✕
-                          </button>
-                        </>
-                      )}
                     </span>
                   </div>
                 ))}
@@ -380,7 +302,7 @@ export default function PaymentsPage() {
             <div className={styles.modalOverlay} onClick={closePaymentForm}>
               <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
                 <div className={styles.modalHeader}>
-                  <h2>{editingId ? "Edit Payment" : "Add Payment"}</h2>
+                  <h2>Add Payment</h2>
                   <button
                     type="button"
                     className={styles.closeBtn}
@@ -484,7 +406,7 @@ export default function PaymentsPage() {
                       Cancel
                     </button>
                     <button className={styles.primaryCta} type="submit">
-                      {editingId ? "Update Payment" : "Save Payment"}
+                      Save Payment
                     </button>
                   </div>
                   {message && <p className={styles.message}>{message}</p>}
@@ -494,45 +416,6 @@ export default function PaymentsPage() {
             </div>
           )}
 
-          {canEdit && showDeleteConfirm && (
-            <div
-              className={styles.modalOverlay}
-              onClick={() => {
-                setShowDeleteConfirm(false);
-                setDeletePaymentId("");
-              }}
-            >
-              <div
-                className={`${styles.modal} ${styles.confirmModal}`}
-                onClick={(event) => event.stopPropagation()}
-              >
-                <h3 className={styles.modalTitle}>Delete Payment</h3>
-                <p className={styles.modalSubtitle}>
-                  Are you sure you want to delete this payment record? This action
-                  cannot be undone.
-                </p>
-                <div className={styles.modalActions}>
-                  <button
-                    type="button"
-                    className={styles.secondaryCta}
-                    onClick={() => {
-                      setShowDeleteConfirm(false);
-                      setDeletePaymentId("");
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.primaryCta}
-                    onClick={confirmDeletePayment}
-                  >
-                    Delete Payment
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
