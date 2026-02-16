@@ -100,7 +100,7 @@ export default function Home() {
               <div className={styles.panelRow}>
                 <div>
                   <p className={styles.panelTitle}>Acme Corp</p>
-                  <p className={styles.panelMeta}>SUV · 6hr slot</p>
+                  <p className={styles.panelMeta}>SUV · 8hr slot</p>
                 </div>
                 <span className={styles.panelValue}>₹ 2,400</span>
               </div>
@@ -114,7 +114,7 @@ export default function Home() {
               <div className={styles.panelRow}>
                 <div>
                   <p className={styles.panelTitle}>Umbrella</p>
-                  <p className={styles.panelMeta}>Premium SUV · 12hr</p>
+                  <p className={styles.panelMeta}>Premium SUV · 8hr</p>
                 </div>
                 <span className={styles.panelValue}>₹ 5,800</span>
               </div>
@@ -191,7 +191,7 @@ export default function Home() {
           <div className={styles.pricingBox}>
             <div>
               <h3>Flexible slots</h3>
-              <p>Support 4hr, 6hr, 12hr, or custom slots per client agreement.</p>
+              <p>Support standardized 4hr and 8hr slots per client agreement.</p>
             </div>
             <div>
               <h3>Cab types</h3>

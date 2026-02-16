@@ -22,7 +22,7 @@ const mockEntries = [
     entry_date: "2026-02-10",
     company_name: "Acme Corp",
     cab_type: "SUV",
-    slot: "6hr",
+    slot: "8hr",
     pickup_location: "T Nagar",
     drop_location: "Guindy",
     user_name: "Arun",
@@ -72,7 +72,7 @@ const mockCompanies = [
 
 const mockPricing = {
   "acme-corp": [
-    { pricing_id: "p1", cab_type: "SUV", slot: "6hr", rate: 2400 },
+    { pricing_id: "p1", cab_type: "SUV", slot: "8hr", rate: 2400 },
     { pricing_id: "p2", cab_type: "Sedan", slot: "4hr", rate: 1200 },
   ],
   globex: [
@@ -119,6 +119,17 @@ const mockPayments = [
     notes: "February payout",
   },
 ];
+
+const ALLOWED_SLOTS = new Set(["4hr", "8hr"]);
+
+function assertValidSlot(slot) {
+  if (!slot) {
+    throw new Error("slot is required");
+  }
+  if (!ALLOWED_SLOTS.has(slot)) {
+    throw new Error("slot must be either 4hr or 8hr");
+  }
+}
 
 function normalizeVehicle(vehicle = {}, vehicleId = "") {
   const isActive =
@@ -214,6 +225,8 @@ export async function fetchEntryById(entryId) {
 }
 
 export async function createEntry(payload) {
+  assertValidSlot(payload?.slot);
+
   if (!isFirebaseConfigured || !db) {
     return { ok: true, entry_id: "ENT-NEW" };
   }
@@ -237,6 +250,10 @@ export async function updateEntry(entryId, payload) {
 
   if (!isFirebaseConfigured || !db) {
     return { ok: true, entry_id: entryId };
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload || {}, "slot")) {
+    assertValidSlot(payload.slot);
   }
 
   const entryRef = doc(db, "entries", entryId);
@@ -316,6 +333,7 @@ export async function createPricing(companyId, payload) {
   if (!payload?.cab_type || !payload?.slot) {
     throw new Error("cab_type and slot are required");
   }
+  assertValidSlot(payload.slot);
 
   if (!isFirebaseConfigured || !db) {
     return { ok: true, pricing_id: "pricing-new" };
@@ -341,6 +359,10 @@ export async function updatePricing(companyId, pricingId, payload) {
 
   if (!isFirebaseConfigured || !db) {
     return { ok: true, pricing_id: pricingId };
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload || {}, "slot")) {
+    assertValidSlot(payload.slot);
   }
 
   const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);

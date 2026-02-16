@@ -269,7 +269,7 @@ export default function NewEntryPage() {
         <label className={styles.field}>
           Slot
           <CustomDropdown
-            options={["4hr", "6hr", "12hr"]}
+            options={["4hr", "8hr"]}
             value={form.slot}
             onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
             getLabel={(slot) => slot}

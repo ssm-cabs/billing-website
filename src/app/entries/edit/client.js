@@ -31,8 +31,7 @@ const initialState = {
 
 const slotOptions = [
   { label: "4hr", value: "4hr" },
-  { label: "6hr", value: "6hr" },
-  { label: "12hr", value: "12hr" },
+  { label: "8hr", value: "8hr" },
 ];
 
 const getLoggedInUserName = () => {
