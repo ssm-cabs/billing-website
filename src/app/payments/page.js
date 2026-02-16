@@ -326,10 +326,6 @@ export default function PaymentsPage() {
                     ✕
                   </button>
                 </div>
-                <div className={styles.modalNotice}>
-                  Payments are add-only. Existing records cannot be edited or deleted.
-                </div>
-
                 <form className={styles.form} onSubmit={handleSubmit}>
                   <label className={styles.field}>
                     Payment date
@@ -447,9 +443,10 @@ export default function PaymentsPage() {
                 onClick={(event) => event.stopPropagation()}
               >
                 <h3 className={styles.modalTitle}>Confirm Payment</h3>
-                <p className={styles.modalSubtitle}>
-                  Create this payment record now?
-                </p>
+                <div className={styles.modalNotice}>
+                  Payments are add-only. Existing records cannot be edited or deleted.
+                </div>
+                <p className={styles.modalSubtitle}>Create this payment record now?</p>
                 <div className={styles.modalActions}>
                   <button
                     type="button"
