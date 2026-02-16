@@ -65,6 +65,7 @@ export default function VehiclesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState("");
   const [editForm, setEditForm] = useState({
+    capacity: "",
     driver_name: "",
     driver_phone: "",
     active: true,
@@ -290,6 +291,7 @@ export default function VehiclesPage() {
   const startEdit = (vehicle) => {
     setEditingVehicleId(vehicle.vehicle_id);
     setEditForm({
+      capacity: vehicle.capacity ?? "",
       driver_name: vehicle.driver_name || "",
       driver_phone: vehicle.driver_phone || "",
       active: vehicle.active !== false,
@@ -321,6 +323,7 @@ export default function VehiclesPage() {
 
     try {
       await updateVehicle(vehicleId, {
+        capacity: editForm.capacity ? Number(editForm.capacity) : null,
         driver_name: editForm.driver_name.trim(),
         driver_phone: normalizePhoneNumber(editForm.driver_phone),
         active: editForm.active,
@@ -440,7 +443,25 @@ export default function VehiclesPage() {
                             {vehicle.vehicle_number || "-"}
                           </td>
                           <td data-label="Cab Type">{vehicle.cab_type || "-"}</td>
-                          <td data-label="Capacity">{vehicle.capacity || "-"}</td>
+                          <td data-label="Capacity">
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                value={editForm.capacity}
+                                onChange={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    capacity: event.target.value,
+                                  }))
+                                }
+                                min="1"
+                                placeholder="Capacity"
+                                className={styles.inlineInput}
+                              />
+                            ) : (
+                              vehicle.capacity || "-"
+                            )}
+                          </td>
                           <td data-label="Driver">
                             {isEditing ? (
                               <input
