@@ -45,6 +45,10 @@ const transactionTypeOptions = [
   { label: "Driver Payment", value: "driver_payment" },
   { label: "Fueling", value: "fueling" },
 ];
+const transactionTypeFilterOptions = [
+  { label: "Driver Payments", value: "driver_payment" },
+  { label: "Fueling", value: "fueling" },
+];
 
 const initialState = {
   transaction_type: "driver_payment",
@@ -68,6 +72,7 @@ export default function PaymentsPage() {
   const [vehicles, setVehicles] = useState([]);
   const [month, setMonth] = useState(getMonthValue);
   const [vehicleFilter, setVehicleFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [form, setForm] = useState(initialState);
   const [showForm, setShowForm] = useState(false);
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
@@ -146,11 +151,23 @@ export default function PaymentsPage() {
   );
 
   const filteredPayments = useMemo(() => {
-    if (vehicleFilter === "all") {
-      return payments;
+    let filtered = payments;
+
+    if (typeFilter !== "all") {
+      filtered = filtered.filter(
+        (payment) =>
+          String(payment.transaction_type || "driver_payment") === typeFilter
+      );
     }
-    return payments.filter((payment) => payment.vehicle_number === vehicleFilter);
-  }, [payments, vehicleFilter]);
+
+    if (vehicleFilter !== "all") {
+      filtered = filtered.filter(
+        (payment) => payment.vehicle_number === vehicleFilter
+      );
+    }
+
+    return filtered;
+  }, [payments, vehicleFilter, typeFilter]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -311,6 +328,18 @@ export default function PaymentsPage() {
                 getValue={(option) => option.value}
                 placeholder="Select vehicle"
                 defaultOption={{ label: "All Vehicles", value: "all" }}
+              />
+            </label>
+            <label className={styles.field}>
+              Type
+              <CustomDropdown
+                options={transactionTypeFilterOptions}
+                value={typeFilter}
+                onChange={setTypeFilter}
+                getLabel={(option) => option.label}
+                getValue={(option) => option.value}
+                placeholder="Select type"
+                defaultOption={{ label: "All Types", value: "all" }}
               />
             </label>
           </section>
