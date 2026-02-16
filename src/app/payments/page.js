@@ -274,23 +274,27 @@ export default function PaymentsPage() {
               <div className={styles.table}>
                 <div className={styles.tableHeader}>
                   <span>Date</span>
-                  <span>Driver Name</span>
-                  <span>Driver Number</span>
                   <span>Vehicle</span>
+                  <span>Number</span>
+                  <span>Name</span>
                   <span>Amount</span>
                   <span>Mode</span>
                   <span>Status</span>
+                  <span>Notes</span>
                 </div>
                 {filteredPayments.map((payment) => (
                   <div key={payment.payment_id} className={styles.tableRow}>
                     <span>{payment.payment_date || "-"}</span>
-                    <span>{payment.driver_name || "-"}</span>
-                    <span>{payment.driver_phone || "-"}</span>
                     <span>{payment.vehicle_number || "-"}</span>
+                    <span>{payment.driver_phone || "-"}</span>
+                    <span>{payment.driver_name || "-"}</span>
                     <span>{formatCurrency(payment.amount)}</span>
                     <span>{payment.payment_mode.replace(/_/g, " ")}</span>
                     <span className={`${styles.status} ${styles[payment.status] || ""}`}>
                       {payment.status}
+                    </span>
+                    <span className={styles.notesCell} title={payment.notes || "-"}>
+                      {payment.notes || "-"}
                     </span>
                   </div>
                 ))}

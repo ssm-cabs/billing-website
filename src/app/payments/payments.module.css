@@ -112,7 +112,7 @@
 .tableHeader,
 .tableRow {
   display: grid;
-  grid-template-columns: 120px 1fr 1fr 1fr 100px 120px 100px;
+  grid-template-columns: 120px 1fr 1fr 1fr 100px 120px 100px 1.3fr;
   gap: 10px;
   align-items: center;
 }
@@ -129,6 +129,12 @@
   border-radius: 12px;
   padding: 10px 12px;
   font-size: 13px;
+}
+
+.notesCell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
