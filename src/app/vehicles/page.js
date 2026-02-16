@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import CustomDropdown from "../entries/CustomDropdown";
 import {
@@ -59,6 +59,7 @@ const initialPricing = {
 export default function VehiclesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("vehicles");
   const [vehicles, setVehicles] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState("idle");
   const [showForm, setShowForm] = useState(false);
@@ -303,9 +304,7 @@ export default function VehiclesPage() {
     setEditSaving(false);
   };
 
-  const handleEditSubmit = async (event, vehicleId) => {
-    event.preventDefault();
-
+  const handleEditSubmit = async (vehicleId) => {
     if (!canEdit) {
       setError("You don't have permission to update vehicles");
       return;
@@ -340,6 +339,19 @@ export default function VehiclesPage() {
       setEditSaving(false);
     }
   };
+
+  const filteredVehicles = vehicles.filter((vehicle) =>
+    [
+      vehicle.vehicle_number,
+      vehicle.cab_type,
+      vehicle.driver_name,
+      vehicle.driver_phone,
+      vehicle.ownership_type,
+    ]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className={styles.page}>
@@ -386,133 +398,176 @@ export default function VehiclesPage() {
             {status === "loading" && <span>Loading...</span>}
           </div>
           {status === "error" && <p className={styles.error}>{error}</p>}
+          <div className={styles.searchBar}>
+            <input
+              type="text"
+              placeholder="Search by vehicle number, cab type, or driver..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
           {status === "success" && vehicles.length === 0 && (
             <p>No vehicles yet. Add your first fleet vehicle.</p>
           )}
-          {vehicles.length > 0 && (
-            <div className={styles.cards}>
-              {vehicles.map((vehicle) => (
-                <article key={vehicle.vehicle_id} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <h3>{vehicle.vehicle_number}</h3>
-                      <p>{vehicle.cab_type || "-"}</p>
-                    </div>
-                    {canEdit && editingVehicleId !== vehicle.vehicle_id && (
-                      <button
-                        type="button"
-                        className={styles.secondaryCta}
-                        onClick={() => startEdit(vehicle)}
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                  {editingVehicleId === vehicle.vehicle_id ? (
-                    <form
-                      className={styles.inlineEdit}
-                      onSubmit={(event) => handleEditSubmit(event, vehicle.vehicle_id)}
-                    >
-                      <div className={styles.meta}>
-                        <span>Capacity: {vehicle.capacity || "-"}</span>
-                      </div>
-                      <label className={styles.field}>
-                        Driver name
-                        <input
-                          type="text"
-                          value={editForm.driver_name}
-                          onChange={(event) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              driver_name: event.target.value,
-                            }))
-                          }
-                          placeholder="Driver name"
-                        />
-                      </label>
-                      <label className={styles.field}>
-                        Driver phone
-                        <input
-                          type="tel"
-                          value={editForm.driver_phone}
-                          onChange={(event) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              driver_phone: event.target.value,
-                            }))
-                          }
-                          onBlur={(event) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              driver_phone: normalizePhoneNumber(event.target.value),
-                            }))
-                          }
-                          placeholder="+919000000000"
-                        />
-                      </label>
-                      <label className={styles.field}>
-                        Status
-                        <CustomDropdown
-                          options={vehicleStatusOptions}
-                          value={editForm.active}
-                          onChange={(value) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              active: value,
-                            }))
-                          }
-                          getLabel={(option) => option.label}
-                          getValue={(option) => option.value}
-                          placeholder="Select status"
-                        />
-                      </label>
-                      <div className={styles.inlineActions}>
-                        <button
-                          type="submit"
-                          className={styles.primaryCta}
-                          disabled={editSaving}
-                        >
-                          {editSaving ? "Saving..." : "Save"}
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.ghostCta}
-                          onClick={cancelEdit}
-                          disabled={editSaving}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <>
-                      <div className={styles.meta}>
-                        <span>Capacity: {vehicle.capacity || "-"}</span>
-                        <span>
-                          {vehicle.ownership_type === "leased"
-                            ? "Leased Vehicle"
-                            : "Own Vehicle"}
-                        </span>
-                        <span>{vehicle.driver_name || "-"}</span>
-                        <span>{vehicle.driver_phone || "-"}</span>
-                      </div>
-                      <div className={styles.cardFooter}>
-                        <span className={styles.statusTag}>{vehicle.status}</span>
-                        {vehicle.ownership_type === "leased" && (
-                          <button
-                            type="button"
-                            className={styles.linkButton}
-                            onClick={() => togglePricing(vehicle.vehicle_id)}
-                          >
-                            {expandedVehicleId === vehicle.vehicle_id
-                              ? "Hide pricing"
-                              : "Manage pricing"}
-                          </button>
-                        )}
-                      </div>
-                      {vehicle.ownership_type === "leased" &&
-                        expandedVehicleId === vehicle.vehicle_id && (
-                          <div className={styles.pricingSection}>
+          {status === "success" && vehicles.length > 0 && filteredVehicles.length === 0 && (
+            <p>No vehicles match your search.</p>
+          )}
+          {filteredVehicles.length > 0 && (
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Vehicle</th>
+                    <th>Cab Type</th>
+                    <th>Capacity</th>
+                    <th>Driver</th>
+                    <th>Driver Phone</th>
+                    <th>Ownership</th>
+                    <th>Status</th>
+                    {canEdit && <th>Actions</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredVehicles.map((vehicle) => {
+                    const isEditing = editingVehicleId === vehicle.vehicle_id;
+
+                    return (
+                      <Fragment key={vehicle.vehicle_id}>
+                        <tr>
+                          <td className={styles.name} data-label="Vehicle">
+                            {vehicle.vehicle_number || "-"}
+                          </td>
+                          <td data-label="Cab Type">{vehicle.cab_type || "-"}</td>
+                          <td data-label="Capacity">{vehicle.capacity || "-"}</td>
+                          <td data-label="Driver">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={editForm.driver_name}
+                                onChange={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    driver_name: event.target.value,
+                                  }))
+                                }
+                                placeholder="Driver name"
+                                className={styles.inlineInput}
+                              />
+                            ) : (
+                              vehicle.driver_name || "-"
+                            )}
+                          </td>
+                          <td className={styles.phone} data-label="Driver Phone">
+                            {isEditing ? (
+                              <input
+                                type="tel"
+                                value={editForm.driver_phone}
+                                onChange={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    driver_phone: event.target.value,
+                                  }))
+                                }
+                                onBlur={(event) =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    driver_phone: normalizePhoneNumber(event.target.value),
+                                  }))
+                                }
+                                placeholder="+919000000000"
+                                className={styles.inlineInput}
+                              />
+                            ) : (
+                              vehicle.driver_phone || "-"
+                            )}
+                          </td>
+                          <td data-label="Ownership">
+                            {vehicle.ownership_type === "leased"
+                              ? "Leased Vehicle"
+                              : "Own Vehicle"}
+                          </td>
+                          <td data-label="Status">
+                            {isEditing ? (
+                              <div className={styles.inlineDropdown}>
+                                <CustomDropdown
+                                  options={vehicleStatusOptions}
+                                  value={editForm.active}
+                                  onChange={(value) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      active: value,
+                                    }))
+                                  }
+                                  getLabel={(option) => option.label}
+                                  getValue={(option) => option.value}
+                                  placeholder="Select status"
+                                />
+                              </div>
+                            ) : (
+                              <span
+                                className={`${styles.status} ${
+                                  vehicle.active !== false ? styles.active : styles.inactive
+                                }`}
+                              >
+                                {vehicle.active !== false ? "Active" : "Inactive"}
+                              </span>
+                            )}
+                          </td>
+                          {canEdit && (
+                            <td className={styles.rowActions} data-label="Actions">
+                              {isEditing ? (
+                                <div className={styles.inlineActions}>
+                                  <button
+                                    type="button"
+                                    className={styles.secondaryCta}
+                                    onClick={() => handleEditSubmit(vehicle.vehicle_id)}
+                                    disabled={editSaving}
+                                  >
+                                    {editSaving ? "Saving..." : "Save"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={styles.linkButton}
+                                    onClick={cancelEdit}
+                                    disabled={editSaving}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className={styles.inlineActions}>
+                                  <button
+                                    type="button"
+                                    className={styles.secondaryCta}
+                                    onClick={() => startEdit(vehicle)}
+                                  >
+                                    Edit
+                                  </button>
+                                  {vehicle.ownership_type === "leased" && (
+                                    <button
+                                      type="button"
+                                      className={styles.linkButton}
+                                      onClick={() => togglePricing(vehicle.vehicle_id)}
+                                    >
+                                      {expandedVehicleId === vehicle.vehicle_id
+                                        ? "Hide pricing"
+                                        : "Manage pricing"}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                        {vehicle.ownership_type === "leased" &&
+                          expandedVehicleId === vehicle.vehicle_id && (
+                            <tr>
+                              <td
+                                colSpan={canEdit ? 8 : 7}
+                                className={styles.pricingCell}
+                              >
+                                <div className={styles.pricingSection}>
                             {canEdit && (
                               <form
                                 className={styles.pricingForm}
@@ -669,11 +724,14 @@ export default function VehiclesPage() {
                                 )}
                             </div>
                           </div>
-                        )}
-                    </>
-                  )}
-                </article>
-              ))}
+                              </td>
+                            </tr>
+                          )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

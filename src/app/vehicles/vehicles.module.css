@@ -127,6 +127,130 @@
   margin-bottom: 16px;
 }
 
+.searchBar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #ea5a32;
+  box-shadow: 0 0 0 3px rgba(234, 90, 50, 0.1);
+}
+
+.tableContainer {
+  background: #fbf7f2;
+  border: 1px solid rgba(30, 25, 22, 0.08);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: #efe3d5;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.12);
+}
+
+.table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #1e1916;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: #fff;
+}
+
+.table td {
+  padding: 14px 16px;
+  color: #5e534c;
+  vertical-align: top;
+}
+
+.name {
+  font-weight: 600;
+  color: #1e1916;
+}
+
+.phone {
+  font-weight: 600;
+  color: #1e1916;
+  font-family: monospace;
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status.active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.inactive {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.rowActions {
+  min-width: 210px;
+}
+
+.inlineInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.inlineInput:focus {
+  outline: none;
+  border-color: #ea5a32;
+  box-shadow: 0 0 0 3px rgba(234, 90, 50, 0.1);
+}
+
+.inlineDropdown {
+  min-width: 120px;
+}
+
+.pricingCell {
+  background: #fff;
+}
+
 .cards {
   display: grid;
   gap: 16px;
@@ -379,5 +503,64 @@
 
   .pricingForm {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .tableContainer {
+    background: transparent;
+    border: none;
+  }
+
+  .table {
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .table tbody tr {
+    display: grid;
+    gap: 8px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid rgba(30, 25, 22, 0.08);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    gap: 12px;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--page-muted);
+  }
+
+  .table td.rowActions::before {
+    content: none;
+  }
+
+  .rowActions {
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .pricingCell {
+    display: block;
+    padding-top: 8px;
   }
 }
