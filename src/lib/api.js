@@ -590,9 +590,10 @@ export async function countActiveVehicles() {
   }
 
   const vehiclesRef = collection(db, "vehicles");
-  const snapshot = await getDocs(vehiclesRef);
-  return snapshot.docs.filter((docSnap) => normalizeVehicle(docSnap.data()).active)
-    .length;
+  const snapshot = await getCountFromServer(
+    query(vehiclesRef, where("active", "==", true))
+  );
+  return snapshot.data().count;
 }
 
 export async function countUsers() {
