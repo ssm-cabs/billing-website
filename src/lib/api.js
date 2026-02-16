@@ -795,6 +795,7 @@ export async function generateInvoice(companyId, month) {
   const invoiceDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const invoice = {
     invoice_id: invoiceId,
+    invoice_type: "company",
     company_id: companyId,
     company_name: companyName,
     company_address: companyAddress,
@@ -834,6 +835,149 @@ export async function generateInvoice(companyId, month) {
   return { invoice_id: invoiceId };
 }
 
+export async function vehicleInvoiceExists(vehicleId, month) {
+  if (!vehicleId || !month) {
+    return false;
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return false;
+  }
+
+  const invoiceId = `vehicle-${vehicleId}-${month}`;
+  const invoiceRef = doc(db, "invoices", invoiceId);
+  const invoiceSnap = await getDoc(invoiceRef);
+  return invoiceSnap.exists();
+}
+
+export async function generateVehicleInvoice(vehicleId, month) {
+  if (!vehicleId || !month) {
+    throw new Error("vehicleId and month are required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return {
+      ok: true,
+      invoice_id: `vehicle-${vehicleId}-${month}`,
+    };
+  }
+
+  const vehicleRef = doc(db, "vehicles", vehicleId);
+  const vehicleSnap = await getDoc(vehicleRef);
+  if (!vehicleSnap.exists()) {
+    throw new Error("Vehicle not found");
+  }
+
+  const vehicleData = normalizeVehicle(vehicleSnap.data(), vehicleSnap.id);
+  if (vehicleData.ownership_type !== "leased") {
+    throw new Error("Vehicle invoice can only be generated for leased vehicles");
+  }
+
+  const invoiceId = `vehicle-${vehicleId}-${month}`;
+  const invoiceRef = doc(db, "invoices", invoiceId);
+  const invoiceSnap = await getDoc(invoiceRef);
+  if (invoiceSnap.exists()) {
+    throw new Error(
+      `Invoice already exists for this vehicle and month. Current status: ${invoiceSnap.data().status || "draft"}`
+    );
+  }
+
+  const start = `${month}-01`;
+  const end = `${month}-31`;
+  const entriesRef = collection(db, "entries");
+  const entriesQuery = query(
+    entriesRef,
+    where("vehicle_number", "==", vehicleData.vehicle_number),
+    where("entry_date", ">=", start),
+    where("entry_date", "<=", end)
+  );
+  const entriesSnapshot = await getDocs(entriesQuery);
+  const entries = entriesSnapshot.docs.map((docSnap) => ({
+    entry_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+
+  const vehiclePricing = await fetchVehiclePricing(vehicleId);
+  const pricingBySlot = new Map(
+    vehiclePricing
+      .filter((price) => price.cab_type === vehicleData.cab_type)
+      .map((price) => [price.slot, Number(price.rate) || 0])
+  );
+
+  const lineItems = entries.map((entry) => {
+    const rate = pricingBySlot.get(entry.slot) || 0;
+    return {
+      entry_id: entry.entry_id,
+      date: entry.entry_date || "",
+      company_name: entry.company_name || "",
+      slot: entry.slot || "",
+      cab_type: vehicleData.cab_type || entry.cab_type || "",
+      vehicle_number: vehicleData.vehicle_number || entry.vehicle_number || "",
+      rate,
+      amount: rate,
+    };
+  });
+
+  const missingPricingSlots = Array.from(
+    new Set(
+      entries
+        .filter((entry) => !pricingBySlot.has(entry.slot))
+        .map((entry) => entry.slot || "unknown")
+    )
+  );
+
+  if (missingPricingSlots.length > 0) {
+    throw new Error(
+      `Vehicle pricing missing for slot(s): ${missingPricingSlots.join(", ")}`
+    );
+  }
+
+  const subtotal = Math.round(
+    lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  );
+  const taxAmount = 0;
+  const now = new Date();
+  const invoiceDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+  const invoice = {
+    invoice_id: invoiceId,
+    invoice_type: "vehicle",
+    vehicle_id: vehicleId,
+    vehicle_number: vehicleData.vehicle_number || "",
+    driver_name: vehicleData.driver_name || "",
+    driver_phone: vehicleData.driver_phone || "",
+    period: month,
+    invoice_date: invoiceDate,
+    entries_count: lineItems.length,
+    line_items: lineItems,
+    subtotal,
+    tax: taxAmount,
+    total: subtotal + taxAmount,
+    status: "draft",
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(invoiceRef, invoice);
+
+  const batchSize = 450;
+  for (let i = 0; i < lineItems.length; i += batchSize) {
+    const batch = writeBatch(db);
+    const chunk = lineItems.slice(i, i + batchSize);
+    for (const lineItem of chunk) {
+      const entryRef = doc(db, "entries", lineItem.entry_id);
+      batch.update(entryRef, {
+        vehicle_invoice_id: invoiceId,
+        billed_for_vehicle: true,
+        updated_at: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+
+  return { invoice_id: invoiceId };
+}
+
 export async function fetchInvoices(companyId) {
   if (!companyId) {
     throw new Error("companyId is required");
@@ -847,6 +991,28 @@ export async function fetchInvoices(companyId) {
   const invoicesQuery = query(
     invoicesRef,
     where("company_id", "==", companyId),
+    orderBy("period", "desc")
+  );
+  const snapshot = await getDocs(invoicesQuery);
+  return snapshot.docs.map((docSnap) => ({
+    invoice_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+}
+
+export async function fetchVehicleInvoices(vehicleId) {
+  if (!vehicleId) {
+    throw new Error("vehicleId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return [];
+  }
+
+  const invoicesRef = collection(db, "invoices");
+  const invoicesQuery = query(
+    invoicesRef,
+    where("vehicle_id", "==", vehicleId),
     orderBy("period", "desc")
   );
   const snapshot = await getDocs(invoicesQuery);
