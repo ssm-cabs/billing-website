@@ -116,6 +116,8 @@ const getMonthValue = () => {
   return `${year}-${month}`;
 };
 
+const RECENT_ENTRY_ROW_LIMIT = 6;
+
 const formatDate = (value) => {
   if (!value) return "-";
   if (typeof value === "string") return value;
@@ -201,7 +203,11 @@ export default function DashboardPage() {
     loadData();
   }, [isAuthenticated, isLoading]);
 
-  const recentEntries = entries;
+  const recentEntries = entries.slice(0, RECENT_ENTRY_ROW_LIMIT);
+  const paddedRecentEntries = [
+    ...recentEntries,
+    ...Array(Math.max(0, RECENT_ENTRY_ROW_LIMIT - recentEntries.length)).fill(null),
+  ];
 
   if (isLoading) {
     return (
@@ -291,15 +297,27 @@ export default function DashboardPage() {
                 <span>Company</span>
                 <span>Route</span>
               </div>
-              {recentEntries.map((entry) => (
-                <div key={entry.entry_id} className={styles.tableRow}>
-                  <span>{formatDate(entry.entry_date)}</span>
-                  <span>{entry.company_name}</span>
-                  <span>
-                    {entry.pickup_location} → {entry.drop_location}
-                  </span>
-                </div>
-              ))}
+              {paddedRecentEntries.map((entry, index) =>
+                entry ? (
+                  <div key={entry.entry_id} className={styles.tableRow}>
+                    <span>{formatDate(entry.entry_date)}</span>
+                    <span>{entry.company_name}</span>
+                    <span>
+                      {entry.pickup_location} → {entry.drop_location}
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    key={`recent-entry-placeholder-${index}`}
+                    className={`${styles.tableRow} ${styles.tableRowPlaceholder}`}
+                    aria-hidden="true"
+                  >
+                    <span>—</span>
+                    <span>—</span>
+                    <span>—</span>
+                  </div>
+                )
+              )}
             </div>
           )}
         </div>
