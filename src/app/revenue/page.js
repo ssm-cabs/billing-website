@@ -279,31 +279,48 @@ export default function RevenuePage() {
       totals[dayIndex] += Number(entry.rate) || 0;
     });
 
+    payments.forEach((payment) => {
+      if (!payment.payment_date) return;
+      if (String(payment.status || "").toLowerCase() !== "paid") return;
+      const parts = payment.payment_date.split("-");
+      if (parts.length !== 3) return;
+      const dayIndex = Number(parts[2]) - 1;
+      if (Number.isNaN(dayIndex) || dayIndex < 0 || dayIndex >= totalDays) return;
+      totals[dayIndex] -= Number(payment.amount) || 0;
+    });
+
     const totalRevenue = totals.reduce((sum, value) => sum + value, 0);
-    const projectedPerDay =
-      totalRevenue > 0 ? totalRevenue / Math.max(1, daysElapsed) : 0;
-    const maxValue = Math.max(...totals, projectedPerDay, 1);
+    const projectedPerDay = totalRevenue / Math.max(1, daysElapsed);
+    const maxPositive = Math.max(...totals, projectedPerDay, 0);
+    const minNegative = Math.min(...totals, projectedPerDay, 0);
+    const range = Math.max(maxPositive - minNegative, 1);
+    const zeroPercent = (maxPositive / range) * 100;
     const peakValue = Math.max(...totals, 0);
     const peakDay = totals.findIndex((value) => value === peakValue) + 1;
-    const yTicks = [1, 0.75, 0.5, 0.25, 0].map((factor) => Math.round(maxValue * factor));
+    const yTicks = [0, 1, 2, 3, 4].map((index) =>
+      Math.round(maxPositive - ((maxPositive - minNegative) * index) / 4)
+    );
     const bars = totals.map((value, index) => {
       const day = index + 1;
       const date = new Date(year, monthNumber - 1, day);
       const weekday = date.toLocaleDateString("en-IN", { weekday: "short" });
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      const heightPercent = (value / maxValue) * 100;
+      const barHeightPercent = (Math.abs(value) / range) * 100;
+      const barTopPercent = value >= 0 ? zeroPercent - barHeightPercent : zeroPercent;
       return {
         day,
         weekday,
         value,
         isWeekend,
-        heightPercent,
+        isNegative: value < 0,
+        barHeightPercent,
+        barTopPercent,
       };
     });
 
     return {
       totals,
-      maxValue,
+      zeroPercent,
       bars,
       yTicks,
       peakDay,
@@ -312,7 +329,7 @@ export default function RevenuePage() {
       daysElapsed,
       totalDays,
     };
-  }, [entries, month]);
+  }, [entries, month, payments]);
 
   if (isLoading) {
     return (
@@ -424,8 +441,8 @@ export default function RevenuePage() {
             <span>{getMonthLabel(month)}</span>
           </div>
           {status === "error" && <p className={styles.error}>{error}</p>}
-          {status === "success" && entries.length === 0 && (
-            <p>No entries found for this month.</p>
+          {status === "success" && entries.length === 0 && payments.length === 0 && (
+            <p>No entries or payments found for this month.</p>
           )}
           {dailyRevenue.totals.length > 0 && (
             <div className={styles.chartWrap}>
@@ -436,6 +453,11 @@ export default function RevenuePage() {
                   ))}
                 </div>
                 <div className={styles.barsWrap}>
+                  <span
+                    className={styles.zeroLine}
+                    style={{ top: `${dailyRevenue.zeroPercent}%` }}
+                    aria-hidden="true"
+                  />
                   <div className={styles.barGrid} aria-hidden="true">
                     <span />
                     <span />
@@ -448,9 +470,16 @@ export default function RevenuePage() {
                       <div key={bar.day} className={styles.barCol}>
                         <div
                           className={`${styles.bar} ${
-                            bar.isWeekend ? styles.barWeekend : ""
+                            bar.isNegative
+                              ? styles.barNegative
+                              : bar.isWeekend
+                                ? styles.barWeekend
+                                : ""
                           }`}
-                          style={{ height: `${bar.heightPercent}%` }}
+                          style={{
+                            height: `${bar.barHeightPercent}%`,
+                            top: `${bar.barTopPercent}%`,
+                          }}
                           title={`${bar.weekday}, Day ${bar.day}: ${formatCurrency(bar.value)}`}
                         />
                         <span className={styles.barDay}>{bar.day}</span>

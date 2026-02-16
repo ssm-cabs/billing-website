@@ -201,6 +201,14 @@
   border-top: 1px dashed rgba(30, 25, 22, 0.08);
 }
 
+.zeroLine {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  border-top: 1px solid rgba(30, 25, 22, 0.3);
+  z-index: 2;
+}
+
 .projectedLine {
   position: absolute;
   left: 10px;
@@ -229,30 +237,40 @@
   display: grid;
   grid-template-columns: repeat(31, minmax(12px, 1fr));
   gap: 6px;
-  align-items: end;
+  align-items: stretch;
 }
 
 .barCol {
+  position: relative;
   height: 100%;
-  display: grid;
-  grid-template-rows: 1fr 18px;
-  align-items: end;
-  gap: 6px;
+  padding-bottom: 20px;
 }
 
 .bar {
+  position: absolute;
+  left: 0;
+  right: 0;
   width: 100%;
   min-height: 2px;
-  background: linear-gradient(180deg, #ff7e57 0%, #ea5a32 100%);
+  background: linear-gradient(180deg, #34d399 0%, #16a34a 100%);
   border-radius: 6px 6px 2px 2px;
 }
 
 .barWeekend {
-  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(180deg, #6ee7b7 0%, #15803d 100%);
+}
+
+.barNegative {
+  background: linear-gradient(180deg, #ff6b6b 0%, #dc2626 100%);
+  border-radius: 2px 2px 6px 6px;
 }
 
 .barDay {
-  display: inline-block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: block;
   text-align: center;
   font-size: 10px;
   color: var(--page-muted);
