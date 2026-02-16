@@ -260,6 +260,17 @@
   line-height: 1.5;
 }
 
+.modalNotice {
+  margin: 0 0 14px;
+  background: #fff4e8;
+  border: 1px solid rgba(30, 25, 22, 0.14);
+  color: #5d4a40;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .modalActions {
   display: flex;
   justify-content: flex-end;

@@ -62,6 +62,8 @@ export default function PaymentsPage() {
   const [vehicleFilter, setVehicleFilter] = useState("all");
   const [form, setForm] = useState(initialState);
   const [showForm, setShowForm] = useState(false);
+  const [showCreateConfirm, setShowCreateConfirm] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -77,6 +79,8 @@ export default function PaymentsPage() {
 
   const closePaymentForm = useCallback(() => {
     setShowForm(false);
+    setShowCreateConfirm(false);
+    setPendingPayload(null);
     setForm(getInitialFormState());
   }, [getInitialFormState]);
 
@@ -185,8 +189,15 @@ export default function PaymentsPage() {
       payment_month: String(form.payment_date || "").slice(0, 7),
     };
 
+    setPendingPayload(payload);
+    setShowCreateConfirm(true);
+  };
+
+  const confirmCreatePayment = async () => {
+    if (!pendingPayload) return;
+
     try {
-      await createPayment(payload);
+      await createPayment(pendingPayload);
 
       setMessage(
         isFirebaseConfigured
@@ -315,6 +326,9 @@ export default function PaymentsPage() {
                     ✕
                   </button>
                 </div>
+                <div className={styles.modalNotice}>
+                  Payments are add-only. Existing records cannot be edited or deleted.
+                </div>
 
                 <form className={styles.form} onSubmit={handleSubmit}>
                   <label className={styles.field}>
@@ -416,6 +430,45 @@ export default function PaymentsPage() {
                   {message && <p className={styles.message}>{message}</p>}
                   {error && <p className={styles.error}>{error}</p>}
                 </form>
+              </div>
+            </div>
+          )}
+
+          {canEdit && showCreateConfirm && (
+            <div
+              className={styles.modalOverlay}
+              onClick={() => {
+                setShowCreateConfirm(false);
+                setPendingPayload(null);
+              }}
+            >
+              <div
+                className={`${styles.modal} ${styles.confirmModal}`}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h3 className={styles.modalTitle}>Confirm Payment</h3>
+                <p className={styles.modalSubtitle}>
+                  Create this payment record now?
+                </p>
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    className={styles.secondaryCta}
+                    onClick={() => {
+                      setShowCreateConfirm(false);
+                      setPendingPayload(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.primaryCta}
+                    onClick={confirmCreatePayment}
+                  >
+                    Confirm
+                  </button>
+                </div>
               </div>
             </div>
           )}
