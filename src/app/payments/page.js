@@ -61,6 +61,7 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [month, setMonth] = useState(getMonthValue);
+  const [vehicleFilter, setVehicleFilter] = useState("all");
   const [form, setForm] = useState(initialState);
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -74,14 +75,17 @@ export default function PaymentsPage() {
     setStatus("loading");
     setError("");
     try {
-      const data = await fetchPayments({ month });
+      const data = await fetchPayments({
+        month,
+        vehicleNumber: vehicleFilter === "all" ? "" : vehicleFilter,
+      });
       setPayments(data);
       setStatus("success");
     } catch (err) {
       setError(err.message || "Unable to load payments.");
       setStatus("error");
     }
-  }, [month]);
+  }, [month, vehicleFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -106,6 +110,15 @@ export default function PaymentsPage() {
     () =>
       vehicles.map((vehicle) => ({
         label: `${vehicle.vehicle_number} · ${vehicle.driver_name || "Driver"}`,
+        value: vehicle.vehicle_number,
+      })),
+    [vehicles]
+  );
+
+  const vehicleFilterOptions = useMemo(
+    () =>
+      vehicles.map((vehicle) => ({
+        label: vehicle.vehicle_number,
         value: vehicle.vehicle_number,
       })),
     [vehicles]
@@ -241,7 +254,6 @@ export default function PaymentsPage() {
               </p>
             </div>
             <div className={styles.headerActions}>
-              <MonthPicker value={month} onChange={setMonth} />
               {canEdit && (
                 <button className={styles.primaryCta} onClick={handleAddClick}>
                   Add Payment
@@ -257,6 +269,25 @@ export default function PaymentsPage() {
               to load live data.
             </div>
           )}
+
+          <section className={styles.filters}>
+            <label className={styles.field}>
+              Month
+              <MonthPicker value={month} onChange={setMonth} />
+            </label>
+            <label className={styles.field}>
+              Vehicle
+              <CustomDropdown
+                options={vehicleFilterOptions}
+                value={vehicleFilter}
+                onChange={setVehicleFilter}
+                getLabel={(option) => option.label}
+                getValue={(option) => option.value}
+                placeholder="Select vehicle"
+                defaultOption={{ label: "All Vehicles", value: "all" }}
+              />
+            </label>
+          </section>
 
           <section className={styles.listWrap}>
             <div className={styles.listHeader}>
