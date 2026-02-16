@@ -156,6 +156,11 @@
   max-width: 190px;
 }
 
+.routeColumn {
+  width: 200px;
+  max-width: 200px;
+}
+
 .actions {
   display: flex;
   gap: 8px;
@@ -310,6 +315,11 @@
   }
 
   .notesColumn {
+    width: auto;
+    max-width: none;
+  }
+
+  .routeColumn {
     width: auto;
     max-width: none;
   }

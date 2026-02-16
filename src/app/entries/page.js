@@ -191,7 +191,7 @@ export default function EntriesPage() {
                 <th>Cab Type</th>
                 <th>Slot</th>
                 <th>Rate</th>
-                <th>Route</th>
+                <th className={styles.routeColumn}>Route</th>
                 <th>User</th>
                 <th>Vehicle</th>
                 <th>Actions</th>
@@ -208,8 +208,11 @@ export default function EntriesPage() {
                   <td data-label="Rate">
                     {entry.rate > 0 ? `₹${entry.rate}` : "-"}
                   </td>
-                  <td data-label="Route">
-                    {`${entry.pickup_location} → ${entry.drop_location}`}
+                  <td data-label="Route" className={styles.routeColumn}>
+                    <NotesPreview
+                      text={`${entry.pickup_location} → ${entry.drop_location}`}
+                      maxWidth={180}
+                    />
                   </td>
                   <td data-label="User">{entry.user_name || "-"}</td>
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
