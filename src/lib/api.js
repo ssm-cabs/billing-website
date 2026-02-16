@@ -105,6 +105,21 @@ const mockVehicles = [
   },
 ];
 
+const mockPayments = [
+  {
+    payment_id: "pay-001",
+    payment_date: "2026-02-10",
+    payment_month: "2026-02",
+    vehicle_number: "TN 09 AB 1234",
+    driver_name: "Arun",
+    driver_phone: "+919000001001",
+    amount: 18000,
+    payment_mode: "bank_transfer",
+    status: "paid",
+    notes: "February payout",
+  },
+];
+
 function normalizeVehicle(vehicle = {}, vehicleId = "") {
   const isActive =
     typeof vehicle.active === "boolean"
@@ -116,6 +131,21 @@ function normalizeVehicle(vehicle = {}, vehicleId = "") {
     vehicle_id: vehicle.vehicle_id || vehicleId,
     active: isActive,
     status: isActive ? "active" : "inactive",
+  };
+}
+
+function normalizePayment(payment = {}, paymentId = "") {
+  const paymentDate = payment.payment_date || "";
+  const paymentMonth = payment.payment_month || paymentDate.slice(0, 7) || "";
+
+  return {
+    ...payment,
+    payment_id: payment.payment_id || paymentId,
+    payment_date: paymentDate,
+    payment_month: paymentMonth,
+    amount: Number(payment.amount) || 0,
+    status: payment.status || "pending",
+    payment_mode: payment.payment_mode || "bank_transfer",
   };
 }
 
@@ -466,6 +496,110 @@ export async function updateVehicle(vehicleId, payload) {
     updated_at: serverTimestamp(),
   });
   return { vehicle_id: vehicleId };
+}
+
+export async function fetchPayments({
+  month = "",
+  vehicleNumber = "",
+  driverPhone = "",
+  status = "",
+} = {}) {
+  if (!isFirebaseConfigured || !db) {
+    const filtered = mockPayments
+      .map((payment) => normalizePayment(payment))
+      .filter((payment) => (month ? payment.payment_month === month : true))
+      .filter((payment) =>
+        vehicleNumber ? payment.vehicle_number === vehicleNumber : true
+      )
+      .filter((payment) =>
+        driverPhone ? payment.driver_phone === driverPhone : true
+      )
+      .filter((payment) => (status ? payment.status === status : true));
+
+    return filtered.sort((a, b) =>
+      String(b.payment_date).localeCompare(String(a.payment_date))
+    );
+  }
+
+  const paymentsRef = collection(db, "payments");
+  const snapshot = await getDocs(paymentsRef);
+  const normalized = snapshot.docs.map((docSnap) =>
+    normalizePayment(docSnap.data(), docSnap.id)
+  );
+
+  return normalized
+    .filter((payment) => (month ? payment.payment_month === month : true))
+    .filter((payment) =>
+      vehicleNumber ? payment.vehicle_number === vehicleNumber : true
+    )
+    .filter((payment) => (driverPhone ? payment.driver_phone === driverPhone : true))
+    .filter((payment) => (status ? payment.status === status : true))
+    .sort((a, b) => String(b.payment_date).localeCompare(String(a.payment_date)));
+}
+
+export async function createPayment(payload) {
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, payment_id: "payment-new" };
+  }
+
+  const docRef = doc(collection(db, "payments"));
+  const payment = normalizePayment(
+    {
+      ...payload,
+      payment_id: docRef.id,
+      payment_month:
+        payload?.payment_month || String(payload?.payment_date || "").slice(0, 7),
+    },
+    docRef.id
+  );
+
+  await setDoc(docRef, {
+    ...payment,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  });
+  return { payment_id: docRef.id };
+}
+
+export async function updatePayment(paymentId, payload) {
+  if (!paymentId) {
+    throw new Error("paymentId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, payment_id: paymentId };
+  }
+
+  const payment = normalizePayment(
+    {
+      ...payload,
+      payment_id: paymentId,
+      payment_month:
+        payload?.payment_month || String(payload?.payment_date || "").slice(0, 7),
+    },
+    paymentId
+  );
+
+  const paymentRef = doc(db, "payments", paymentId);
+  await updateDoc(paymentRef, {
+    ...payment,
+    updated_at: serverTimestamp(),
+  });
+  return { payment_id: paymentId };
+}
+
+export async function deletePayment(paymentId) {
+  if (!paymentId) {
+    throw new Error("paymentId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, payment_id: paymentId };
+  }
+
+  const paymentRef = doc(db, "payments", paymentId);
+  await deleteDoc(paymentRef);
+  return { payment_id: paymentId };
 }
 
 export async function invoiceExists(companyId, month) {

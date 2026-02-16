@@ -35,6 +35,12 @@ export const MODULES = [
     path: "/vehicles",
   },
   {
+    id: "payments",
+    name: "Payments",
+    description: "Manage driver payments",
+    path: "/payments",
+  },
+  {
     id: "users",
     name: "Users",
     description: "Manage system users",

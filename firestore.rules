@@ -46,6 +46,12 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
 
+    // PAYMENTS
+    // Driver payments are internal finance records.
+    match /payments/{paymentId} {
+      allow read, write: if isSignedIn();
+    }
+
     // Explicit default deny for any collection not listed above.
     match /{document=**} {
       allow read, write: if false;
