@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -76,6 +76,21 @@ export default function InvoicePage() {
   const [showGenerateConfirmType, setShowGenerateConfirmType] = useState(null);
   const [generatingType, setGeneratingType] = useState("");
   const [activeInvoiceTile, setActiveInvoiceTile] = useState("company");
+
+  const selectedCompanyInvoice = useMemo(
+    () =>
+      companyInvoices.find((invoice) => invoice.period === selectedCompanyMonth) || null,
+    [companyInvoices, selectedCompanyMonth]
+  );
+  const selectedVehicleInvoice = useMemo(
+    () =>
+      vehicleInvoices.find((invoice) => invoice.period === selectedVehicleMonth) || null,
+    [vehicleInvoices, selectedVehicleMonth]
+  );
+  const isSelectedCompanyInvoiceDraft =
+    String(selectedCompanyInvoice?.status || "").toLowerCase() === "draft";
+  const isSelectedVehicleInvoiceDraft =
+    String(selectedVehicleInvoice?.status || "").toLowerCase() === "draft";
 
   const loadCompanyInvoices = async (companyId) => {
     if (!companyId) {
@@ -699,6 +714,8 @@ export default function InvoicePage() {
                 >
                   {generatingType === "company"
                     ? "Generating..."
+                    : isSelectedCompanyInvoiceDraft
+                    ? "Regenerate Invoice"
                     : companyInvoiceAlreadyExists
                     ? "View Invoice"
                     : "Generate Invoice"}
@@ -752,6 +769,8 @@ export default function InvoicePage() {
                 >
                   {generatingType === "vehicle"
                     ? "Generating..."
+                    : isSelectedVehicleInvoiceDraft
+                    ? "Regenerate Invoice"
                     : vehicleInvoiceAlreadyExists
                     ? "View Invoice"
                     : "Generate Invoice"}
