@@ -17,6 +17,7 @@ const initialState = {
   cab_type: "",
   capacity: "",
   active: true,
+  ownership_type: "own",
   driver_name: "",
   driver_phone: "",
   notes: "",
@@ -32,6 +33,11 @@ const cabTypeOptions = [
 const vehicleStatusOptions = [
   { label: "Active", value: true },
   { label: "Inactive", value: false },
+];
+
+const ownershipTypeOptions = [
+  { label: "Own Vehicle", value: "own" },
+  { label: "Leased Vehicle", value: "leased" },
 ];
 
 export default function VehiclesPage() {
@@ -305,6 +311,11 @@ export default function VehiclesPage() {
                     <>
                       <div className={styles.meta}>
                         <span>Capacity: {vehicle.capacity || "-"}</span>
+                        <span>
+                          {vehicle.ownership_type === "leased"
+                            ? "Leased Vehicle"
+                            : "Own Vehicle"}
+                        </span>
                         <span>{vehicle.driver_name || "-"}</span>
                         <span>{vehicle.driver_phone || "-"}</span>
                       </div>
@@ -376,6 +387,19 @@ export default function VehiclesPage() {
                   getLabel={(option) => option.label}
                   getValue={(option) => option.value}
                   placeholder="Select status"
+                />
+              </label>
+              <label className={styles.field}>
+                Vehicle type
+                <CustomDropdown
+                  options={ownershipTypeOptions}
+                  value={form.ownership_type}
+                  onChange={(value) =>
+                    setForm((prev) => ({ ...prev, ownership_type: value }))
+                  }
+                  getLabel={(option) => option.label}
+                  getValue={(option) => option.value}
+                  placeholder="Select vehicle type"
                 />
               </label>
               <label className={styles.field}>
