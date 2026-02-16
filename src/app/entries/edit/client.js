@@ -9,8 +9,6 @@ import {
   fetchEntryById,
   updateEntry,
   fetchCompanies,
-  fetchPricing,
-  fetchVehiclePricing,
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
@@ -62,9 +60,6 @@ export default function ClientEditEntryPage() {
   const [companyStatus, setCompanyStatus] = useState("idle");
   const [vehicles, setVehicles] = useState([]);
   const [vehicleStatus, setVehicleStatus] = useState("idle");
-  const [pricing, setPricing] = useState([]);
-  const [vehiclePricing, setVehiclePricing] = useState([]);
-  const [pricingStatus, setPricingStatus] = useState("idle");
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isBilled, setIsBilled] = useState(false);
@@ -139,75 +134,12 @@ export default function ClientEditEntryPage() {
   }, []);
 
   useEffect(() => {
-    const loadPricing = async () => {
-      if (!form.company_name) {
-        setPricing([]);
-        return;
-      }
-
-      setPricingStatus("loading");
-      try {
-        const selectedCompany = companies.find(
-          (c) => c.name === form.company_name
-        );
-        if (selectedCompany) {
-          const data = await fetchPricing(selectedCompany.company_id);
-          setPricing(data);
-          setPricingStatus("success");
-        }
-      } catch (err) {
-        setPricingStatus("error");
-      }
-    };
-
-    loadPricing();
-  }, [form.company_name, companies]);
-
-  useEffect(() => {
-    const loadVehiclePricing = async () => {
-      const selectedVehicle = vehicles.find(
-        (v) => v.vehicle_number === form.vehicle_number
-      );
-      if (!selectedVehicle || selectedVehicle.ownership_type !== "leased") {
-        setVehiclePricing([]);
-        return;
-      }
-
-      try {
-        const data = await fetchVehiclePricing(selectedVehicle.vehicle_id);
-        setVehiclePricing(data);
-      } catch (_) {
-        setVehiclePricing([]);
-      }
-    };
-
-    loadVehiclePricing();
-  }, [form.vehicle_number, vehicles]);
-
-  useEffect(() => {
     if (loadingEntry) return;
     const loggedInName = getLoggedInUserName();
     if (loggedInName) {
       setForm((prev) => ({ ...prev, user_name: loggedInName }));
     }
   }, [loadingEntry]);
-
-  useEffect(() => {
-    const selectedVehicle = vehicles.find(
-      (v) => v.vehicle_number === form.vehicle_number
-    );
-    const activePricingSource =
-      selectedVehicle?.ownership_type === "leased" ? vehiclePricing : pricing;
-    const matchingPrice = activePricingSource.find(
-      (p) => p.cab_type === selectedVehicle?.cab_type && p.slot === form.slot
-    );
-
-    setForm((prev) => ({
-      ...prev,
-      cab_type: selectedVehicle?.cab_type || "",
-      rate: matchingPrice?.rate || 0,
-    }));
-  }, [form.vehicle_number, form.slot, pricing, vehiclePricing, vehicles]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -376,7 +308,7 @@ export default function ClientEditEntryPage() {
             Cab type
             <input
               type="text"
-              value={vehicles.find(v => v.vehicle_number === form.vehicle_number)?.cab_type || ""}
+              value={form.cab_type || ""}
               disabled
               readOnly
             />
