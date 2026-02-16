@@ -41,10 +41,6 @@ const paymentStatusOptions = [
   { label: "Cancelled", value: "cancelled" },
 ];
 
-const transactionTypeOptions = [
-  { label: "Driver Payment", value: "driver_payment" },
-  { label: "Fueling", value: "fueling" },
-];
 const transactionTypeFilterOptions = [
   { label: "Driver Payments", value: "driver_payment" },
   { label: "Fueling", value: "fueling" },
@@ -190,9 +186,12 @@ export default function PaymentsPage() {
     setForm((prev) => ({ ...prev, payment_date: date }));
   };
 
-  const handleAddClick = () => {
+  const handleAddByType = (transactionType) => {
     if (!canEdit) return;
-    setForm(getInitialFormState());
+    setForm({
+      ...getInitialFormState(),
+      transaction_type: transactionType,
+    });
     setError("");
     setMessage("");
     setShowForm(true);
@@ -298,9 +297,20 @@ export default function PaymentsPage() {
             </div>
             <div className={styles.headerActions}>
               {canEdit && (
-                <button className={styles.primaryCta} onClick={handleAddClick}>
-                  Add Payment
-                </button>
+                <>
+                  <button
+                    className={styles.primaryCta}
+                    onClick={() => handleAddByType("driver_payment")}
+                  >
+                    Driver Payment
+                  </button>
+                  <button
+                    className={styles.secondaryCta}
+                    onClick={() => handleAddByType("fueling")}
+                  >
+                    Fuel Payment
+                  </button>
+                </>
               )}
             </div>
           </header>
@@ -404,7 +414,11 @@ export default function PaymentsPage() {
             <div className={styles.modalOverlay} onClick={closePaymentForm}>
               <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
                 <div className={styles.modalHeader}>
-                  <h2>Add Record</h2>
+                  <h2>
+                    {form.transaction_type === "fueling"
+                      ? "Add Fuel Payment"
+                      : "Add Driver Payment"}
+                  </h2>
                   <button
                     type="button"
                     className={styles.closeBtn}
@@ -414,36 +428,6 @@ export default function PaymentsPage() {
                   </button>
                 </div>
                 <form className={styles.form} onSubmit={handleSubmit}>
-                  <label className={styles.field}>
-                    Entry type
-                    <CustomDropdown
-                      options={transactionTypeOptions}
-                      value={form.transaction_type}
-                      onChange={(value) =>
-                        setForm((prev) => {
-                          const shouldClearVehicle =
-                            value === "fueling" &&
-                            prev.vehicle_number &&
-                            vehicles.find(
-                              (vehicle) => vehicle.vehicle_number === prev.vehicle_number
-                            )?.ownership_type !== "own";
-
-                          return {
-                            ...prev,
-                            transaction_type: value,
-                            vehicle_number: shouldClearVehicle ? "" : prev.vehicle_number,
-                            driver_name: value === "fueling" ? "" : prev.driver_name,
-                            driver_phone: value === "fueling" ? "" : prev.driver_phone,
-                            fuel_liters: value === "driver_payment" ? "" : prev.fuel_liters,
-                            fuel_station: value === "driver_payment" ? "" : prev.fuel_station,
-                          };
-                        })
-                      }
-                      getLabel={(option) => option.label}
-                      getValue={(option) => option.value}
-                      placeholder="Select entry type"
-                    />
-                  </label>
                   <label className={styles.field}>
                     Payment date
                     <DatePicker
@@ -592,7 +576,11 @@ export default function PaymentsPage() {
                 className={`${styles.modal} ${styles.confirmModal}`}
                 onClick={(event) => event.stopPropagation()}
               >
-                <h3 className={styles.modalTitle}>Confirm Record</h3>
+                <h3 className={styles.modalTitle}>
+                  {form.transaction_type === "fueling"
+                    ? "Confirm Fuel Payment"
+                    : "Confirm Driver Payment"}
+                </h3>
                 <div className={styles.modalNotice}>
                   Records are add-only. Existing entries cannot be edited or deleted.
                 </div>
