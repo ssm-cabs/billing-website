@@ -75,6 +75,7 @@
   border: 1px solid rgba(30, 25, 22, 0.16);
   background: #fff;
   color: var(--page-ink);
+  font-family: inherit;
 }
 
 .actions {
@@ -94,6 +95,7 @@
   border: none;
   cursor: pointer;
   white-space: nowrap;
+  font-family: inherit;
 }
 
 .message {
@@ -183,6 +185,7 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .inlineEdit {
@@ -206,6 +209,7 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .modalOverlay {
@@ -245,6 +249,7 @@
   height: 34px;
   border-radius: 8px;
   cursor: pointer;
+  font-family: inherit;
 }
 
 @media (max-width: 960px) {

@@ -270,21 +270,19 @@ export default function VehiclesPage() {
                       </label>
                       <label className={styles.field}>
                         Status
-                        <select
+                        <CustomDropdown
+                          options={vehicleStatusOptions}
                           value={editForm.status}
-                          onChange={(event) =>
+                          onChange={(value) =>
                             setEditForm((prev) => ({
                               ...prev,
-                              status: event.target.value,
+                              status: value,
                             }))
                           }
-                        >
-                          {vehicleStatusOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                          getLabel={(option) => option.label}
+                          getValue={(option) => option.value}
+                          placeholder="Select status"
+                        />
                       </label>
                       <div className={styles.inlineActions}>
                         <button

@@ -63,6 +63,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
+  font-family: inherit;
 }
 
 .primaryCta:hover {
@@ -231,6 +232,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: inherit;
 }
 
 .editBtn {
@@ -310,6 +312,7 @@
 .modalActions button {
   flex: 1;
   max-width: 180px;
+  font-family: inherit;
 }
 
 .secondaryButton {
@@ -323,6 +326,7 @@
   border: none;
   cursor: pointer;
   font-weight: 500;
+  font-family: inherit;
 }
 
 .primaryButton {
@@ -336,6 +340,7 @@
   border: none;
   cursor: pointer;
   font-weight: 500;
+  font-family: inherit;
 }
 
 .modalHeader {
@@ -365,6 +370,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: #1e1916;
+  font-family: inherit;
 }
 
 .closeBtn:hover {
@@ -503,6 +509,7 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  font-family: inherit;
 }
 
 .cancelBtn {
