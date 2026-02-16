@@ -1006,6 +1006,29 @@ export async function fetchInvoices(companyId) {
   }));
 }
 
+export async function fetchInvoicesByPeriod(period) {
+  if (!period) {
+    throw new Error("period is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return [];
+  }
+
+  const invoicesRef = collection(db, "invoices");
+  const invoicesQuery = query(invoicesRef, where("period", "==", period));
+  const snapshot = await getDocs(invoicesQuery);
+
+  return snapshot.docs
+    .map((docSnap) => ({
+      invoice_id: docSnap.id,
+      ...docSnap.data(),
+    }))
+    .sort((a, b) =>
+      String(b.invoice_date || "").localeCompare(String(a.invoice_date || ""))
+    );
+}
+
 export async function fetchVehicleInvoices(vehicleId) {
   if (!vehicleId) {
     throw new Error("vehicleId is required");

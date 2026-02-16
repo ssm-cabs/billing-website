@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MonthPicker from "../entries/MonthPicker";
-import { fetchCompanies, fetchEntries, isFirebaseConfigured } from "@/lib/api";
+import {
+  fetchCompanies,
+  fetchEntries,
+  fetchInvoicesByPeriod,
+  fetchPayments,
+  isFirebaseConfigured,
+} from "@/lib/api";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import { usePermissions } from "@/lib/usePermissions";
@@ -41,6 +47,8 @@ export default function RevenuePage() {
   const [month, setMonth] = useState(getMonthValue);
   const [entries, setEntries] = useState([]);
   const [companies, setCompanies] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [invoices, setInvoices] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -73,12 +81,16 @@ export default function RevenuePage() {
       setStatus("loading");
       setError("");
       try {
-        const [entriesData, companiesData] = await Promise.all([
+        const [entriesData, companiesData, paymentsData, invoicesData] = await Promise.all([
           fetchEntries({ month }),
           fetchCompanies(),
+          fetchPayments({ month }),
+          fetchInvoicesByPeriod(month),
         ]);
         setEntries(entriesData);
         setCompanies(companiesData);
+        setPayments(paymentsData);
+        setInvoices(invoicesData);
         setStatus("success");
       } catch (err) {
         setError(err.message || "Unable to load revenue data.");
@@ -97,11 +109,27 @@ export default function RevenuePage() {
     const daysElapsed = isCurrentMonth ? today.getDate() : totalDays;
 
     if (!entries.length) {
+      const paidCompanyInvoices = invoices.filter(
+        (invoice) =>
+          String(invoice.invoice_type || "company") === "company" &&
+          String(invoice.status || "").toLowerCase() === "paid"
+      );
+      const paidInvoiceAmount = paidCompanyInvoices.reduce(
+        (sum, invoice) => sum + (Number(invoice.total) || 0),
+        0
+      );
+      const paidPaymentsAmount = payments
+        .filter((payment) => String(payment.status || "").toLowerCase() === "paid")
+        .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
+
       return {
         totalRevenue: 0,
         totalEntries: 0,
         averageRevenuePerDay: 0,
         projectedRevenue: 0,
+        paidInvoiceAmount,
+        paidPaymentsAmount,
+        netCashflow: paidInvoiceAmount - paidPaymentsAmount,
         daysElapsed,
         totalDays,
         topCompany: "-",
@@ -128,32 +156,83 @@ export default function RevenuePage() {
       totalRevenue > 0
         ? (totalRevenue / Math.max(1, daysElapsed)) * totalDays
         : 0;
+    const paidCompanyInvoices = invoices.filter(
+      (invoice) =>
+        String(invoice.invoice_type || "company") === "company" &&
+        String(invoice.status || "").toLowerCase() === "paid"
+    );
+    const paidInvoiceAmount = paidCompanyInvoices.reduce(
+      (sum, invoice) => sum + (Number(invoice.total) || 0),
+      0
+    );
+    const paidPaymentsAmount = payments
+      .filter((payment) => String(payment.status || "").toLowerCase() === "paid")
+      .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
 
     return {
       totalRevenue,
       totalEntries,
       averageRevenuePerDay,
       projectedRevenue,
+      paidInvoiceAmount,
+      paidPaymentsAmount,
+      netCashflow: paidInvoiceAmount - paidPaymentsAmount,
       daysElapsed,
       totalDays,
       topCompany,
     };
-  }, [entries, month]);
+  }, [entries, invoices, month, payments]);
 
   const companyBreakdown = useMemo(() => {
     const revenueByCompany = entries.reduce((acc, entry) => {
       const name = entry.company_name || "Unknown";
       if (!acc[name]) {
-        acc[name] = { name, rides: 0, revenue: 0 };
+        acc[name] = { name, rides: 0, revenue: 0, invoiceRaised: 0, invoicePaid: 0 };
       }
       acc[name].rides += 1;
       acc[name].revenue += Number(entry.rate) || 0;
       return acc;
     }, {});
 
+    const companyInvoices = invoices.filter(
+      (invoice) => String(invoice.invoice_type || "company") === "company"
+    );
+
+    companyInvoices.forEach((invoice) => {
+      const invoiceCompanyName =
+        invoice.company_name ||
+        companies.find((company) => company.company_id === invoice.company_id)?.name ||
+        invoice.company_id ||
+        "Unknown";
+
+      if (!revenueByCompany[invoiceCompanyName]) {
+        revenueByCompany[invoiceCompanyName] = {
+          name: invoiceCompanyName,
+          rides: 0,
+          revenue: 0,
+          invoiceRaised: 0,
+          invoicePaid: 0,
+        };
+      }
+
+      const invoiceTotal = Number(invoice.total) || 0;
+      revenueByCompany[invoiceCompanyName].invoiceRaised += invoiceTotal;
+      if (String(invoice.status || "").toLowerCase() === "paid") {
+        revenueByCompany[invoiceCompanyName].invoicePaid += invoiceTotal;
+      }
+    });
+
     const normalizedCompanies = companies.map((company) => {
       const name = company.name || company.company_id || "Unknown";
-      return revenueByCompany[name] || { name, rides: 0, revenue: 0 };
+      return (
+        revenueByCompany[name] || {
+          name,
+          rides: 0,
+          revenue: 0,
+          invoiceRaised: 0,
+          invoicePaid: 0,
+        }
+      );
     });
 
     const knownNames = new Set(normalizedCompanies.map((item) => item.name));
@@ -161,10 +240,13 @@ export default function RevenuePage() {
       (row) => !knownNames.has(row.name)
     );
 
-    return [...normalizedCompanies, ...additionalRows].sort(
-      (a, b) => b.revenue - a.revenue
-    );
-  }, [entries, companies]);
+    return [...normalizedCompanies, ...additionalRows].sort((a, b) => {
+      if (b.invoicePaid !== a.invoicePaid) {
+        return b.invoicePaid - a.invoicePaid;
+      }
+      return b.revenue - a.revenue;
+    });
+  }, [entries, companies, invoices]);
 
   const vehicleBreakdown = useMemo(() => {
     const revenueByVehicle = entries.reduce((acc, entry) => {
@@ -274,7 +356,7 @@ export default function RevenuePage() {
           <p className={styles.eyebrow}>Revenue</p>
           <h1>Monthly Revenue Snapshot</h1>
           <p className={styles.lead}>
-            Track entry-based revenue by company and monitor ride volume.
+            Track revenue, company collections, and operating spend in one place.
           </p>
         </div>
         <div className={styles.headerActions}>
@@ -292,31 +374,46 @@ export default function RevenuePage() {
 
       <section className={styles.stats}>
         <div className={styles.card}>
-          <p>Total entries</p>
+          <p>Ride entries</p>
           <h2>{revenueStats.totalEntries}</h2>
           <span>{getMonthLabel(month)}</span>
         </div>
         <div className={styles.card}>
-          <p>Total revenue</p>
+          <p>Booked revenue</p>
           <h2>{formatCurrency(revenueStats.totalRevenue)}</h2>
           <span>{getMonthLabel(month)}</span>
         </div>
         <div className={styles.card}>
-          <p>Average revenue</p>
+          <p>Avg booked / day</p>
           <h2>{formatCurrency(revenueStats.averageRevenuePerDay)}</h2>
           <span>{getMonthLabel(month)}</span>
         </div>
         <div className={styles.card}>
-          <p>Projected revenue</p>
+          <p>Projected booked</p>
           <h2>{formatCurrency(revenueStats.projectedRevenue)}</h2>
           <span>
             {revenueStats.daysElapsed} of {revenueStats.totalDays} days
           </span>
         </div>
         <div className={styles.card}>
-          <p>Top company</p>
+          <p>Top company (booked)</p>
           <h2>{revenueStats.topCompany}</h2>
-          <span>Highest revenue</span>
+          <span>Highest booked revenue</span>
+        </div>
+        <div className={styles.card}>
+          <p>Invoice paid</p>
+          <h2>{formatCurrency(revenueStats.paidInvoiceAmount)}</h2>
+          <span>Company invoices</span>
+        </div>
+        <div className={styles.card}>
+          <p>Payments spent</p>
+          <h2>{formatCurrency(revenueStats.paidPaymentsAmount)}</h2>
+          <span>Paid records in payments</span>
+        </div>
+        <div className={styles.card}>
+          <p>Net cashflow</p>
+          <h2>{formatCurrency(revenueStats.netCashflow)}</h2>
+          <span>Invoice paid - payments spent</span>
         </div>
       </section>
 
@@ -385,7 +482,7 @@ export default function RevenuePage() {
             <p>No entries found for this month.</p>
           )}
           {vehicleBreakdown.length > 0 && (
-            <div className={styles.table}>
+            <div className={`${styles.table} ${styles.table3}`}>
               <div className={styles.tableHeader}>
                 <span>Vehicle</span>
                 <span>Rides</span>
@@ -416,17 +513,19 @@ export default function RevenuePage() {
             <p>No entries found for this month.</p>
           )}
           {companyBreakdown.length > 0 && (
-            <div className={styles.table}>
+            <div className={`${styles.table} ${styles.table4}`}>
               <div className={styles.tableHeader}>
                 <span>Company</span>
                 <span>Rides</span>
                 <span>Revenue</span>
+                <span>Invoice paid</span>
               </div>
               {companyBreakdown.map((company) => (
                 <div key={company.name} className={styles.tableRow}>
                   <span>{company.name}</span>
                   <span>{company.rides}</span>
                   <span>{formatCurrency(company.revenue)}</span>
+                  <span>{formatCurrency(company.invoicePaid)}</span>
                 </div>
               ))}
             </div>

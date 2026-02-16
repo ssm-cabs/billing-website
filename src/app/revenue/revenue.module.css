@@ -132,9 +132,18 @@
 .tableHeader,
 .tableRow {
   display: grid;
-  grid-template-columns: 1.4fr 100px 120px;
   gap: 12px;
   font-size: 13px;
+}
+
+.table3 .tableHeader,
+.table3 .tableRow {
+  grid-template-columns: 1.4fr 100px 120px;
+}
+
+.table4 .tableHeader,
+.table4 .tableRow {
+  grid-template-columns: 1.4fr 90px 120px 140px;
 }
 
 .tableHeader {
