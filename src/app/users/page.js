@@ -48,7 +48,7 @@ const normalizePermissions = (permissions = {}) =>
     ])
   );
 
-const HIDDEN_PERMISSION_MODULES = new Set(["payments"]);
+const HIDDEN_PERMISSION_MODULES = new Set();
 
 export default function UsersPage() {
   const router = useRouter();
