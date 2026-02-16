@@ -5,6 +5,7 @@ import Link from "next/link";
 import MonthPicker from "../entries/MonthPicker";
 import DatePicker from "../entries/DatePicker";
 import CustomDropdown from "../entries/CustomDropdown";
+import NotesPreview from "@/components/NotesPreview";
 import {
   createPayment,
   fetchPayments,
@@ -422,13 +423,7 @@ export default function PaymentsPage() {
                       <span className={`${styles.status} ${styles[payment.status] || ""}`}>
                         {payment.status}
                       </span>
-                      <span
-                        className={styles.notesCell}
-                        title={notesText}
-                        data-full-text={notesText}
-                      >
-                        <span className={styles.notesText}>{notesText}</span>
-                      </span>
+                      <NotesPreview text={notesText} />
                     </div>
                   );
                 })}

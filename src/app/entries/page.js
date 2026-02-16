@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MonthPicker from "./MonthPicker";
 import CustomDropdown from "./CustomDropdown";
+import NotesPreview from "@/components/NotesPreview";
 import { usePermissions } from "@/lib/usePermissions";
 import {
   fetchCompanies,
@@ -212,7 +213,9 @@ export default function EntriesPage() {
                   </td>
                   <td data-label="User">{entry.user_name || "-"}</td>
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
-                  <td data-label="Notes">{entry.notes || "-"}</td>
+                  <td data-label="Notes">
+                    <NotesPreview text={entry.notes} />
+                  </td>
                   <td data-label="Actions" className={styles.actionsCell}>
                     {canEdit && !entry.billed && (
                       <div className={styles.actions}>
