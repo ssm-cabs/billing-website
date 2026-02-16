@@ -167,6 +167,7 @@ function normalizePayment(payment = {}, paymentId = "") {
     payment_month: paymentMonth,
     amount: Number(payment.amount) || 0,
     fuel_liters: Number(payment.fuel_liters) || 0,
+    fuel_odometer: Number(payment.fuel_odometer) || 0,
     fuel_station: payment.fuel_station || "",
     status: payment.status || "paid",
     payment_mode: payment.payment_mode || "upi",

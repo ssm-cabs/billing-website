@@ -1,6 +1,7 @@
 import { Fraunces, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthPermissionsSync } from "@/components/AuthPermissionsSync";
+import { NumberInputWheelGuard } from "@/components/NumberInputWheelGuard";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${spaceGrotesk.variable} ${fraunces.variable}`}>
         <AuthPermissionsSync />
+        <NumberInputWheelGuard />
         {children}
       </body>
     </html>

@@ -53,6 +53,7 @@ const initialState = {
   driver_name: "",
   driver_phone: "",
   fuel_liters: "",
+  fuel_odometer: "",
   fuel_station: "",
   amount: "",
   payment_mode: "upi",
@@ -234,9 +235,23 @@ export default function PaymentsPage() {
       form.transaction_type === "fueling" && fuelLitersRaw
         ? Number(fuelLitersRaw)
         : 0;
+    const fuelOdometerRaw =
+      form.transaction_type === "fueling" ? String(form.fuel_odometer).trim() : "";
+    const fuelOdometer =
+      form.transaction_type === "fueling" && fuelOdometerRaw
+        ? Number(fuelOdometerRaw)
+        : 0;
 
     if (form.transaction_type === "fueling" && fuelLitersRaw && !Number.isFinite(fuelLiters)) {
       setError("Fuel liters must be a valid number.");
+      return;
+    }
+    if (
+      form.transaction_type === "fueling" &&
+      fuelOdometerRaw &&
+      (!Number.isFinite(fuelOdometer) || fuelOdometer < 0)
+    ) {
+      setError("Odometer must be a valid number.");
       return;
     }
 
@@ -249,6 +264,7 @@ export default function PaymentsPage() {
       ...form,
       amount,
       fuel_liters: fuelLiters,
+      fuel_odometer: fuelOdometer,
       payment_month: String(form.payment_date || "").slice(0, 7),
     };
 
@@ -382,8 +398,16 @@ export default function PaymentsPage() {
                 </div>
                 {filteredPayments.map((payment) => {
                   const notesText =
-                    payment.transaction_type === "fueling" && payment.fuel_station
-                      ? `${payment.fuel_station}${payment.notes ? ` • ${payment.notes}` : ""}`
+                    payment.transaction_type === "fueling"
+                      ? [
+                          payment.fuel_station,
+                          payment.fuel_odometer
+                            ? `ODO: ${payment.fuel_odometer}`
+                            : "",
+                          payment.notes,
+                        ]
+                          .filter(Boolean)
+                          .join(" • ") || "-"
                       : payment.notes || "-";
 
                   return (
@@ -485,6 +509,17 @@ export default function PaymentsPage() {
                   </label>
                   {form.transaction_type === "fueling" && (
                     <>
+                      <label className={styles.field}>
+                        Odometer (optional)
+                        <input
+                          type="number"
+                          min="0"
+                          name="fuel_odometer"
+                          value={form.fuel_odometer}
+                          onChange={updateField}
+                          placeholder="125000"
+                        />
+                      </label>
                       <label className={styles.field}>
                         Fuel liters (optional)
                         <input
