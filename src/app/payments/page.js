@@ -78,6 +78,10 @@ export default function PaymentsPage() {
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const selectedVehicleFilter = useMemo(
+    () => vehicles.find((vehicle) => vehicle.vehicle_id === vehicleFilter) || null,
+    [vehicles, vehicleFilter]
+  );
 
   const getInitialFormState = useCallback(
     () => ({
@@ -99,14 +103,19 @@ export default function PaymentsPage() {
     setStatus("loading");
     setError("");
     try {
-      const data = await fetchPayments({ month });
+      const data = await fetchPayments({
+        month,
+        vehicleId: vehicleFilter === "all" ? "" : vehicleFilter,
+        vehicle: selectedVehicleFilter?.vehicle_number || "",
+        transactionType: typeFilter === "all" ? "" : typeFilter,
+      });
       setPayments(data);
       setStatus("success");
     } catch (err) {
       setError(err.message || "Unable to load payments.");
       setStatus("error");
     }
-  }, [month]);
+  }, [month, selectedVehicleFilter, typeFilter, vehicleFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -143,29 +152,10 @@ export default function PaymentsPage() {
     () =>
       vehicles.map((vehicle) => ({
         label: vehicle.vehicle_number,
-        value: vehicle.vehicle_number,
+        value: vehicle.vehicle_id,
       })),
     [vehicles]
   );
-
-  const filteredPayments = useMemo(() => {
-    let filtered = payments;
-
-    if (typeFilter !== "all") {
-      filtered = filtered.filter(
-        (payment) =>
-          String(payment.transaction_type || "driver_payment") === typeFilter
-      );
-    }
-
-    if (vehicleFilter !== "all") {
-      filtered = filtered.filter(
-        (payment) => payment.vehicle_number === vehicleFilter
-      );
-    }
-
-    return filtered;
-  }, [payments, vehicleFilter, typeFilter]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -263,6 +253,7 @@ export default function PaymentsPage() {
 
     const payload = {
       ...form,
+      vehicle_id: selectedVehicle.vehicle_id,
       amount,
       fuel_liters: fuelLiters,
       fuel_odometer: fuelOdometer,
@@ -377,14 +368,14 @@ export default function PaymentsPage() {
               {status === "loading" && <span>Loading...</span>}
             </div>
             {status === "error" && <p className={styles.error}>{error}</p>}
-            {status === "success" && filteredPayments.length === 0 && (
+            {status === "success" && payments.length === 0 && (
               <p>
                 {payments.length === 0
                   ? "No payments found for this month."
                   : "No payments found for selected filters."}
               </p>
             )}
-            {filteredPayments.length > 0 && (
+            {payments.length > 0 && (
               <div className={styles.table}>
                 <div className={styles.tableHeader}>
                   <span>Date</span>
@@ -397,7 +388,7 @@ export default function PaymentsPage() {
                   <span>Status</span>
                   <span>Notes</span>
                 </div>
-                {filteredPayments.map((payment) => {
+                {payments.map((payment) => {
                   const notesText =
                     payment.transaction_type === "fueling"
                       ? [

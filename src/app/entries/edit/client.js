@@ -17,10 +17,12 @@ import styles from "../edit.module.css";
 
 const initialState = {
   entry_date: "",
+  company_id: "",
   company_name: "",
   slot: "",
   pickup_location: "",
   drop_location: "",
+  vehicle_id: "",
   vehicle_number: "",
   cab_type: "",
   user_name: "",
@@ -79,10 +81,12 @@ export default function ClientEditEntryPage() {
         setIsBilled(entry.billed || false);
         setForm({
           entry_date: entry.entry_date || "",
+          company_id: entry.company_id || "",
           company_name: entry.company_name || "",
           slot: entry.slot || "",
           pickup_location: entry.pickup_location || "",
           drop_location: entry.drop_location || "",
+          vehicle_id: entry.vehicle_id || "",
           vehicle_number: entry.vehicle_number || "",
           cab_type: entry.cab_type || "",
           user_name: entry.user_name || "",
@@ -140,6 +144,35 @@ export default function ClientEditEntryPage() {
       setForm((prev) => ({ ...prev, user_name: loggedInName }));
     }
   }, [loadingEntry]);
+
+  useEffect(() => {
+    if (!companies.length) return;
+    setForm((prev) => {
+      if (prev.company_id || !prev.company_name) return prev;
+      const selectedCompany = companies.find((company) => company.name === prev.company_name);
+      if (!selectedCompany) return prev;
+      return {
+        ...prev,
+        company_id: selectedCompany.company_id,
+      };
+    });
+  }, [companies]);
+
+  useEffect(() => {
+    if (!vehicles.length) return;
+    setForm((prev) => {
+      if (prev.vehicle_id || !prev.vehicle_number) return prev;
+      const selectedVehicle = vehicles.find(
+        (vehicle) => vehicle.vehicle_number === prev.vehicle_number
+      );
+      if (!selectedVehicle) return prev;
+      return {
+        ...prev,
+        vehicle_id: selectedVehicle.vehicle_id,
+        cab_type: selectedVehicle.cab_type || prev.cab_type || "",
+      };
+    });
+  }, [vehicles]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -264,7 +297,14 @@ export default function ClientEditEntryPage() {
             options={companies}
             value={form.company_name}
             onChange={(value) =>
-              setForm((prev) => ({ ...prev, company_name: value }))
+              setForm((prev) => {
+                const selectedCompany = companies.find((company) => company.name === value);
+                return {
+                  ...prev,
+                  company_name: value,
+                  company_id: selectedCompany?.company_id || prev.company_id || "",
+                };
+              })
             }
             disabled
             getLabel={(company) => company.name}
@@ -286,7 +326,17 @@ export default function ClientEditEntryPage() {
             options={vehicles}
             value={form.vehicle_number}
             onChange={(value) =>
-              setForm((prev) => ({ ...prev, vehicle_number: value }))
+              setForm((prev) => {
+                const selectedVehicle = vehicles.find(
+                  (vehicle) => vehicle.vehicle_number === value
+                );
+                return {
+                  ...prev,
+                  vehicle_number: value,
+                  vehicle_id: selectedVehicle?.vehicle_id || prev.vehicle_id || "",
+                  cab_type: selectedVehicle?.cab_type || prev.cab_type || "",
+                };
+              })
             }
             getLabel={(vehicle) =>
               `${vehicle.vehicle_number} · ${vehicle.driver_name || "Driver"} · ${vehicle.cab_type}`

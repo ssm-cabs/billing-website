@@ -9,6 +9,7 @@ import { usePermissions } from "@/lib/usePermissions";
 import {
   fetchCompanies,
   fetchEntries,
+  fetchVehicles,
   isFirebaseConfigured,
   deleteEntry,
 } from "@/lib/api";
@@ -17,8 +18,8 @@ import styles from "./entries.module.css";
 export default function EntriesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [entries, setEntries] = useState([]);
-  const [company, setCompany] = useState("all");
-  const [vehicle, setVehicle] = useState("all");
+  const [companyId, setCompanyId] = useState("all");
+  const [vehicleId, setVehicleId] = useState("all");
   const [month, setMonth] = useState(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -28,26 +29,24 @@ export default function EntriesPage() {
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [companies, setCompanies] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [companyStatus, setCompanyStatus] = useState("idle");
+  const [vehicleStatus, setVehicleStatus] = useState("idle");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteEntryId, setDeleteEntryId] = useState(null);
 
-  const vehicleOptions = useMemo(() => {
-    const uniqueVehicleNumbers = Array.from(
-      new Set(entries.map((entry) => entry.vehicle_number).filter(Boolean))
-    );
-    return uniqueVehicleNumbers.map((vehicleNumber) => ({
-      label: vehicleNumber,
-      value: vehicleNumber,
-    }));
-  }, [entries]);
-
-  const filteredEntries = useMemo(() => {
-    if (vehicle === "all") {
-      return entries;
-    }
-    return entries.filter((entry) => entry.vehicle_number === vehicle);
-  }, [entries, vehicle]);
+  const vehicleOptions = useMemo(
+    () => vehicles.filter((vehicle) => vehicle.active !== false),
+    [vehicles]
+  );
+  const selectedCompany = useMemo(
+    () => companies.find((company) => company.company_id === companyId) || null,
+    [companies, companyId]
+  );
+  const selectedVehicle = useMemo(
+    () => vehicles.find((vehicle) => vehicle.vehicle_id === vehicleId) || null,
+    [vehicles, vehicleId]
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -55,7 +54,10 @@ export default function EntriesPage() {
       setError("");
       try {
         const data = await fetchEntries({
-          company: company === "all" ? "" : company,
+          company: selectedCompany?.name || "",
+          companyId: companyId === "all" ? "" : companyId,
+          vehicle: selectedVehicle?.vehicle_number || "",
+          vehicleId: vehicleId === "all" ? "" : vehicleId,
           month,
         });
         setEntries(data);
@@ -67,7 +69,7 @@ export default function EntriesPage() {
     };
 
     load();
-  }, [company, month]);
+  }, [companyId, month, selectedCompany, selectedVehicle, vehicleId]);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -84,6 +86,21 @@ export default function EntriesPage() {
     loadCompanies();
   }, []);
 
+  useEffect(() => {
+    const loadVehicles = async () => {
+      setVehicleStatus("loading");
+      try {
+        const data = await fetchVehicles();
+        setVehicles(data);
+        setVehicleStatus("success");
+      } catch (_) {
+        setVehicleStatus("error");
+      }
+    };
+
+    loadVehicles();
+  }, []);
+
   const handleDeleteEntry = (entryId) => {
     setDeleteEntryId(entryId);
     setShowDeleteConfirm(true);
@@ -94,7 +111,10 @@ export default function EntriesPage() {
     try {
       await deleteEntry(deleteEntryId);
       const data = await fetchEntries({
-        company: company === "all" ? "" : company,
+        company: selectedCompany?.name || "",
+        companyId: companyId === "all" ? "" : companyId,
+        vehicle: selectedVehicle?.vehicle_number || "",
+        vehicleId: vehicleId === "all" ? "" : vehicleId,
         month,
       });
       setEntries(data);
@@ -149,11 +169,11 @@ export default function EntriesPage() {
           Company
           <CustomDropdown
             options={companies}
-            value={company}
-            onChange={setCompany}
+            value={companyId}
+            onChange={setCompanyId}
             status={companyStatus}
             getLabel={(c) => c.name}
-            getValue={(c) => c.name}
+            getValue={(c) => c.company_id}
             placeholder="Select company"
             defaultOption={{ label: "All Companies", value: "all" }}
           />
@@ -162,10 +182,11 @@ export default function EntriesPage() {
           Vehicle
           <CustomDropdown
             options={vehicleOptions}
-            value={vehicle}
-            onChange={setVehicle}
-            getLabel={(v) => v.label}
-            getValue={(v) => v.value}
+            value={vehicleId}
+            onChange={setVehicleId}
+            status={vehicleStatus}
+            getLabel={(v) => v.vehicle_number}
+            getValue={(v) => v.vehicle_id}
             placeholder="Select vehicle"
             defaultOption={{ label: "All Vehicles", value: "all" }}
           />
@@ -175,14 +196,12 @@ export default function EntriesPage() {
       <section className={styles.tableWrap}>
         {status === "loading" && <p>Loading entries...</p>}
         {status === "error" && <p className={styles.error}>{error}</p>}
-        {status === "success" && filteredEntries.length === 0 && (
+        {status === "success" && entries.length === 0 && (
           <p>
-            {entries.length === 0
-              ? "No entries yet. Add the first ride entry."
-              : "No entries found for selected filters."}
+            No entries found for selected filters.
           </p>
         )}
-        {filteredEntries.length > 0 && (
+        {entries.length > 0 && (
           <table className={styles.table}>
             <thead>
               <tr>
@@ -199,7 +218,7 @@ export default function EntriesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredEntries.map((entry) => (
+              {entries.map((entry) => (
                 <tr key={entry.entry_id}>
                   <td data-label="Date">{entry.entry_date}</td>
                   <td data-label="Company">{entry.company_name}</td>

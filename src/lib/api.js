@@ -8,6 +8,7 @@ import {
   limit,
   orderBy,
   query,
+  startAfter,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -20,7 +21,10 @@ const mockEntries = [
   {
     entry_id: "ENT-2401",
     entry_date: "2026-02-10",
+    entry_month: "2026-02",
+    company_id: "acme-corp",
     company_name: "Acme Corp",
+    vehicle_id: "tn-09-ab-1234",
     cab_type: "SUV",
     slot: "8hr",
     pickup_location: "T Nagar",
@@ -32,7 +36,10 @@ const mockEntries = [
   {
     entry_id: "ENT-2402",
     entry_date: "2026-02-10",
+    entry_month: "2026-02",
+    company_id: "globex",
     company_name: "Globex",
+    vehicle_id: "tn-10-cd-5678",
     cab_type: "Sedan",
     slot: "4hr",
     pickup_location: "Velachery",
@@ -174,22 +181,67 @@ function normalizePayment(payment = {}, paymentId = "") {
   };
 }
 
-export async function fetchEntries({ company = "", month = "", orderByField = "", orderByDirection = "asc", limitCount = 0 } = {}) {
+function getEntryMonth(entryDate = "") {
+  return String(entryDate || "").slice(0, 7);
+}
+
+function getMonthDateRange(month = "") {
+  return {
+    start: `${month}-01`,
+    end: `${month}-31`,
+  };
+}
+
+function maybeAddEntryMonth(data = {}) {
+  const entryMonth = data.entry_month || getEntryMonth(data.entry_date);
+  return entryMonth ? { ...data, entry_month: entryMonth } : { ...data };
+}
+
+export async function fetchEntries({
+  company = "",
+  companyId = "",
+  vehicle = "",
+  vehicleId = "",
+  month = "",
+  billed,
+  orderByField = "",
+  orderByDirection = "asc",
+  limitCount = 0,
+  lastDoc = null,
+} = {}) {
   if (!isFirebaseConfigured || !db) {
-    return mockEntries;
+    return mockEntries.filter((entry) => {
+      const matchesCompany =
+        companyId ? entry.company_id === companyId : company ? entry.company_name === company : true;
+      const matchesVehicle =
+        vehicleId ? entry.vehicle_id === vehicleId : vehicle ? entry.vehicle_number === vehicle : true;
+      const matchesMonth = month ? entry.entry_month === month : true;
+      const matchesBilled =
+        typeof billed === "boolean" ? Boolean(entry.billed) === billed : true;
+      return matchesCompany && matchesVehicle && matchesMonth && matchesBilled;
+    });
   }
 
   const constraints = [];
 
-  if (company) {
+  if (companyId) {
+    constraints.push(where("company_id", "==", companyId));
+  } else if (company) {
     constraints.push(where("company_name", "==", company));
   }
 
+  if (vehicleId) {
+    constraints.push(where("vehicle_id", "==", vehicleId));
+  } else if (vehicle) {
+    constraints.push(where("vehicle_number", "==", vehicle));
+  }
+
   if (month) {
-    const start = `${month}-01`;
-    const end = `${month}-31`;
-    constraints.push(where("entry_date", ">=", start));
-    constraints.push(where("entry_date", "<=", end));
+    constraints.push(where("entry_month", "==", month));
+  }
+
+  if (typeof billed === "boolean") {
+    constraints.push(where("billed", "==", billed));
   }
 
   if (orderByField) {
@@ -200,15 +252,45 @@ export async function fetchEntries({ company = "", month = "", orderByField = ""
     constraints.push(limit(limitCount));
   }
 
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+
   const entriesRef = collection(db, "entries");
   const entriesQuery = constraints.length
     ? query(entriesRef, ...constraints)
     : entriesRef;
 
-  const snapshot = await getDocs(entriesQuery);
+  let snapshot = await getDocs(entriesQuery);
+
+  // Backward-compatible fallback for older records that don't yet have entry_month.
+  if (snapshot.empty && month) {
+    const legacyConstraints = [];
+    if (company) {
+      legacyConstraints.push(where("company_name", "==", company));
+    }
+    if (vehicle) {
+      legacyConstraints.push(where("vehicle_number", "==", vehicle));
+    }
+    const { start, end } = getMonthDateRange(month);
+    legacyConstraints.push(where("entry_date", ">=", start));
+    legacyConstraints.push(where("entry_date", "<=", end));
+    if (typeof billed === "boolean") {
+      legacyConstraints.push(where("billed", "==", billed));
+    }
+    if (orderByField) {
+      legacyConstraints.push(orderBy(orderByField, orderByDirection));
+    }
+    if (limitCount > 0) {
+      legacyConstraints.push(limit(limitCount));
+    }
+
+    snapshot = await getDocs(query(entriesRef, ...legacyConstraints));
+  }
+
   return snapshot.docs.map((docSnap) => ({
     entry_id: docSnap.id,
-    ...docSnap.data(),
+    ...maybeAddEntryMonth(docSnap.data()),
   }));
 }
 
@@ -234,7 +316,7 @@ export async function fetchEntryById(entryId) {
 
   return {
     entry_id: docSnap.id,
-    ...docSnap.data(),
+    ...maybeAddEntryMonth(docSnap.data()),
   };
 }
 
@@ -246,9 +328,11 @@ export async function createEntry(payload) {
   }
 
   const docRef = doc(collection(db, "entries"));
+  const normalizedPayload = maybeAddEntryMonth(payload);
   const entry = {
-    ...payload,
+    ...normalizedPayload,
     entry_id: docRef.id,
+    billed: normalizedPayload.billed === true,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   };
@@ -272,7 +356,7 @@ export async function updateEntry(entryId, payload) {
 
   const entryRef = doc(db, "entries", entryId);
   await updateDoc(entryRef, {
-    ...payload,
+    ...maybeAddEntryMonth(payload),
     updated_at: serverTimestamp(),
   });
   return { entry_id: entryId };
@@ -577,16 +661,26 @@ export async function countEntriesByMonth(month = "") {
   const constraints = [];
 
   if (month) {
-    const start = `${month}-01`;
-    const end = `${month}-31`;
-    constraints.push(where("entry_date", ">=", start));
-    constraints.push(where("entry_date", "<=", end));
+    constraints.push(where("entry_month", "==", month));
   }
 
   const countQuery = constraints.length
     ? query(entriesRef, ...constraints)
     : entriesRef;
   const snapshot = await getCountFromServer(countQuery);
+
+  if (month && snapshot.data().count === 0) {
+    const { start, end } = getMonthDateRange(month);
+    const legacySnapshot = await getCountFromServer(
+      query(
+        entriesRef,
+        where("entry_date", ">=", start),
+        where("entry_date", "<=", end)
+      )
+    );
+    return legacySnapshot.data().count;
+  }
+
   return snapshot.data().count;
 }
 
@@ -638,11 +732,27 @@ export async function updateVehicle(vehicleId, payload) {
 
 export async function fetchPayments({
   month = "",
+  vehicleId = "",
+  vehicle = "",
+  transactionType = "",
+  status = "",
+  limitCount = 0,
+  lastDoc = null,
 } = {}) {
   if (!isFirebaseConfigured || !db) {
     const filtered = mockPayments
       .map((payment) => normalizePayment(payment))
-      .filter((payment) => (month ? payment.payment_month === month : true));
+      .filter((payment) => (month ? payment.payment_month === month : true))
+      .filter((payment) => (vehicleId ? payment.vehicle_id === vehicleId : true))
+      .filter((payment) => (vehicle ? payment.vehicle_number === vehicle : true))
+      .filter((payment) =>
+        transactionType
+          ? String(payment.transaction_type || "driver_payment") === transactionType
+          : true
+      )
+      .filter((payment) =>
+        status ? String(payment.status || "").toLowerCase() === String(status).toLowerCase() : true
+      );
 
     return filtered.sort((a, b) =>
       String(b.payment_date).localeCompare(String(a.payment_date))
@@ -650,17 +760,59 @@ export async function fetchPayments({
   }
 
   const paymentsRef = collection(db, "payments");
-  const paymentsQuery = month
-    ? query(paymentsRef, where("payment_month", "==", month))
-    : paymentsRef;
-  const snapshot = await getDocs(paymentsQuery);
-  const normalized = snapshot.docs.map((docSnap) =>
-    normalizePayment(docSnap.data(), docSnap.id)
-  );
+  const constraints = [];
 
-  return normalized.sort((a, b) =>
-    String(b.payment_date).localeCompare(String(a.payment_date))
-  );
+  if (month) {
+    constraints.push(where("payment_month", "==", month));
+  }
+  if (vehicleId) {
+    constraints.push(where("vehicle_id", "==", vehicleId));
+  } else if (vehicle) {
+    constraints.push(where("vehicle_number", "==", vehicle));
+  }
+  if (transactionType) {
+    constraints.push(where("transaction_type", "==", transactionType));
+  }
+  if (status) {
+    constraints.push(where("status", "==", status));
+  }
+
+  constraints.push(orderBy("payment_date", "desc"));
+
+  if (limitCount > 0) {
+    constraints.push(limit(limitCount));
+  }
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+
+  let paymentsQuery = query(paymentsRef, ...constraints);
+  let snapshot = await getDocs(paymentsQuery);
+
+  if (snapshot.empty && vehicleId && vehicle) {
+    const legacyConstraints = [];
+    if (month) {
+      legacyConstraints.push(where("payment_month", "==", month));
+    }
+    legacyConstraints.push(where("vehicle_number", "==", vehicle));
+    if (transactionType) {
+      legacyConstraints.push(where("transaction_type", "==", transactionType));
+    }
+    if (status) {
+      legacyConstraints.push(where("status", "==", status));
+    }
+    legacyConstraints.push(orderBy("payment_date", "desc"));
+    if (limitCount > 0) {
+      legacyConstraints.push(limit(limitCount));
+    }
+    if (lastDoc) {
+      legacyConstraints.push(startAfter(lastDoc));
+    }
+    paymentsQuery = query(paymentsRef, ...legacyConstraints);
+    snapshot = await getDocs(paymentsQuery);
+  }
+
+  return snapshot.docs.map((docSnap) => normalizePayment(docSnap.data(), docSnap.id));
 }
 
 export async function createPayment(payload) {
@@ -775,21 +927,32 @@ export async function generateInvoice(companyId, month) {
   const companyEmail = companyData.email || "";
   const bankDetails = companyData.bank_details || "";
 
-  // Fetch entries for the month by company_name
-  const start = `${month}-01`;
-  const end = `${month}-31`;
+  // Fetch entries for the month by company ID.
   const entriesRef = collection(db, "entries");
-  const entriesQuery = query(
+  let entriesQuery = query(
     entriesRef,
-    where("company_name", "==", companyName),
-    where("entry_date", ">=", start),
-    where("entry_date", "<=", end)
+    where("company_id", "==", companyId),
+    where("entry_month", "==", month),
+    where("billed", "==", false)
   );
-  const entriesSnapshot = await getDocs(entriesQuery);
+  let entriesSnapshot = await getDocs(entriesQuery);
+
+  // Backward-compatible fallback for old entries keyed by company_name + date range.
+  if (entriesSnapshot.empty) {
+    const { start, end } = getMonthDateRange(month);
+    entriesQuery = query(
+      entriesRef,
+      where("company_name", "==", companyName),
+      where("entry_date", ">=", start),
+      where("entry_date", "<=", end)
+    );
+    entriesSnapshot = await getDocs(entriesQuery);
+  }
+
   const entries = entriesSnapshot.docs.map((doc) => ({
     entry_id: doc.id,
     ...doc.data(),
-  }));
+  })).filter((entry) => entry.billed !== true);
 
   // Calculate total
   let total = 0;
@@ -903,20 +1066,31 @@ export async function generateVehicleInvoice(vehicleId, month) {
     );
   }
 
-  const start = `${month}-01`;
-  const end = `${month}-31`;
   const entriesRef = collection(db, "entries");
-  const entriesQuery = query(
+  let entriesQuery = query(
     entriesRef,
-    where("vehicle_number", "==", vehicleData.vehicle_number),
-    where("entry_date", ">=", start),
-    where("entry_date", "<=", end)
+    where("vehicle_id", "==", vehicleId),
+    where("entry_month", "==", month),
+    where("billed", "==", false)
   );
-  const entriesSnapshot = await getDocs(entriesQuery);
+  let entriesSnapshot = await getDocs(entriesQuery);
+
+  // Backward-compatible fallback for old entries keyed by vehicle_number + date range.
+  if (entriesSnapshot.empty) {
+    const { start, end } = getMonthDateRange(month);
+    entriesQuery = query(
+      entriesRef,
+      where("vehicle_number", "==", vehicleData.vehicle_number),
+      where("entry_date", ">=", start),
+      where("entry_date", "<=", end)
+    );
+    entriesSnapshot = await getDocs(entriesQuery);
+  }
+
   const entries = entriesSnapshot.docs.map((docSnap) => ({
     entry_id: docSnap.id,
     ...docSnap.data(),
-  }));
+  })).filter((entry) => entry.billed !== true);
 
   const vehiclePricing = await fetchVehiclePricing(vehicleId);
   const pricingBySlot = new Map(
@@ -984,7 +1158,10 @@ export async function generateVehicleInvoice(vehicleId, month) {
   return { invoice_id: invoiceId };
 }
 
-export async function fetchInvoices(companyId) {
+export async function fetchInvoices(
+  companyId,
+  { limitCount = 0, lastDoc = null } = {}
+) {
   if (!companyId) {
     throw new Error("companyId is required");
   }
@@ -994,11 +1171,19 @@ export async function fetchInvoices(companyId) {
   }
 
   const invoicesRef = collection(db, "invoices");
-  const invoicesQuery = query(
-    invoicesRef,
+  const constraints = [
     where("company_id", "==", companyId),
-    orderBy("period", "desc")
-  );
+    orderBy("period", "desc"),
+  ];
+
+  if (limitCount > 0) {
+    constraints.push(limit(limitCount));
+  }
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+
+  const invoicesQuery = query(invoicesRef, ...constraints);
   const snapshot = await getDocs(invoicesQuery);
   return snapshot.docs.map((docSnap) => ({
     invoice_id: docSnap.id,
@@ -1006,7 +1191,7 @@ export async function fetchInvoices(companyId) {
   }));
 }
 
-export async function fetchInvoicesByPeriod(period) {
+export async function fetchInvoicesByPeriod(period, { limitCount = 0, lastDoc = null } = {}) {
   if (!period) {
     throw new Error("period is required");
   }
@@ -1016,20 +1201,31 @@ export async function fetchInvoicesByPeriod(period) {
   }
 
   const invoicesRef = collection(db, "invoices");
-  const invoicesQuery = query(invoicesRef, where("period", "==", period));
+  const constraints = [
+    where("period", "==", period),
+    orderBy("invoice_date", "desc"),
+  ];
+
+  if (limitCount > 0) {
+    constraints.push(limit(limitCount));
+  }
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+
+  const invoicesQuery = query(invoicesRef, ...constraints);
   const snapshot = await getDocs(invoicesQuery);
 
-  return snapshot.docs
-    .map((docSnap) => ({
-      invoice_id: docSnap.id,
-      ...docSnap.data(),
-    }))
-    .sort((a, b) =>
-      String(b.invoice_date || "").localeCompare(String(a.invoice_date || ""))
-    );
+  return snapshot.docs.map((docSnap) => ({
+    invoice_id: docSnap.id,
+    ...docSnap.data(),
+  }));
 }
 
-export async function fetchVehicleInvoices(vehicleId) {
+export async function fetchVehicleInvoices(
+  vehicleId,
+  { limitCount = 0, lastDoc = null } = {}
+) {
   if (!vehicleId) {
     throw new Error("vehicleId is required");
   }
@@ -1039,11 +1235,19 @@ export async function fetchVehicleInvoices(vehicleId) {
   }
 
   const invoicesRef = collection(db, "invoices");
-  const invoicesQuery = query(
-    invoicesRef,
+  const constraints = [
     where("vehicle_id", "==", vehicleId),
-    orderBy("period", "desc")
-  );
+    orderBy("period", "desc"),
+  ];
+
+  if (limitCount > 0) {
+    constraints.push(limit(limitCount));
+  }
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+
+  const invoicesQuery = query(invoicesRef, ...constraints);
   const snapshot = await getDocs(invoicesQuery);
   return snapshot.docs.map((docSnap) => ({
     invoice_id: docSnap.id,

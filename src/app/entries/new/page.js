@@ -119,6 +119,7 @@ export default function NewEntryPage() {
   const selectedVehicle = vehicles.find(
     (v) => v.vehicle_number === form.vehicle_number
   );
+  const selectedCompany = companies.find((c) => c.name === form.company_name);
   const resolvedCabType = selectedVehicle?.cab_type || "";
   const matchingPrice = pricing.find(
     (p) => p.cab_type === resolvedCabType && p.slot === form.slot
@@ -145,6 +146,8 @@ export default function NewEntryPage() {
       const loggedInName = getLoggedInUserName();
       await createEntry({
         ...form,
+        company_id: selectedCompany?.company_id || "",
+        vehicle_id: selectedVehicle?.vehicle_id || "",
         cab_type: resolvedCabType,
         rate: effectiveRate,
         user_name: loggedInName || form.user_name,
