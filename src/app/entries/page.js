@@ -15,6 +15,28 @@ import {
 } from "@/lib/api";
 import styles from "./entries.module.css";
 
+const computeKmsFromOdometer = (entry) => {
+  const startRaw = entry?.odometer_start;
+  const endRaw = entry?.odometer_end;
+
+  if (endRaw === "" || endRaw === null || endRaw === undefined) {
+    return null;
+  }
+
+  if (startRaw === "" || startRaw === null || startRaw === undefined) {
+    return null;
+  }
+
+  const start = Number(startRaw);
+  const end = Number(endRaw);
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return null;
+  }
+
+  return end - start;
+};
+
 export default function EntriesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [entries, setEntries] = useState([]);
@@ -207,9 +229,9 @@ export default function EntriesPage() {
               <tr>
                 <th>Date</th>
                 <th>Company</th>
-                <th>Cab Type</th>
                 <th>Slot</th>
                 <th>Rate</th>
+                <th>KMS</th>
                 <th className={styles.routeColumn}>Route</th>
                 <th>User</th>
                 <th>Vehicle</th>
@@ -222,10 +244,12 @@ export default function EntriesPage() {
                 <tr key={entry.entry_id}>
                   <td data-label="Date">{entry.entry_date}</td>
                   <td data-label="Company">{entry.company_name}</td>
-                  <td data-label="Cab Type">{entry.cab_type}</td>
                   <td data-label="Slot">{entry.slot}</td>
                   <td data-label="Rate">
                     {entry.rate > 0 ? `₹${entry.rate}` : "-"}
+                  </td>
+                  <td data-label="KMS">
+                    {computeKmsFromOdometer(entry) ?? "-"}
                   </td>
                   <td data-label="Route" className={styles.routeColumn}>
                     <NotesPreview
