@@ -229,12 +229,12 @@ export default function EntriesPage() {
               <tr>
                 <th>Date</th>
                 <th>Company</th>
+                <th>Vehicle</th>
                 <th>Slot</th>
                 <th>Rate</th>
                 <th>KMS</th>
                 <th className={styles.routeColumn}>Route</th>
                 <th>User</th>
-                <th>Vehicle</th>
                 <th>Actions</th>
                 <th className={styles.notesColumn}>Notes</th>
               </tr>
@@ -244,6 +244,7 @@ export default function EntriesPage() {
                 <tr key={entry.entry_id}>
                   <td data-label="Date">{entry.entry_date}</td>
                   <td data-label="Company">{entry.company_name}</td>
+                  <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Slot">{entry.slot}</td>
                   <td data-label="Rate">
                     {entry.rate > 0 ? `₹${entry.rate}` : "-"}
@@ -258,7 +259,6 @@ export default function EntriesPage() {
                     />
                   </td>
                   <td data-label="User">{entry.user_name || "-"}</td>
-                  <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Actions" className={styles.actionsCell}>
                     {canEdit && !entry.billed && (
                       <div className={styles.actions}>
