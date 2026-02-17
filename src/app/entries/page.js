@@ -37,6 +37,51 @@ const computeKmsFromOdometer = (entry) => {
   return end - start;
 };
 
+const computeTimeTaken = (entry) => {
+  const startTime = String(entry?.start_time || "").trim();
+  const endTime = String(entry?.end_time || "").trim();
+
+  if (!startTime || !endTime) {
+    return null;
+  }
+
+  const [startHourRaw, startMinuteRaw] = startTime.split(":");
+  const [endHourRaw, endMinuteRaw] = endTime.split(":");
+
+  const startHour = Number(startHourRaw);
+  const startMinute = Number(startMinuteRaw);
+  const endHour = Number(endHourRaw);
+  const endMinute = Number(endMinuteRaw);
+
+  if (
+    !Number.isInteger(startHour) ||
+    !Number.isInteger(startMinute) ||
+    !Number.isInteger(endHour) ||
+    !Number.isInteger(endMinute)
+  ) {
+    return null;
+  }
+
+  const startTotalMinutes = startHour * 60 + startMinute;
+  const endTotalMinutes = endHour * 60 + endMinute;
+
+  if (endTotalMinutes < startTotalMinutes) {
+    return null;
+  }
+
+  const diffMinutes = endTotalMinutes - startTotalMinutes;
+  const hours = Math.floor(diffMinutes / 60);
+  const minutes = diffMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  if (hours > 0) {
+    return `${hours}h`;
+  }
+  return `${minutes}m`;
+};
+
 export default function EntriesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [entries, setEntries] = useState([]);
@@ -232,6 +277,7 @@ export default function EntriesPage() {
                 <th>Vehicle</th>
                 <th>Slot</th>
                 <th>Rate</th>
+                <th>Time Taken</th>
                 <th>KMS</th>
                 <th className={styles.routeColumn}>Route</th>
                 <th>User</th>
@@ -248,6 +294,9 @@ export default function EntriesPage() {
                   <td data-label="Slot">{entry.slot}</td>
                   <td data-label="Rate">
                     {entry.rate > 0 ? `₹${entry.rate}` : "-"}
+                  </td>
+                  <td data-label="Time Taken">
+                    {computeTimeTaken(entry) ?? "-"}
                   </td>
                   <td data-label="KMS">
                     {computeKmsFromOdometer(entry) ?? "-"}
