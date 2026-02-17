@@ -32,7 +32,7 @@ const getMonthValue = () => {
 
 const OUR_COMPANY = {
   name: "SSM Cabs",
-  address: "No. 12, Anna Salai, Chennai, TN 600002",
+  address: "1st Floor, MSIL Building, Old Madras Rd, M V Extenstion, Hoskote, Bengaluru, Karnataka 562114",
   phone: "+91 44 4000 1234",
   email: "accounts@ssmcabs.com",
   bank_details: "Account: 000111222333 | SBI | IFSC: SBIN0001234",
