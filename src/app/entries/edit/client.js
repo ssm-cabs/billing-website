@@ -195,12 +195,12 @@ export default function ClientEditEntryPage() {
     try {
       const odometerStartRaw = String(form.odometer_start).trim();
       const odometerEndRaw = String(form.odometer_end).trim();
-      if (!odometerStartRaw || !odometerEndRaw) {
-        throw new Error("Odometer start and end are required.");
+      if (!odometerStartRaw) {
+        throw new Error("Odometer start is required.");
       }
 
       const odometerStart = Number(odometerStartRaw);
-      const odometerEnd = Number(odometerEndRaw);
+      const odometerEnd = odometerEndRaw === "" ? null : Number(odometerEndRaw);
 
       if (odometerStart !== null && (!Number.isFinite(odometerStart) || odometerStart < 0)) {
         throw new Error("Odometer start must be a valid number.");
@@ -436,7 +436,6 @@ export default function ClientEditEntryPage() {
             onChange={updateField}
             min="0"
             step="1"
-            required
             placeholder="e.g. 125512"
           />
         </label>
