@@ -41,6 +41,8 @@ const initialState = {
   slot: "",
   pickup_location: "",
   drop_location: "",
+  odometer_start: "",
+  odometer_end: "",
   vehicle_number: "",
   cab_type: "",
   user_name: "",
@@ -143,6 +145,23 @@ export default function NewEntryPage() {
     setMessage("");
 
     try {
+      const odometerStartRaw = String(form.odometer_start).trim();
+      const odometerEndRaw = String(form.odometer_end).trim();
+      const odometerStart = odometerStartRaw === "" ? null : Number(odometerStartRaw);
+      const odometerEnd = odometerEndRaw === "" ? null : Number(odometerEndRaw);
+
+      if (odometerStart !== null && (!Number.isFinite(odometerStart) || odometerStart < 0)) {
+        throw new Error("Odometer start must be a valid number.");
+      }
+
+      if (odometerEnd !== null && (!Number.isFinite(odometerEnd) || odometerEnd < 0)) {
+        throw new Error("Odometer end must be a valid number.");
+      }
+
+      if (odometerStart !== null && odometerEnd !== null && odometerEnd < odometerStart) {
+        throw new Error("Odometer end cannot be less than odometer start.");
+      }
+
       const loggedInName = getLoggedInUserName();
       await createEntry({
         ...form,
@@ -150,6 +169,8 @@ export default function NewEntryPage() {
         vehicle_id: selectedVehicle?.vehicle_id || "",
         cab_type: resolvedCabType,
         rate: effectiveRate,
+        odometer_start: odometerStart,
+        odometer_end: odometerEnd,
         user_name: loggedInName || form.user_name,
       });
       setStatus("success");
@@ -301,6 +322,30 @@ export default function NewEntryPage() {
             value={form.drop_location}
             onChange={updateField}
             required
+          />
+        </label>
+        <label className={styles.field}>
+          Odometer start
+          <input
+            type="number"
+            name="odometer_start"
+            value={form.odometer_start}
+            onChange={updateField}
+            min="0"
+            step="1"
+            placeholder="e.g. 125430"
+          />
+        </label>
+        <label className={styles.field}>
+          Odometer end
+          <input
+            type="number"
+            name="odometer_end"
+            value={form.odometer_end}
+            onChange={updateField}
+            min="0"
+            step="1"
+            placeholder="e.g. 125512"
           />
         </label>
         <label className={styles.field}>
