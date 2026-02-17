@@ -147,8 +147,12 @@ export default function NewEntryPage() {
     try {
       const odometerStartRaw = String(form.odometer_start).trim();
       const odometerEndRaw = String(form.odometer_end).trim();
-      const odometerStart = odometerStartRaw === "" ? null : Number(odometerStartRaw);
-      const odometerEnd = odometerEndRaw === "" ? null : Number(odometerEndRaw);
+      if (!odometerStartRaw || !odometerEndRaw) {
+        throw new Error("Odometer start and end are required.");
+      }
+
+      const odometerStart = Number(odometerStartRaw);
+      const odometerEnd = Number(odometerEndRaw);
 
       if (odometerStart !== null && (!Number.isFinite(odometerStart) || odometerStart < 0)) {
         throw new Error("Odometer start must be a valid number.");
@@ -305,26 +309,6 @@ export default function NewEntryPage() {
           </label>
         )}
         <label className={styles.field}>
-          Pickup location
-          <input
-            type="text"
-            name="pickup_location"
-            value={form.pickup_location}
-            onChange={updateField}
-            required
-          />
-        </label>
-        <label className={styles.field}>
-          Drop location
-          <input
-            type="text"
-            name="drop_location"
-            value={form.drop_location}
-            onChange={updateField}
-            required
-          />
-        </label>
-        <label className={styles.field}>
           Odometer start
           <input
             type="number"
@@ -333,6 +317,7 @@ export default function NewEntryPage() {
             onChange={updateField}
             min="0"
             step="1"
+            required
             placeholder="e.g. 125430"
           />
         </label>
@@ -345,7 +330,26 @@ export default function NewEntryPage() {
             onChange={updateField}
             min="0"
             step="1"
+            required
             placeholder="e.g. 125512"
+          />
+        </label>
+        <label className={styles.field}>
+          Pickup location
+          <input
+            type="text"
+            name="pickup_location"
+            value={form.pickup_location}
+            onChange={updateField}
+          />
+        </label>
+        <label className={styles.field}>
+          Drop location
+          <input
+            type="text"
+            name="drop_location"
+            value={form.drop_location}
+            onChange={updateField}
           />
         </label>
         <label className={styles.field}>
