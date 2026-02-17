@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import DatePicker from "../DatePicker";
 import CustomDropdown from "../CustomDropdown";
+import TimePicker from "../TimePicker";
 import {
   createEntry,
   fetchCompanies,
@@ -39,6 +40,8 @@ const initialState = {
   entry_date: getToday(),
   company_name: "",
   slot: "",
+  start_time: "",
+  end_time: "",
   pickup_location: "",
   drop_location: "",
   odometer_start: "",
@@ -173,6 +176,8 @@ export default function NewEntryPage() {
         vehicle_id: selectedVehicle?.vehicle_id || "",
         cab_type: resolvedCabType,
         rate: effectiveRate,
+        start_time: String(form.start_time || "").trim(),
+        end_time: String(form.end_time || "").trim(),
         odometer_start: odometerStart,
         odometer_end: odometerEnd,
         user_name: loggedInName || form.user_name,
@@ -331,6 +336,22 @@ export default function NewEntryPage() {
             min="0"
             step="1"
             placeholder="e.g. 125512"
+          />
+        </label>
+        <label className={styles.field}>
+          Start time (optional)
+          <TimePicker
+            value={form.start_time}
+            onChange={(value) => setForm((prev) => ({ ...prev, start_time: value }))}
+            placeholder="Select start time"
+          />
+        </label>
+        <label className={styles.field}>
+          End time (optional)
+          <TimePicker
+            value={form.end_time}
+            onChange={(value) => setForm((prev) => ({ ...prev, end_time: value }))}
+            placeholder="Select end time"
           />
         </label>
         <label className={styles.field}>

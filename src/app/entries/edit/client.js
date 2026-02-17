@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DatePicker from "../DatePicker";
 import CustomDropdown from "../CustomDropdown";
+import TimePicker from "../TimePicker";
 import {
   fetchEntryById,
   updateEntry,
@@ -20,6 +21,8 @@ const initialState = {
   company_id: "",
   company_name: "",
   slot: "",
+  start_time: "",
+  end_time: "",
   pickup_location: "",
   drop_location: "",
   vehicle_id: "",
@@ -86,6 +89,8 @@ export default function ClientEditEntryPage() {
           company_id: entry.company_id || "",
           company_name: entry.company_name || "",
           slot: entry.slot || "",
+          start_time: entry.start_time || "",
+          end_time: entry.end_time || "",
           pickup_location: entry.pickup_location || "",
           drop_location: entry.drop_location || "",
           vehicle_id: entry.vehicle_id || "",
@@ -217,6 +222,8 @@ export default function ClientEditEntryPage() {
       const loggedInName = getLoggedInUserName();
       await updateEntry(id, {
         ...form,
+        start_time: String(form.start_time || "").trim(),
+        end_time: String(form.end_time || "").trim(),
         odometer_start: odometerStart,
         odometer_end: odometerEnd,
         hours: form.hours === "" ? null : Number(form.hours),
@@ -437,6 +444,22 @@ export default function ClientEditEntryPage() {
             min="0"
             step="1"
             placeholder="e.g. 125512"
+          />
+        </label>
+        <label className={styles.field}>
+          Start time (optional)
+          <TimePicker
+            value={form.start_time}
+            onChange={(value) => setForm((prev) => ({ ...prev, start_time: value }))}
+            placeholder="Select start time"
+          />
+        </label>
+        <label className={styles.field}>
+          End time (optional)
+          <TimePicker
+            value={form.end_time}
+            onChange={(value) => setForm((prev) => ({ ...prev, end_time: value }))}
+            placeholder="Select end time"
           />
         </label>
         <label className={styles.field}>
