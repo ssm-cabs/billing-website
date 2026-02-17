@@ -519,9 +519,9 @@ export default function RevenuePage() {
               </div>
               {vehicleBreakdown.map((vehicle) => (
                 <div key={vehicle.vehicleNumber} className={styles.tableRow}>
-                  <span>{vehicle.vehicleNumber}</span>
-                  <span>{vehicle.rides}</span>
-                  <span>{formatCurrency(vehicle.revenue)}</span>
+                  <span data-label="Vehicle">{vehicle.vehicleNumber}</span>
+                  <span data-label="Rides">{vehicle.rides}</span>
+                  <span data-label="Revenue">{formatCurrency(vehicle.revenue)}</span>
                 </div>
               ))}
             </div>
@@ -551,10 +551,10 @@ export default function RevenuePage() {
               </div>
               {companyBreakdown.map((company) => (
                 <div key={company.name} className={styles.tableRow}>
-                  <span>{company.name}</span>
-                  <span>{company.rides}</span>
-                  <span>{formatCurrency(company.revenue)}</span>
-                  <span>{formatCurrency(company.invoicePaid)}</span>
+                  <span data-label="Company">{company.name}</span>
+                  <span data-label="Rides">{company.rides}</span>
+                  <span data-label="Revenue">{formatCurrency(company.revenue)}</span>
+                  <span data-label="Invoice paid">{formatCurrency(company.invoicePaid)}</span>
                 </div>
               ))}
             </div>
