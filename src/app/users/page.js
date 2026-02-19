@@ -374,13 +374,15 @@ export default function UsersPage() {
                     <td className={styles.actions} data-label="Actions">
                       {role !== "admin" && (
                         <>
-                          <button
-                            className={styles.editBtn}
-                            onClick={() => handleEditClick(user)}
-                            title="Edit"
-                          >
-                            <span className={styles.editIcon}>✎</span>
-                          </button>
+                          {role !== "driver" && (
+                            <button
+                              className={styles.editBtn}
+                              onClick={() => handleEditClick(user)}
+                              title="Edit"
+                            >
+                              <span className={styles.editIcon}>✎</span>
+                            </button>
+                          )}
                           <button
                             className={styles.deleteBtn}
                             onClick={() => handleDelete(user.id, user.name)}
