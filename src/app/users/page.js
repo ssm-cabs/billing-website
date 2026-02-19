@@ -79,7 +79,6 @@ export default function UsersPage() {
   const [formData, setFormData] = useState({
     phone: "",
     name: "",
-    role: "user",
     active: true,
     notes: "",
     permissions: getDefaultPermissions(),
@@ -133,7 +132,6 @@ export default function UsersPage() {
     setFormData({
       phone: "",
       name: "",
-      role: "user",
       active: true,
       notes: "",
       permissions: getDefaultPermissions(),
@@ -149,7 +147,6 @@ export default function UsersPage() {
     setFormData({
       phone: user.phone || "",
       name: user.name || "",
-      role: normalizeRole(user.role),
       active: user.active !== false,
       notes: user.notes || "",
       permissions: user.permissions || getDefaultPermissions(),
@@ -211,8 +208,12 @@ export default function UsersPage() {
 
     setFormLoading(true);
     try {
+      const editingUser = editingId ? users.find((u) => u.id === editingId) : null;
       const dataToSave = {
         ...formData,
+        ...(editingId
+          ? { role: normalizeRole(editingUser?.role) }
+          : { role: "user" }),
         phone: normalizePhoneNumber(formData.phone),
         permissions: normalizePermissions(formData.permissions),
       };
@@ -445,22 +446,6 @@ export default function UsersPage() {
                   placeholder="User Name"
                   required
                 />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Role *</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleFormChange}
-                  required
-                >
-                  {ROLE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div className={styles.formGroup}>
