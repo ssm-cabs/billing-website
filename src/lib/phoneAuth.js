@@ -19,6 +19,7 @@ let authStateInitialized = false;
 let authStatePromise = null;
 let userDocUnsubscribe = null;
 let authUnsubscribe = null;
+const USER_ROLES = new Set(["admin", "user", "driver"]);
 
 const normalizePermissions = (permissions) => {
   const defaults = getDefaultPermissions();
@@ -31,6 +32,12 @@ const normalizePermissions = (permissions) => {
       : defaults[key];
     return acc;
   }, {});
+};
+
+const normalizeRole = (role) => {
+  if (typeof role !== "string") return "user";
+  const normalized = role.toLowerCase().trim();
+  return USER_ROLES.has(normalized) ? normalized : "user";
 };
 
 /**
@@ -107,6 +114,7 @@ export async function getUserData(phoneNumber) {
     return {
       ...userData,
       permissions: normalizePermissions(userData.permissions),
+      role: normalizeRole(userData.role),
     };
   } catch (error) {
     console.error("Error fetching user data:", error);
@@ -161,6 +169,7 @@ function startUserDocListener(userId) {
         ...snapshot.data(),
         user_id: snapshot.data().user_id || userId,
         permissions: normalizePermissions(snapshot.data().permissions),
+        role: normalizeRole(snapshot.data().role),
       };
       const isActive = userData.active !== false;
 

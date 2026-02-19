@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CustomDropdown from "../entries/CustomDropdown";
-import { getCurrentUser, waitForAuthInit } from "@/lib/phoneAuth";
+import { waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import { usePermissions } from "@/lib/usePermissions";
@@ -49,10 +49,23 @@ const normalizePermissions = (permissions = {}) =>
   );
 
 const HIDDEN_PERMISSION_MODULES = new Set();
+const ROLE_OPTIONS = [
+  { value: "admin", label: "Admin" },
+  { value: "user", label: "User" },
+  { value: "driver", label: "Driver" },
+];
+
+const normalizeRole = (role) => {
+  if (typeof role !== "string") return "user";
+  const normalized = role.toLowerCase().trim();
+  return ROLE_OPTIONS.some((option) => option.value === normalized)
+    ? normalized
+    : "user";
+};
 
 export default function UsersPage() {
   const router = useRouter();
-  const { canView, canEdit, loading: permissionsLoading } = usePermissions("users");
+  const { canEdit } = usePermissions("users");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -66,6 +79,7 @@ export default function UsersPage() {
   const [formData, setFormData] = useState({
     phone: "",
     name: "",
+    role: "user",
     active: true,
     notes: "",
     permissions: getDefaultPermissions(),
@@ -119,6 +133,7 @@ export default function UsersPage() {
     setFormData({
       phone: "",
       name: "",
+      role: "user",
       active: true,
       notes: "",
       permissions: getDefaultPermissions(),
@@ -129,11 +144,12 @@ export default function UsersPage() {
 
   const handleEditClick = (user) => {
     if (!canEdit) return;
-    if (user.admin === true) return;
+    if (normalizeRole(user.role) === "admin") return;
     setEditingId(user.id);
     setFormData({
       phone: user.phone || "",
       name: user.name || "",
+      role: normalizeRole(user.role),
       active: user.active !== false,
       notes: user.notes || "",
       permissions: user.permissions || getDefaultPermissions(),
@@ -223,7 +239,7 @@ export default function UsersPage() {
   const handleDelete = (userId, userName) => {
     if (!canEdit) return;
     const user = users.find((u) => u.id === userId);
-    if (user?.admin === true) return;
+    if (normalizeRole(user?.role) === "admin") return;
     setDeleteTarget({ id: userId, name: userName });
     setShowDeleteConfirm(true);
   };
@@ -314,19 +330,25 @@ export default function UsersPage() {
               <tr>
                 <th>Phone</th>
                 <th>Name</th>
+                <th>Role</th>
                 <th>Permissions</th>
                 <th>Status</th>
                 {canEdit && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
+              {filteredUsers.map((user) => {
+                const role = normalizeRole(user.role);
+                return (
+                  <tr key={user.id}>
                   <td className={styles.phone} data-label="Phone">
                     {user.phone}
                   </td>
                   <td className={styles.name} data-label="Name">
                     {user.name}
+                  </td>
+                  <td className={styles.role} data-label="Role">
+                    {role}
                   </td>
                   <td className={styles.permissions} data-label="Permissions">
                     {getPermissionsSummary(user.permissions)}
@@ -334,19 +356,19 @@ export default function UsersPage() {
                   <td data-label="Status">
                     <span
                       className={`${styles.status} ${
-                        user.admin
+                        role === "admin"
                           ? styles.admin
                           : user.active
                           ? styles.active
                           : styles.inactive
                       }`}
                     >
-                      {user.admin ? "Admin" : user.active ? "Active" : "Inactive"}
+                      {role === "admin" ? "Admin" : user.active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   {canEdit && (
                     <td className={styles.actions} data-label="Actions">
-                      {!user.admin && (
+                      {role !== "admin" && (
                         <>
                           <button
                             className={styles.editBtn}
@@ -360,14 +382,15 @@ export default function UsersPage() {
                             onClick={() => handleDelete(user.id, user.name)}
                             title="Delete"
                           >
-                            ✕
+                          ✕
                           </button>
                         </>
                       )}
                     </td>
                   )}
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -422,6 +445,22 @@ export default function UsersPage() {
                   placeholder="User Name"
                   required
                 />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Role *</label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleFormChange}
+                  required
+                >
+                  {ROLE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className={styles.formGroup}>

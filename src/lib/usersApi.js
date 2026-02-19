@@ -11,6 +11,8 @@ import {
 import { db } from "./firebase";
 import { getDefaultPermissions } from "@/config/modules";
 
+const USER_ROLES = new Set(["admin", "user", "driver"]);
+
 const normalizePermissions = (permissions) => {
   const defaults = getDefaultPermissions();
   if (!permissions || typeof permissions !== "object") return defaults;
@@ -22,6 +24,12 @@ const normalizePermissions = (permissions) => {
       : defaults[key];
     return acc;
   }, {});
+};
+
+const normalizeRole = (role) => {
+  if (typeof role !== "string") return "user";
+  const normalized = role.toLowerCase().trim();
+  return USER_ROLES.has(normalized) ? normalized : "user";
 };
 
 /**
@@ -40,6 +48,7 @@ export async function fetchAllUsers() {
         id: userDoc.id,
         ...baseData,
         user_id: baseData.user_id || userDoc.id,
+        role: normalizeRole(baseData.role),
         permissions: normalizePermissions(baseData.permissions),
       };
     });
@@ -63,6 +72,7 @@ export async function addUser(userData) {
     await setDoc(userRef, {
       ...profileData,
       user_id: userRef.id,
+      role: normalizeRole(userData.role),
       permissions: normalizePermissions(permissions),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -89,6 +99,7 @@ export async function updateUser(userId, userData) {
     await updateDoc(userRef, {
       ...profileData,
       user_id: userId,
+      role: normalizeRole(userData.role),
       permissions: normalizePermissions(permissions),
       updated_at: new Date().toISOString(),
     });
