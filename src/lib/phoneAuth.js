@@ -13,13 +13,13 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { getDefaultPermissions } from "@/config/modules";
+import { normalizeRole } from "./roleRouting";
 
 // Track auth state initialization
 let authStateInitialized = false;
 let authStatePromise = null;
 let userDocUnsubscribe = null;
 let authUnsubscribe = null;
-const USER_ROLES = new Set(["admin", "user", "driver"]);
 
 const normalizePermissions = (permissions) => {
   const defaults = getDefaultPermissions();
@@ -32,12 +32,6 @@ const normalizePermissions = (permissions) => {
       : defaults[key];
     return acc;
   }, {});
-};
-
-const normalizeRole = (role) => {
-  if (typeof role !== "string") return "user";
-  const normalized = role.toLowerCase().trim();
-  return USER_ROLES.has(normalized) ? normalized : "user";
 };
 
 /**

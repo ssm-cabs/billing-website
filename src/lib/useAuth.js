@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, getUserData } from "./phoneAuth";
+import { isRole } from "./roleRouting";
 
 /**
  * Hook to protect pages - redirects to login if not authenticated
@@ -43,7 +44,7 @@ export function useAuth(options = {}) {
             setUserData(data);
 
             // Check admin requirement
-            if (requireAdmin && data?.role !== "admin") {
+            if (requireAdmin && !isRole(data?.role, "admin")) {
               setIsAuthenticated(false);
               router.push(redirectTo);
               return;

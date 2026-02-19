@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PERMISSION_LEVELS, getDefaultPermissions } from "@/config/modules";
-import { normalizeRole } from "./roleRouting";
+import { getHomeRouteForRole } from "./roleRouting";
 
 /**
  * Hook to check permissions for a collection
@@ -26,13 +26,13 @@ export function usePermissions(collection) {
         }
 
         const userData = JSON.parse(userDataStr);
-        const role = normalizeRole(userData?.role);
+        const homeRoute = getHomeRouteForRole(userData?.role);
         const permissions = userData.permissions || {};
         const permission = permissions[collection] || PERMISSION_LEVELS.NONE;
 
         if (permission === PERMISSION_LEVELS.NONE) {
           // No permission, redirect based on role.
-          router.push(role === "driver" ? "/driver/dashboard" : "/dashboard");
+          router.push(homeRoute);
           setCanView(false);
           setCanEdit(false);
         } else if (permission === PERMISSION_LEVELS.READ) {

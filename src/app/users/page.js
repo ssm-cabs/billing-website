@@ -16,6 +16,7 @@ import {
   deleteUser,
 } from "@/lib/usersApi";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
+import { getRoleDefinition, isRole, normalizeRole } from "@/lib/roleRouting";
 import styles from "./users.module.css";
 
 const getPermissionOptions = (moduleId) => {
@@ -49,20 +50,6 @@ const normalizePermissions = (permissions = {}) =>
   );
 
 const HIDDEN_PERMISSION_MODULES = new Set();
-const ROLE_OPTIONS = [
-  { value: "admin", label: "Admin" },
-  { value: "user", label: "User" },
-  { value: "driver", label: "Driver" },
-];
-
-const normalizeRole = (role) => {
-  if (typeof role !== "string") return "user";
-  const normalized = role.toLowerCase().trim();
-  return ROLE_OPTIONS.some((option) => option.value === normalized)
-    ? normalized
-    : "user";
-};
-
 export default function UsersPage() {
   const router = useRouter();
   const { canEdit } = usePermissions("users");
@@ -144,7 +131,7 @@ export default function UsersPage() {
 
   const handleEditClick = (user) => {
     if (!canEdit) return;
-    if (normalizeRole(user.role) === "admin") return;
+    if (isRole(user.role, "admin")) return;
     setEditingId(user.id);
     setFormData({
       phone: user.phone || "",
@@ -243,7 +230,7 @@ export default function UsersPage() {
   const handleDelete = (userId, userName) => {
     if (!canEdit) return;
     const user = users.find((u) => u.id === userId);
-    if (normalizeRole(user?.role) === "admin") return;
+    if (isRole(user?.role, "admin")) return;
     setDeleteTarget({ id: userId, name: userName });
     setShowDeleteConfirm(true);
   };
@@ -343,6 +330,7 @@ export default function UsersPage() {
             <tbody>
               {filteredUsers.map((user) => {
                 const role = normalizeRole(user.role);
+                const roleLabel = getRoleDefinition(role).label;
                 return (
                   <tr key={user.id}>
                   <td className={styles.phone} data-label="Phone">
@@ -352,7 +340,7 @@ export default function UsersPage() {
                     {user.name}
                   </td>
                   <td className={styles.role} data-label="Role">
-                    {role}
+                    {roleLabel}
                   </td>
                   <td className={styles.permissions} data-label="Permissions">
                     {getPermissionsSummary(user.permissions)}
@@ -360,21 +348,21 @@ export default function UsersPage() {
                   <td data-label="Status">
                     <span
                       className={`${styles.status} ${
-                        role === "admin"
+                        isRole(role, "admin")
                           ? styles.admin
                           : user.active
                           ? styles.active
                           : styles.inactive
                       }`}
                     >
-                      {role === "admin" ? "Admin" : user.active ? "Active" : "Inactive"}
+                      {isRole(role, "admin") ? "Admin" : user.active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   {canEdit && (
                     <td className={styles.actions} data-label="Actions">
-                      {role !== "admin" && (
+                      {!isRole(role, "admin") && (
                         <>
-                          {role !== "driver" && (
+                          {!isRole(role, "driver") && (
                             <button
                               className={styles.editBtn}
                               onClick={() => handleEditClick(user)}

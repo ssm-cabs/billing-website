@@ -17,7 +17,7 @@ import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import { canViewCollection } from "@/lib/usePermissions";
 import { MODULES } from "@/config/modules";
-import { normalizeRole } from "@/lib/roleRouting";
+import { canAccessBackofficeDashboard, getHomeRouteForRole } from "@/lib/roleRouting";
 import styles from "./dashboard.module.css";
 
 const QUICK_ACTION_ICON_META = {
@@ -162,9 +162,9 @@ export default function DashboardPage() {
 
       try {
         const userData = user.phoneNumber ? await getUserData(user.phoneNumber) : null;
-        if (normalizeRole(userData?.role) === "driver") {
+        if (!canAccessBackofficeDashboard(userData?.role)) {
           setIsLoading(false);
-          router.push("/driver/dashboard");
+          router.push(getHomeRouteForRole(userData?.role));
           return;
         }
       } catch (error) {

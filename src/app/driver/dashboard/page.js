@@ -6,7 +6,7 @@ import { fetchVehicles } from "@/lib/api";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
-import { getHomeRouteForRole, normalizeRole } from "@/lib/roleRouting";
+import { getHomeRouteForRole, isRole, normalizeRole } from "@/lib/roleRouting";
 import styles from "./page.module.css";
 
 function getVehicleIds(userData) {
@@ -35,7 +35,7 @@ export default function DriverDashboardPage() {
       try {
         const profile = await getUserData(user.phoneNumber);
         const role = normalizeRole(profile?.role);
-        if (role !== "driver") {
+        if (!isRole(role, "driver")) {
           setIsLoading(false);
           router.push(getHomeRouteForRole(role));
           return;

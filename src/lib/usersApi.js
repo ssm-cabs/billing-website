@@ -14,8 +14,7 @@ import {
 import { db } from "./firebase";
 import { getDefaultPermissions } from "@/config/modules";
 import { normalizePhoneNumber } from "./phone";
-
-const USER_ROLES = new Set(["admin", "user", "driver"]);
+import { isRole, normalizeRole } from "./roleRouting";
 
 const normalizePermissions = (permissions) => {
   const defaults = getDefaultPermissions();
@@ -28,12 +27,6 @@ const normalizePermissions = (permissions) => {
       : defaults[key];
     return acc;
   }, {});
-};
-
-const normalizeRole = (role) => {
-  if (typeof role !== "string") return "user";
-  const normalized = role.toLowerCase().trim();
-  return USER_ROLES.has(normalized) ? normalized : "user";
 };
 
 /**
@@ -128,7 +121,7 @@ export async function deleteUser(userId) {
 
     await deleteDoc(userRef);
 
-    if (role === "driver") {
+    if (isRole(role, "driver")) {
       const vehiclesRef = collection(db, "vehicles");
       const vehiclesQuery = query(vehiclesRef, where("driver_user_id", "==", userId));
       const vehiclesSnapshot = await getDocs(vehiclesQuery);
@@ -181,7 +174,7 @@ export async function upsertDriverUser(payload) {
     await updateDoc(doc(db, "users", existingUser.id), {
       name,
       phone,
-      role: "driver",
+      role: normalizeRole("driver"),
       active: true,
       vehicle_ids: arrayUnion(vehicleId),
       updated_at: now,
@@ -194,7 +187,7 @@ export async function upsertDriverUser(payload) {
     user_id: newUserRef.id,
     name,
     phone,
-    role: "driver",
+    role: normalizeRole("driver"),
     active: true,
     vehicle_ids: [vehicleId],
     created_at: now,
