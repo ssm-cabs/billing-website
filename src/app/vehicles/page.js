@@ -284,20 +284,25 @@ export default function VehiclesPage() {
 
     try {
       const normalizedDriverPhone = normalizePhoneNumber(form.driver_phone);
-      let driverUserId = "";
-      if (form.driver_dashboard_access) {
-        driverUserId = await upsertDriverUser({
-          driver_name: form.driver_name,
-          driver_phone: normalizedDriverPhone,
-        });
-      }
       const payload = {
         ...form,
         driver_phone: normalizedDriverPhone,
-        driver_user_id: driverUserId,
+        driver_user_id: "",
         capacity: form.capacity ? Number(form.capacity) : null,
       };
-      await createVehicle(payload);
+      const created = await createVehicle(payload);
+
+      if (form.driver_dashboard_access && created?.vehicle_id) {
+        const driverUserId = await upsertDriverUser({
+          driver_name: form.driver_name,
+          driver_phone: normalizedDriverPhone,
+          vehicle_id: created.vehicle_id,
+        });
+        await updateVehicle(created.vehicle_id, {
+          driver_user_id: driverUserId,
+          active: payload.active,
+        });
+      }
       setMessage(
         isFirebaseConfigured
           ? "Vehicle added."
@@ -372,6 +377,7 @@ export default function VehiclesPage() {
         driverUserId = await upsertDriverUser({
           driver_name: editForm.driver_name,
           driver_phone: normalizedDriverPhone,
+          vehicle_id: vehicleId,
         });
       } else if (driverUserId) {
         await deleteUser(driverUserId);

@@ -9,6 +9,7 @@ import {
   query,
   orderBy,
   where,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { getDefaultPermissions } from "@/config/modules";
@@ -152,17 +153,22 @@ export async function deleteUser(userId) {
  * @param {Object} payload
  * @param {string} payload.driver_name
  * @param {string} payload.driver_phone
+ * @param {string} payload.vehicle_id
  * @returns {Promise<string>} - User document ID
  */
 export async function upsertDriverUser(payload) {
   const name = String(payload?.driver_name || "").trim();
   const phone = normalizePhoneNumber(payload?.driver_phone || "");
+  const vehicleId = String(payload?.vehicle_id || "").trim();
 
   if (!name) {
     throw new Error("Driver name is required to grant dashboard access");
   }
   if (!phone) {
     throw new Error("Driver phone is required to grant dashboard access");
+  }
+  if (!vehicleId) {
+    throw new Error("Vehicle ID is required to grant dashboard access");
   }
 
   const usersRef = collection(db, "users");
@@ -177,6 +183,7 @@ export async function upsertDriverUser(payload) {
       phone,
       role: "driver",
       active: true,
+      vehicle_ids: arrayUnion(vehicleId),
       updated_at: now,
     });
     return existingUser.id;
@@ -189,6 +196,7 @@ export async function upsertDriverUser(payload) {
     phone,
     role: "driver",
     active: true,
+    vehicle_ids: [vehicleId],
     created_at: now,
     updated_at: now,
   });
