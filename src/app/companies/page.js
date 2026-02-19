@@ -14,6 +14,7 @@ import {
   updatePricing,
 } from "@/lib/api";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
+import { upsertCompanyUser } from "@/lib/usersApi";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./companies.module.css";
 
@@ -23,6 +24,7 @@ const initialState = {
   contact_name: "",
   contact_phone: "",
   address: "",
+  company_dashboard_access: false,
   active: true,
 };
 
@@ -68,6 +70,7 @@ export default function CompaniesPage() {
     contact_name: "",
     contact_phone: "",
     address: "",
+    company_dashboard_access: false,
     active: true,
   });
   const [editSaving, setEditSaving] = useState(false);
@@ -269,12 +272,33 @@ export default function CompaniesPage() {
       setError("Invalid contact phone format (+91XXXXXXXXXX)");
       return;
     }
+    if (form.company_dashboard_access && !form.contact_name.trim()) {
+      setError("Contact name is required when dashboard access is enabled");
+      return;
+    }
+    if (form.company_dashboard_access && !form.contact_phone.trim()) {
+      setError("Contact phone is required when dashboard access is enabled");
+      return;
+    }
 
     try {
-      await createCompany({
+      const normalizedContactPhone = normalizePhoneNumber(form.contact_phone);
+      const payload = {
         ...form,
-        contact_phone: normalizePhoneNumber(form.contact_phone),
-      });
+        contact_phone: normalizedContactPhone,
+        company_user_id: "",
+      };
+      const created = await createCompany(payload);
+      if (form.company_dashboard_access && created?.company_id) {
+        const companyUserId = await upsertCompanyUser({
+          contact_name: form.contact_name,
+          contact_phone: normalizedContactPhone,
+          company_id: created.company_id,
+        });
+        await updateCompany(created.company_id, {
+          company_user_id: companyUserId,
+        });
+      }
       setMessage(
         isFirebaseConfigured ? "Company added." : "Demo mode: company prepared."
       );
@@ -300,6 +324,7 @@ export default function CompaniesPage() {
       contact_name: company.contact_name || "",
       contact_phone: company.contact_phone || "",
       address: company.address || "",
+      company_dashboard_access: company.company_dashboard_access === true,
       active: company.active !== false,
     });
     setMessage("");
@@ -329,12 +354,38 @@ export default function CompaniesPage() {
       setEditSaving(false);
       return;
     }
+    if (editForm.company_dashboard_access && !editForm.contact_name.trim()) {
+      setError("Contact name is required when dashboard access is enabled");
+      setEditSaving(false);
+      return;
+    }
+    if (editForm.company_dashboard_access && !editForm.contact_phone.trim()) {
+      setError("Contact phone is required when dashboard access is enabled");
+      setEditSaving(false);
+      return;
+    }
 
     try {
+      const company = companies.find((item) => item.company_id === companyId);
+      let companyUserId = company?.company_user_id || "";
+      const normalizedContactPhone = normalizePhoneNumber(editForm.contact_phone);
+
+      if (editForm.company_dashboard_access) {
+        companyUserId = await upsertCompanyUser({
+          contact_name: editForm.contact_name,
+          contact_phone: normalizedContactPhone,
+          company_id: companyId,
+        });
+      } else if (companyUserId) {
+        companyUserId = "";
+      }
+
       await updateCompany(companyId, {
         contact_name: editForm.contact_name.trim(),
-        contact_phone: normalizePhoneNumber(editForm.contact_phone),
+        contact_phone: normalizedContactPhone,
         address: editForm.address.trim(),
+        company_dashboard_access: editForm.company_dashboard_access,
+        company_user_id: companyUserId,
         active: editForm.active,
       });
       setMessage(
@@ -437,6 +488,7 @@ export default function CompaniesPage() {
                         <th>Contact Name</th>
                         <th>Contact Phone</th>
                         <th>Address</th>
+                        <th>Dashboard Access</th>
                         <th>Status</th>
                         {canEdit && <th>Actions</th>}
                       </tr>
@@ -510,7 +562,32 @@ export default function CompaniesPage() {
                                 className={styles.inlineInput}
                               />
                             ) : (
-                              company.address || "-"
+                              <span className={styles.address}>{company.address || "-"}</span>
+                            )}
+                          </td>
+                          <td data-label="Dashboard Access">
+                            {isEditing ? (
+                              <label className={styles.inlineCheckbox}>
+                                <input
+                                  type="checkbox"
+                                  checked={editForm.company_dashboard_access}
+                                  onChange={(event) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      company_dashboard_access: event.target.checked,
+                                    }))
+                                  }
+                                />
+                                Allow
+                              </label>
+                            ) : (
+                              <span
+                                className={`${styles.status} ${
+                                  company.company_dashboard_access ? styles.active : styles.inactive
+                                }`}
+                              >
+                                {company.company_dashboard_access ? "Allowed" : "Not allowed"}
+                              </span>
                             )}
                           </td>
                           <td data-label="Status">
@@ -916,6 +993,20 @@ export default function CompaniesPage() {
                       }
                       placeholder="+919000000000"
                     />
+                  </label>
+                  <label className={styles.checkboxField}>
+                    <input
+                      type="checkbox"
+                      name="company_dashboard_access"
+                      checked={form.company_dashboard_access}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          company_dashboard_access: event.target.checked,
+                        }))
+                      }
+                    />
+                    Allow dashboard access for this company
                   </label>
                   <label className={styles.field}>
                     Address

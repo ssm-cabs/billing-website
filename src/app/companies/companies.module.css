@@ -78,6 +78,19 @@
   font-family: inherit;
 }
 
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--page-muted);
+}
+
+.checkboxField input {
+  width: 16px;
+  height: 16px;
+}
+
 .actions {
   display: flex;
   gap: 8px;
@@ -216,6 +229,15 @@
   font-family: monospace;
 }
 
+.address {
+  display: inline-block;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
+
 .status {
   display: inline-block;
   padding: 4px 10px;
@@ -248,6 +270,19 @@
 
 .inlineDropdown {
   min-width: 120px;
+}
+
+.inlineCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #5e534c;
+}
+
+.inlineCheckbox input {
+  width: 15px;
+  height: 15px;
 }
 
 .inlineInput {

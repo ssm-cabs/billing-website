@@ -135,6 +135,20 @@ export async function deleteUser(userId) {
         )
       );
     }
+    if (isRole(role, "company")) {
+      const companiesRef = collection(db, "companies");
+      const companiesQuery = query(companiesRef, where("company_user_id", "==", userId));
+      const companiesSnapshot = await getDocs(companiesQuery);
+
+      await Promise.all(
+        companiesSnapshot.docs.map((companyDoc) =>
+          updateDoc(doc(db, "companies", companyDoc.id), {
+            company_dashboard_access: false,
+            company_user_id: "",
+          })
+        )
+      );
+    }
   } catch (error) {
     console.error("Error deleting user:", error);
     throw error;
@@ -190,6 +204,61 @@ export async function upsertDriverUser(payload) {
     role: normalizeRole("driver"),
     active: true,
     vehicle_ids: [vehicleId],
+    created_at: now,
+    updated_at: now,
+  });
+  return newUserRef.id;
+}
+
+/**
+ * Create or update a company user by phone number
+ * @param {Object} payload
+ * @param {string} payload.contact_name
+ * @param {string} payload.contact_phone
+ * @param {string} payload.company_id
+ * @returns {Promise<string>} - User document ID
+ */
+export async function upsertCompanyUser(payload) {
+  const name = String(payload?.contact_name || "").trim();
+  const phone = normalizePhoneNumber(payload?.contact_phone || "");
+  const companyId = String(payload?.company_id || "").trim();
+
+  if (!name) {
+    throw new Error("Contact name is required to grant dashboard access");
+  }
+  if (!phone) {
+    throw new Error("Contact phone is required to grant dashboard access");
+  }
+  if (!companyId) {
+    throw new Error("Company ID is required to grant dashboard access");
+  }
+
+  const usersRef = collection(db, "users");
+  const existingQuery = query(usersRef, where("phone", "==", phone));
+  const existingSnapshot = await getDocs(existingQuery);
+  const now = new Date().toISOString();
+
+  if (!existingSnapshot.empty) {
+    const existingUser = existingSnapshot.docs[0];
+    await updateDoc(doc(db, "users", existingUser.id), {
+      name,
+      phone,
+      role: normalizeRole("company"),
+      active: true,
+      company_ids: arrayUnion(companyId),
+      updated_at: now,
+    });
+    return existingUser.id;
+  }
+
+  const newUserRef = doc(usersRef);
+  await setDoc(newUserRef, {
+    user_id: newUserRef.id,
+    name,
+    phone,
+    role: normalizeRole("company"),
+    active: true,
+    company_ids: [companyId],
     created_at: now,
     updated_at: now,
   });

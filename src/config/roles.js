@@ -14,6 +14,11 @@ export const ROLE_DEFINITIONS = {
     homeRoute: "/driver/dashboard",
     canAccessBackofficeDashboard: false,
   },
+  company: {
+    label: "Company",
+    homeRoute: "/companies",
+    canAccessBackofficeDashboard: false,
+  },
 };
 
 export const DEFAULT_ROLE = "user";
@@ -44,4 +49,3 @@ export function canAccessBackofficeDashboard(role) {
 export function isRole(role, expectedRole) {
   return normalizeRole(role) === normalizeRole(expectedRole);
 }
-

@@ -29,8 +29,14 @@ export function usePermissions(collection) {
         const homeRoute = getHomeRouteForRole(userData?.role);
         const permissions = userData.permissions || {};
         const permission = permissions[collection] || PERMISSION_LEVELS.NONE;
+        const isRoleHomeModule = homeRoute === `/${collection}`;
 
         if (permission === PERMISSION_LEVELS.NONE) {
+          if (isRoleHomeModule) {
+            setCanView(true);
+            setCanEdit(true);
+            return;
+          }
           // No permission, redirect based on role.
           router.push(homeRoute);
           setCanView(false);
