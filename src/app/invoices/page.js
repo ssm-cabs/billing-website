@@ -35,7 +35,6 @@ const OUR_COMPANY = {
   address: "1st Floor, MSIL Building, Old Madras Rd, M V Extenstion, Hoskote, Bengaluru, Karnataka 562114",
   phone: "+91 9686000477",
   email: "accounts@ssmcabs.com",
-  bank_details: "Account: 000111222333 | SBI | IFSC: SBIN0001234",
 };
 
 const getCompanyOptions = (companies) =>
@@ -553,10 +552,6 @@ export default function InvoicePage() {
                       <p>{OUR_COMPANY.address}</p>
                       <p>{OUR_COMPANY.phone}</p>
                       <p>{OUR_COMPANY.email}</p>
-                    </div>
-                    <div className={styles.footerSection}>
-                      <p className={styles.footerLabel}>Bank Details</p>
-                      <p>{OUR_COMPANY.bank_details}</p>
                     </div>
                   </div>
 
