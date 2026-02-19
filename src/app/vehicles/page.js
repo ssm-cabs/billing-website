@@ -14,6 +14,7 @@ import {
   updateVehicle,
 } from "@/lib/api";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
+import { upsertDriverUser } from "@/lib/usersApi";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./vehicles.module.css";
 
@@ -25,6 +26,7 @@ const initialState = {
   ownership_type: "own",
   driver_name: "",
   driver_phone: "",
+  driver_dashboard_access: false,
   notes: "",
 };
 
@@ -70,6 +72,7 @@ export default function VehiclesPage() {
     capacity: "",
     driver_name: "",
     driver_phone: "",
+    driver_dashboard_access: false,
     active: true,
   });
   const [editSaving, setEditSaving] = useState(false);
@@ -270,6 +273,14 @@ export default function VehiclesPage() {
       setError("Invalid driver phone format (+91XXXXXXXXXX)");
       return;
     }
+    if (form.driver_dashboard_access && !form.driver_name.trim()) {
+      setError("Driver name is required when dashboard access is enabled");
+      return;
+    }
+    if (form.driver_dashboard_access && !form.driver_phone.trim()) {
+      setError("Driver phone is required when dashboard access is enabled");
+      return;
+    }
 
     const payload = {
       ...form,
@@ -279,6 +290,12 @@ export default function VehiclesPage() {
 
     try {
       await createVehicle(payload);
+      if (payload.driver_dashboard_access) {
+        await upsertDriverUser({
+          driver_name: payload.driver_name,
+          driver_phone: payload.driver_phone,
+        });
+      }
       setMessage(
         isFirebaseConfigured
           ? "Vehicle added."
@@ -306,6 +323,7 @@ export default function VehiclesPage() {
       capacity: vehicle.capacity ?? "",
       driver_name: vehicle.driver_name || "",
       driver_phone: vehicle.driver_phone || "",
+      driver_dashboard_access: vehicle.driver_dashboard_access === true,
       active: vehicle.active !== false,
     });
     setMessage("");
@@ -332,14 +350,32 @@ export default function VehiclesPage() {
       setEditSaving(false);
       return;
     }
+    if (editForm.driver_dashboard_access && !editForm.driver_name.trim()) {
+      setError("Driver name is required when dashboard access is enabled");
+      setEditSaving(false);
+      return;
+    }
+    if (editForm.driver_dashboard_access && !editForm.driver_phone.trim()) {
+      setError("Driver phone is required when dashboard access is enabled");
+      setEditSaving(false);
+      return;
+    }
 
     try {
-      await updateVehicle(vehicleId, {
+      const payload = {
         capacity: editForm.capacity ? Number(editForm.capacity) : null,
         driver_name: editForm.driver_name.trim(),
         driver_phone: normalizePhoneNumber(editForm.driver_phone),
+        driver_dashboard_access: editForm.driver_dashboard_access,
         active: editForm.active,
-      });
+      };
+      await updateVehicle(vehicleId, payload);
+      if (payload.driver_dashboard_access) {
+        await upsertDriverUser({
+          driver_name: payload.driver_name,
+          driver_phone: payload.driver_phone,
+        });
+      }
       setMessage(
         isFirebaseConfigured
           ? "Vehicle updated."
@@ -439,6 +475,7 @@ export default function VehiclesPage() {
                     <th>Capacity</th>
                     <th>Driver</th>
                     <th>Driver Phone</th>
+                    <th>Dashboard Access</th>
                     <th>Ownership</th>
                     <th>Status</th>
                     {canEdit && <th>Actions</th>}
@@ -514,6 +551,31 @@ export default function VehiclesPage() {
                               />
                             ) : (
                               vehicle.driver_phone || "-"
+                            )}
+                          </td>
+                          <td data-label="Dashboard Access">
+                            {isEditing ? (
+                              <label className={styles.inlineCheckbox}>
+                                <input
+                                  type="checkbox"
+                                  checked={editForm.driver_dashboard_access}
+                                  onChange={(event) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      driver_dashboard_access: event.target.checked,
+                                    }))
+                                  }
+                                />
+                                Allow
+                              </label>
+                            ) : (
+                              <span
+                                className={`${styles.status} ${
+                                  vehicle.driver_dashboard_access ? styles.active : styles.inactive
+                                }`}
+                              >
+                                {vehicle.driver_dashboard_access ? "Allowed" : "Not allowed"}
+                              </span>
                             )}
                           </td>
                           <td data-label="Ownership">
@@ -933,6 +995,20 @@ export default function VehiclesPage() {
                   }
                   placeholder="+919000000000"
                 />
+              </label>
+              <label className={styles.checkboxField}>
+                <input
+                  type="checkbox"
+                  name="driver_dashboard_access"
+                  checked={form.driver_dashboard_access}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      driver_dashboard_access: event.target.checked,
+                    }))
+                  }
+                />
+                Allow dashboard access for this driver
               </label>
               <label className={styles.field}>
                 Notes

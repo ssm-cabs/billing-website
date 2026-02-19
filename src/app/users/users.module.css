@@ -489,6 +489,16 @@
   font-size: 13px;
 }
 
+.helperText {
+  margin: 0;
+  font-size: 13px;
+  color: #6b5c53;
+  background: #fbf7f2;
+  border: 1px solid rgba(30, 25, 22, 0.08);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
 .formActions {
   display: flex;
   gap: 12px;

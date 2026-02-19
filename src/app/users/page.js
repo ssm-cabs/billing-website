@@ -76,6 +76,7 @@ export default function UsersPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState({ id: null, name: "" });
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingRole, setEditingRole] = useState("user");
   const [formData, setFormData] = useState({
     phone: "",
     name: "",
@@ -136,6 +137,7 @@ export default function UsersPage() {
       notes: "",
       permissions: getDefaultPermissions(),
     });
+    setEditingRole("user");
     setFormError("");
     setShowForm(true);
   };
@@ -151,6 +153,7 @@ export default function UsersPage() {
       notes: user.notes || "",
       permissions: user.permissions || getDefaultPermissions(),
     });
+    setEditingRole(normalizeRole(user.role));
     setFormError("");
     setShowForm(true);
   };
@@ -450,30 +453,36 @@ export default function UsersPage() {
 
               <div className={styles.formGroup}>
                 <label>Permissions</label>
-                <div className={styles.permissionsGrid}>
-                  {MODULES.filter((module) => !HIDDEN_PERMISSION_MODULES.has(module.id)).map((module) => (
-                    <div key={module.id} className={styles.permissionItem}>
-                      <span className={styles.permissionLabel}>
-                        {module.icon} {module.name}
-                      </span>
-                      <CustomDropdown
-                        options={getPermissionOptions(module.id)}
-                        value={normalizeModulePermission(
-                          module.id,
-                          formData.permissions[module.id]
-                        )}
-                        onChange={(value) =>
-                          handlePermissionChange(module.id, value)
-                        }
-                        getLabel={(option) => option.label}
-                        getValue={(option) => option.value}
-                        buttonClassName={styles.permissionSelect}
-                        placeholder="Select permission"
-                      />
+                {editingId && editingRole === "driver" ? (
+                  <p className={styles.helperText}>
+                    Permissions for driver accounts are managed from Vehicles.
+                  </p>
+                ) : (
+                  <div className={styles.permissionsGrid}>
+                    {MODULES.filter((module) => !HIDDEN_PERMISSION_MODULES.has(module.id)).map((module) => (
+                      <div key={module.id} className={styles.permissionItem}>
+                        <span className={styles.permissionLabel}>
+                          {module.icon} {module.name}
+                        </span>
+                        <CustomDropdown
+                          options={getPermissionOptions(module.id)}
+                          value={normalizeModulePermission(
+                            module.id,
+                            formData.permissions[module.id]
+                          )}
+                          onChange={(value) =>
+                            handlePermissionChange(module.id, value)
+                          }
+                          getLabel={(option) => option.label}
+                          getValue={(option) => option.value}
+                          buttonClassName={styles.permissionSelect}
+                          placeholder="Select permission"
+                        />
                       </div>
-                    )
-                  )}
-                </div>
+                      )
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className={styles.formGroup}>

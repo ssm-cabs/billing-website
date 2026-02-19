@@ -7,9 +7,11 @@ import {
   getDocs,
   query,
   orderBy,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { getDefaultPermissions } from "@/config/modules";
+import { normalizePhoneNumber } from "./phone";
 
 const USER_ROLES = new Set(["admin", "user", "driver"]);
 
@@ -122,4 +124,52 @@ export async function deleteUser(userId) {
     console.error("Error deleting user:", error);
     throw error;
   }
+}
+
+/**
+ * Create or update a driver user by phone number
+ * @param {Object} payload
+ * @param {string} payload.driver_name
+ * @param {string} payload.driver_phone
+ * @returns {Promise<string>} - User document ID
+ */
+export async function upsertDriverUser(payload) {
+  const name = String(payload?.driver_name || "").trim();
+  const phone = normalizePhoneNumber(payload?.driver_phone || "");
+
+  if (!name) {
+    throw new Error("Driver name is required to grant dashboard access");
+  }
+  if (!phone) {
+    throw new Error("Driver phone is required to grant dashboard access");
+  }
+
+  const usersRef = collection(db, "users");
+  const existingQuery = query(usersRef, where("phone", "==", phone));
+  const existingSnapshot = await getDocs(existingQuery);
+  const now = new Date().toISOString();
+
+  if (!existingSnapshot.empty) {
+    const existingUser = existingSnapshot.docs[0];
+    await updateDoc(doc(db, "users", existingUser.id), {
+      name,
+      phone,
+      role: "driver",
+      active: true,
+      updated_at: now,
+    });
+    return existingUser.id;
+  }
+
+  const newUserRef = doc(usersRef);
+  await setDoc(newUserRef, {
+    user_id: newUserRef.id,
+    name,
+    phone,
+    role: "driver",
+    active: true,
+    created_at: now,
+    updated_at: now,
+  });
+  return newUserRef.id;
 }
