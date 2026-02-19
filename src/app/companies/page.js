@@ -14,7 +14,7 @@ import {
   updatePricing,
 } from "@/lib/api";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
-import { upsertCompanyUser } from "@/lib/usersApi";
+import { deleteUser, upsertCompanyUser } from "@/lib/usersApi";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./companies.module.css";
 
@@ -377,6 +377,7 @@ export default function CompaniesPage() {
           company_id: companyId,
         });
       } else if (companyUserId) {
+        await deleteUser(companyUserId);
         companyUserId = "";
       }
 

@@ -362,7 +362,7 @@ export default function UsersPage() {
                     <td className={styles.actions} data-label="Actions">
                       {!isRole(role, "admin") && (
                         <>
-                          {!isRole(role, "driver") && (
+                          {!isRole(role, "driver") && !isRole(role, "company") && (
                             <button
                               className={styles.editBtn}
                               onClick={() => handleEditClick(user)}
