@@ -14,7 +14,7 @@ import {
   updateVehicle,
 } from "@/lib/api";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
-import { upsertDriverUser } from "@/lib/usersApi";
+import { deleteUser, upsertDriverUser } from "@/lib/usersApi";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./vehicles.module.css";
 
@@ -282,20 +282,22 @@ export default function VehiclesPage() {
       return;
     }
 
-    const payload = {
-      ...form,
-      driver_phone: normalizePhoneNumber(form.driver_phone),
-      capacity: form.capacity ? Number(form.capacity) : null,
-    };
-
     try {
-      await createVehicle(payload);
-      if (payload.driver_dashboard_access) {
-        await upsertDriverUser({
-          driver_name: payload.driver_name,
-          driver_phone: payload.driver_phone,
+      const normalizedDriverPhone = normalizePhoneNumber(form.driver_phone);
+      let driverUserId = "";
+      if (form.driver_dashboard_access) {
+        driverUserId = await upsertDriverUser({
+          driver_name: form.driver_name,
+          driver_phone: normalizedDriverPhone,
         });
       }
+      const payload = {
+        ...form,
+        driver_phone: normalizedDriverPhone,
+        driver_user_id: driverUserId,
+        capacity: form.capacity ? Number(form.capacity) : null,
+      };
+      await createVehicle(payload);
       setMessage(
         isFirebaseConfigured
           ? "Vehicle added."
@@ -362,20 +364,29 @@ export default function VehiclesPage() {
     }
 
     try {
+      const vehicle = vehicles.find((item) => item.vehicle_id === vehicleId);
+      let driverUserId = vehicle?.driver_user_id || "";
+      const normalizedDriverPhone = normalizePhoneNumber(editForm.driver_phone);
+
+      if (editForm.driver_dashboard_access) {
+        driverUserId = await upsertDriverUser({
+          driver_name: editForm.driver_name,
+          driver_phone: normalizedDriverPhone,
+        });
+      } else if (driverUserId) {
+        await deleteUser(driverUserId);
+        driverUserId = "";
+      }
+
       const payload = {
         capacity: editForm.capacity ? Number(editForm.capacity) : null,
         driver_name: editForm.driver_name.trim(),
-        driver_phone: normalizePhoneNumber(editForm.driver_phone),
+        driver_phone: normalizedDriverPhone,
         driver_dashboard_access: editForm.driver_dashboard_access,
+        driver_user_id: driverUserId,
         active: editForm.active,
       };
       await updateVehicle(vehicleId, payload);
-      if (payload.driver_dashboard_access) {
-        await upsertDriverUser({
-          driver_name: payload.driver_name,
-          driver_phone: payload.driver_phone,
-        });
-      }
       setMessage(
         isFirebaseConfigured
           ? "Vehicle updated."

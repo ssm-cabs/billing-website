@@ -4,6 +4,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   orderBy,
@@ -119,7 +120,27 @@ export async function updateUser(userId, userData) {
 export async function deleteUser(userId) {
   try {
     const userRef = doc(db, "users", userId);
+    const userSnapshot = await getDoc(userRef);
+    const role = userSnapshot.exists()
+      ? normalizeRole(userSnapshot.data()?.role)
+      : "";
+
     await deleteDoc(userRef);
+
+    if (role === "driver") {
+      const vehiclesRef = collection(db, "vehicles");
+      const vehiclesQuery = query(vehiclesRef, where("driver_user_id", "==", userId));
+      const vehiclesSnapshot = await getDocs(vehiclesQuery);
+
+      await Promise.all(
+        vehiclesSnapshot.docs.map((vehicleDoc) =>
+          updateDoc(doc(db, "vehicles", vehicleDoc.id), {
+            driver_dashboard_access: false,
+            driver_user_id: "",
+          })
+        )
+      );
+    }
   } catch (error) {
     console.error("Error deleting user:", error);
     throw error;
