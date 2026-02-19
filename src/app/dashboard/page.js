@@ -12,11 +12,12 @@ import {
   fetchEntries,
   isFirebaseConfigured,
 } from "@/lib/api";
-import { getCurrentUser } from "@/lib/phoneAuth";
+import { getUserData } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import { canViewCollection } from "@/lib/usePermissions";
 import { MODULES } from "@/config/modules";
+import { normalizeRole } from "@/lib/roleRouting";
 import styles from "./dashboard.module.css";
 
 const QUICK_ACTION_ICON_META = {
@@ -158,6 +159,18 @@ export default function DashboardPage() {
         router.push("/login");
         return;
       }
+
+      try {
+        const userData = user.phoneNumber ? await getUserData(user.phoneNumber) : null;
+        if (normalizeRole(userData?.role) === "driver") {
+          setIsLoading(false);
+          router.push("/driver/dashboard");
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to load user role:", error);
+      }
+
       setIsAuthenticated(true);
       setIsLoading(false);
     };

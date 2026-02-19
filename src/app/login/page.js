@@ -14,6 +14,7 @@ import {
 } from "@/lib/phoneAuth";
 import { setTokenExpiry } from "@/lib/useSessionTimeout";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
+import { getHomeRouteForRole } from "@/lib/roleRouting";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,7 +31,17 @@ export default function LoginPage() {
   useEffect(() => {
     const checkExistingAuth = async () => {
       const user = await waitForAuthInit();
-      if (user) {
+      if (!user?.phoneNumber) return;
+
+      try {
+        const userData = await getUserData(user.phoneNumber);
+        if (userData?.active === false) {
+          await signOutUser();
+          return;
+        }
+        router.push(getHomeRouteForRole(userData?.role));
+      } catch (error) {
+        console.error("Existing auth check failed:", error);
         router.push("/dashboard");
       }
     };
@@ -195,8 +206,8 @@ export default function LoginPage() {
         console.log("User data saved to localStorage");
       }
       
-      // Redirect to dashboard on successful verification
-      router.push("/dashboard");
+      // Redirect based on role on successful verification
+      router.push(getHomeRouteForRole(userData?.role));
     } catch (err) {
       console.error("OTP verify error:", err);
       if (err.code === "auth/invalid-verification-code") {
