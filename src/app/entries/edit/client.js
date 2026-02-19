@@ -14,7 +14,7 @@ import {
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
-import { computeEntryBilling } from "@/lib/entryBilling";
+import { composeEntryNotes, computeEntryBilling } from "@/lib/entryBilling";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "../edit.module.css";
 
@@ -278,6 +278,15 @@ export default function ClientEditEntryPage() {
       }
 
       const loggedInName = getLoggedInUserName();
+      const computedNotes = composeEntryNotes({
+        notes: form.notes,
+        slot: form.slot,
+        start_time: form.start_time,
+        end_time: form.end_time,
+        odometer_start: odometerStart,
+        odometer_end: odometerEnd,
+        billing: billingPreview,
+      });
       await updateEntry(id, {
         ...form,
         start_time: String(form.start_time || "").trim(),
@@ -293,6 +302,7 @@ export default function ClientEditEntryPage() {
         extra_kms_cost: billingPreview.extra_kms_cost,
         tolls: billingPreview.tolls,
         total: billingPreview.total,
+        notes: computedNotes,
         user_name: loggedInName || form.user_name,
       });
       setStatus("success");
