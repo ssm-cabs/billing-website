@@ -591,7 +591,7 @@ export default function VehiclesPage() {
                                   vehicle.driver_dashboard_access ? styles.active : styles.inactive
                                 }`}
                               >
-                                {vehicle.driver_dashboard_access ? "Allowed" : "Not allowed"}
+                                {vehicle.driver_dashboard_access ? "Allowed" : "No Access"}
                               </span>
                             )}
                           </td>

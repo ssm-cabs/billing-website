@@ -587,7 +587,7 @@ export default function CompaniesPage() {
                                   company.company_dashboard_access ? styles.active : styles.inactive
                                 }`}
                               >
-                                {company.company_dashboard_access ? "Allowed" : "Not allowed"}
+                                {company.company_dashboard_access ? "Allowed" : "No Access"}
                               </span>
                             )}
                           </td>
