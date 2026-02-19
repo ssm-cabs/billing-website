@@ -273,7 +273,7 @@ export default function EntriesPage() {
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Company</th>
+                <th className={styles.companyColumn}>Company</th>
                 <th>Vehicle</th>
                 <th>Slot</th>
                 <th>Total</th>
@@ -289,7 +289,9 @@ export default function EntriesPage() {
               {entries.map((entry) => (
                 <tr key={entry.entry_id}>
                   <td data-label="Date">{entry.entry_date}</td>
-                  <td data-label="Company">{entry.company_name}</td>
+                  <td data-label="Company" className={styles.companyColumn}>
+                    <NotesPreview text={entry.company_name} maxWidth={165} />
+                  </td>
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Slot">{entry.slot}</td>
                   <td data-label="Total">
