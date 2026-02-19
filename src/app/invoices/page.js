@@ -32,7 +32,8 @@ const getMonthValue = () => {
 
 const OUR_COMPANY = {
   name: "SSM Cabs",
-  address: "1st Floor, MSIL Building, Old Madras Rd, M V Extenstion, Hoskote, Bengaluru, Karnataka 562114",
+  address1: "1st Floor, MSIL Building, Old Madras Rd, M V Extenstion",
+  address2: "Hoskote, Bengaluru, Karnataka 562114",
   phone: "+91 9686000477",
   email: "accounts@ssmcabs.com",
 };
@@ -453,7 +454,8 @@ export default function InvoicePage() {
                       />
                       <div className={styles.ourDetails}>
                         <p>{OUR_COMPANY.name}</p>
-                        <p>{OUR_COMPANY.address}</p>
+                        <p>{OUR_COMPANY.address1}</p>
+                        <p>{OUR_COMPANY.address2}</p>
                         <p>{OUR_COMPANY.phone}</p>
                         <p>{OUR_COMPANY.email}</p>
                       </div>
@@ -549,7 +551,8 @@ export default function InvoicePage() {
                     <div className={styles.footerSection}>
                       <p className={styles.footerLabel}>Our Details</p>
                       <p>{OUR_COMPANY.name}</p>
-                      <p>{OUR_COMPANY.address}</p>
+                      <p>{OUR_COMPANY.address1}</p>
+                      <p>{OUR_COMPANY.address2}</p>
                       <p>{OUR_COMPANY.phone}</p>
                       <p>{OUR_COMPANY.email}</p>
                     </div>
