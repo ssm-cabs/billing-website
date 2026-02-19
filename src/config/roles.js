@@ -16,7 +16,7 @@ export const ROLE_DEFINITIONS = {
   },
   company: {
     label: "Company",
-    homeRoute: "/companies",
+    homeRoute: "/company/dashboard",
     canAccessBackofficeDashboard: false,
   },
 };
