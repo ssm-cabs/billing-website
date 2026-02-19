@@ -492,13 +492,37 @@ export default function InvoicePage() {
                         <p className={styles.empty}>No entries for this period</p>
                       ) : (
                         <>
+                          <div className={`${styles.lineItem} ${styles.lineItemHeader}`}>
+                            <span className={styles.column}>Date</span>
+                            {isVehicleInvoice && (
+                              <span className={styles.column}>Company</span>
+                            )}
+                            <span className={styles.column}>Slot</span>
+                            {!isVehicleInvoice && (
+                              <span className={styles.column}>Cab</span>
+                            )}
+                            {!isVehicleInvoice && (
+                              <span className={styles.column}>Vehicle</span>
+                            )}
+                            <span className={styles.column}>Extras (K/H/T)</span>
+                            <span className={styles.column}>Amount</span>
+                          </div>
                           {invoice.line_items?.map((item, idx) => (
                             <div key={idx} className={styles.lineItem}>
                               <span className={styles.column}>{item.date}</span>
-                              <span className={styles.column}>{item.company_name || "-"}</span>
+                              {isVehicleInvoice && (
+                                <span className={styles.column}>{item.company_name || "-"}</span>
+                              )}
                               <span className={styles.column}>{item.slot}</span>
-                              <span className={styles.column}>{item.cab_type}</span>
-                              <span className={styles.column}>{item.vehicle_number}</span>
+                              {!isVehicleInvoice && (
+                                <span className={styles.column}>{item.cab_type}</span>
+                              )}
+                              {!isVehicleInvoice && (
+                                <span className={styles.column}>{item.vehicle_number}</span>
+                              )}
+                              <span className={styles.column}>
+                                {`${Number(item.extra_kms) || 0}/${Number(item.extra_hours) || 0}/${Number(item.tolls) || 0}`}
+                              </span>
                               <span className={styles.column}>₹{item.amount ?? item.rate ?? 0}</span>
                             </div>
                           ))}

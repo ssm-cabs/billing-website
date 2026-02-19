@@ -956,6 +956,9 @@ export async function generateInvoice(companyId, month) {
     .filter((entry) => (Number(entry.total) || Number(entry.rate) || 0) > 0)
     .map((entry) => {
       const rate = Number(entry.rate) || 0;
+      const extraHours = Number(entry.hours) || 0;
+      const extraKms = Number(entry.kms) || 0;
+      const tolls = Number(entry.tolls) || 0;
       const amount = Number(entry.total) || rate;
       subtotalAmount += amount;
       return {
@@ -963,6 +966,9 @@ export async function generateInvoice(companyId, month) {
         cab_type: entry.cab_type || "Unknown",
         slot: entry.slot || "Unknown",
         rate,
+        extra_hours: extraHours,
+        extra_kms: extraKms,
+        tolls,
         amount,
         date: entry.entry_date || "",
         vehicle_number: entry.vehicle_number || "",
@@ -1112,6 +1118,9 @@ export async function generateVehicleInvoice(vehicleId, month) {
       cab_type: vehicleData.cab_type || entry.cab_type || "",
       vehicle_number: vehicleData.vehicle_number || entry.vehicle_number || "",
       rate: billing.rate,
+      extra_hours: billing.extraHours,
+      extra_kms: billing.extraKms,
+      tolls: billing.tolls,
       amount: billing.total,
     };
   });
