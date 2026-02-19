@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DatePicker from "../DatePicker";
@@ -10,9 +10,11 @@ import {
   fetchEntryById,
   updateEntry,
   fetchCompanies,
+  fetchPricing,
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
+import { computeEntryBilling } from "@/lib/entryBilling";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "../edit.module.css";
 
@@ -32,8 +34,8 @@ const initialState = {
   rate: 0,
   odometer_start: "",
   odometer_end: "",
-  hours: "",
-  kms: "",
+  extra_per_hour: "",
+  extra_per_km: "",
   tolls: "",
   notes: "",
 };
@@ -67,6 +69,8 @@ export default function ClientEditEntryPage() {
   const [companyStatus, setCompanyStatus] = useState("idle");
   const [vehicles, setVehicles] = useState([]);
   const [vehicleStatus, setVehicleStatus] = useState("idle");
+  const [pricing, setPricing] = useState([]);
+  const [pricingStatus, setPricingStatus] = useState("idle");
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isBilled, setIsBilled] = useState(false);
@@ -100,8 +104,8 @@ export default function ClientEditEntryPage() {
           rate: entry.rate || 0,
           odometer_start: entry.odometer_start ?? "",
           odometer_end: entry.odometer_end ?? "",
-          hours: entry.hours ?? "",
-          kms: entry.kms ?? "",
+          extra_per_hour: entry.extra_per_hour ?? "",
+          extra_per_km: entry.extra_per_km ?? "",
           tolls: entry.tolls ?? "",
           notes: entry.notes || "",
         });
@@ -168,6 +172,25 @@ export default function ClientEditEntryPage() {
   }, [companies]);
 
   useEffect(() => {
+    const loadPricing = async () => {
+      if (!form.company_id) {
+        setPricing([]);
+        return;
+      }
+      setPricingStatus("loading");
+      try {
+        const data = await fetchPricing(form.company_id);
+        setPricing(data);
+        setPricingStatus("success");
+      } catch (err) {
+        setPricingStatus("error");
+      }
+    };
+
+    loadPricing();
+  }, [form.company_id]);
+
+  useEffect(() => {
     if (!vehicles.length) return;
     setForm((prev) => {
       if (prev.vehicle_id || !prev.vehicle_number) return prev;
@@ -182,6 +205,41 @@ export default function ClientEditEntryPage() {
       };
     });
   }, [vehicles]);
+
+  const selectedVehicle = vehicles.find(
+    (vehicle) => vehicle.vehicle_number === form.vehicle_number
+  );
+  const resolvedCabType = selectedVehicle?.cab_type || form.cab_type || "";
+  const matchingPrice = pricing.find(
+    (p) => p.cab_type === resolvedCabType && p.slot === form.slot
+  );
+  const resolvedExtraPerHour = Number(matchingPrice?.extra_per_hour ?? form.extra_per_hour) || 0;
+  const resolvedExtraPerKm = Number(matchingPrice?.extra_per_km ?? form.extra_per_km) || 0;
+  const billingPreview = useMemo(
+    () =>
+      computeEntryBilling({
+        slot: form.slot,
+        rate: form.rate,
+        extra_per_hour: resolvedExtraPerHour,
+        extra_per_km: resolvedExtraPerKm,
+        tolls: form.tolls,
+        start_time: form.start_time,
+        end_time: form.end_time,
+        odometer_start: form.odometer_start,
+        odometer_end: form.odometer_end,
+      }),
+    [
+      form.end_time,
+      form.odometer_end,
+      form.odometer_start,
+      form.rate,
+      form.slot,
+      form.start_time,
+      form.tolls,
+      resolvedExtraPerHour,
+      resolvedExtraPerKm,
+    ]
+  );
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -226,9 +284,15 @@ export default function ClientEditEntryPage() {
         end_time: String(form.end_time || "").trim(),
         odometer_start: odometerStart,
         odometer_end: odometerEnd,
-        hours: form.hours === "" ? null : Number(form.hours),
-        kms: form.kms === "" ? null : Number(form.kms),
-        tolls: form.tolls === "" ? null : Number(form.tolls),
+        cab_type: resolvedCabType,
+        hours: billingPreview.extraHours,
+        kms: billingPreview.extraKms,
+        extra_per_hour: billingPreview.extra_per_hour,
+        extra_per_km: billingPreview.extra_per_km,
+        extra_time_cost: billingPreview.extra_time_cost,
+        extra_kms_cost: billingPreview.extra_kms_cost,
+        tolls: billingPreview.tolls,
+        total: billingPreview.total,
         user_name: loggedInName || form.user_name,
       });
       setStatus("success");
@@ -392,7 +456,7 @@ export default function ClientEditEntryPage() {
             Cab type
             <input
               type="text"
-              value={form.cab_type || ""}
+              value={resolvedCabType}
               disabled
               readOnly
             />
@@ -408,6 +472,9 @@ export default function ClientEditEntryPage() {
             getValue={(option) => option.value}
             placeholder="Select slot"
           />
+          {pricingStatus === "loading" && (
+            <span className={styles.helper}>Loading pricing...</span>
+          )}
         </label>
         {form.vehicle_number && form.slot && (
           <label className={styles.field}>
@@ -421,6 +488,18 @@ export default function ClientEditEntryPage() {
             />
           </label>
         )}
+        <label className={styles.field}>
+          Toll Charges
+          <input
+            type="number"
+            name="tolls"
+            value={form.tolls}
+            onChange={updateField}
+            min="0"
+            step="1"
+            placeholder="e.g. 250"
+          />
+        </label>
         <label className={styles.field}>
           Odometer start
           <input
@@ -481,48 +560,21 @@ export default function ClientEditEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          Extra hours
-          <input
-            type="number"
-            name="hours"
-            value={form.hours}
-            onChange={updateField}
-            min="0"
-            step="1"
-            placeholder="e.g. 2"
-          />
-        </label>
-        <label className={styles.field}>
-          Extra kms
-          <input
-            type="number"
-            name="kms"
-            value={form.kms}
-            onChange={updateField}
-            min="0"
-            step="1"
-            placeholder="e.g. 18"
-          />
-        </label>
-        <label className={styles.field}>
-          Toll Charges
-          <input
-            type="number"
-            name="tolls"
-            value={form.tolls}
-            onChange={updateField}
-            min="0"
-            step="1"
-            placeholder="e.g. 250"
-          />
-        </label>
-        <label className={styles.field}>
           Notes
           <textarea
             name="notes"
             value={form.notes}
             onChange={updateField}
             rows={3}
+          />
+        </label>
+        <label className={styles.field}>
+          Total (Auto Calculated)
+          <input
+            type="number"
+            value={billingPreview.total}
+            disabled
+            readOnly
           />
         </label>
 

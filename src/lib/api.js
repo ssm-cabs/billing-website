@@ -17,6 +17,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
+import { computeEntryBilling } from "./entryBilling";
 
 const mockEntries = [
   {
@@ -80,18 +81,53 @@ const mockCompanies = [
 
 const mockPricing = {
   "acme-corp": [
-    { pricing_id: "p1", cab_type: "SUV", slot: "8hr", rate: 2400 },
-    { pricing_id: "p2", cab_type: "Sedan", slot: "4hr", rate: 1200 },
+    {
+      pricing_id: "p1",
+      cab_type: "SUV",
+      slot: "8hr",
+      rate: 2400,
+      extra_per_hour: 300,
+      extra_per_km: 20,
+    },
+    {
+      pricing_id: "p2",
+      cab_type: "Sedan",
+      slot: "4hr",
+      rate: 1200,
+      extra_per_hour: 250,
+      extra_per_km: 18,
+    },
   ],
   globex: [
-    { pricing_id: "p3", cab_type: "Sedan", slot: "4hr", rate: 1400 },
+    {
+      pricing_id: "p3",
+      cab_type: "Sedan",
+      slot: "4hr",
+      rate: 1400,
+      extra_per_hour: 300,
+      extra_per_km: 20,
+    },
   ],
 };
 
 const mockVehiclePricing = {
   "tn-09-ab-1234": [
-    { pricing_id: "SUV-4hr", cab_type: "SUV", slot: "4hr", rate: 1300 },
-    { pricing_id: "SUV-8hr", cab_type: "SUV", slot: "8hr", rate: 2200 },
+    {
+      pricing_id: "SUV-4hr",
+      cab_type: "SUV",
+      slot: "4hr",
+      rate: 1300,
+      extra_per_hour: 220,
+      extra_per_km: 15,
+    },
+    {
+      pricing_id: "SUV-8hr",
+      cab_type: "SUV",
+      slot: "8hr",
+      rate: 2200,
+      extra_per_hour: 260,
+      extra_per_km: 18,
+    },
   ],
 };
 
@@ -429,6 +465,9 @@ export async function createPricing(companyId, payload) {
   const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);
   const pricing = {
     ...payload,
+    rate: Number(payload.rate) || 0,
+    extra_per_hour: Number(payload.extra_per_hour) || 0,
+    extra_per_km: Number(payload.extra_per_km) || 0,
     pricing_id: pricingId,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
@@ -454,7 +493,9 @@ export async function updatePricing(companyId, pricingId, payload) {
   const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);
   const pricing = {
     ...payload,
-    pricing_id: pricingId,
+    rate: Number(payload.rate) || 0,
+    extra_per_hour: Number(payload.extra_per_hour) || 0,
+    extra_per_km: Number(payload.extra_per_km) || 0,
     pricing_id: pricingId,
     updated_at: serverTimestamp(),
   };
@@ -524,6 +565,9 @@ export async function createVehiclePricing(vehicleId, payload) {
   const docRef = doc(collection(db, "vehicles", vehicleId, "pricing"), pricingId);
   const pricing = {
     ...payload,
+    rate: Number(payload.rate) || 0,
+    extra_per_hour: Number(payload.extra_per_hour) || 0,
+    extra_per_km: Number(payload.extra_per_km) || 0,
     pricing_id: pricingId,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
@@ -549,6 +593,9 @@ export async function updateVehiclePricing(vehicleId, pricingId, payload) {
   const docRef = doc(collection(db, "vehicles", vehicleId, "pricing"), pricingId);
   const pricing = {
     ...payload,
+    rate: Number(payload.rate) || 0,
+    extra_per_hour: Number(payload.extra_per_hour) || 0,
+    extra_per_km: Number(payload.extra_per_km) || 0,
     pricing_id: pricingId,
     updated_at: serverTimestamp(),
   };
@@ -904,13 +951,13 @@ export async function generateInvoice(companyId, month) {
   }));
 
   // Calculate total
-  let total = 0;
+  let subtotalAmount = 0;
   const lineItems = entries
-    .filter((entry) => entry.rate > 0) // Only include entries with a rate
+    .filter((entry) => (Number(entry.total) || Number(entry.rate) || 0) > 0)
     .map((entry) => {
-      const rate = Number(entry.rate) || 0; // Ensure it's a number
-      const amount = rate;
-      total += amount; // This will now add as numbers
+      const rate = Number(entry.rate) || 0;
+      const amount = Number(entry.total) || rate;
+      subtotalAmount += amount;
       return {
         entry_id: entry.entry_id,
         cab_type: entry.cab_type || "Unknown",
@@ -923,7 +970,7 @@ export async function generateInvoice(companyId, month) {
     });
 
   // Create invoice
-  const taxAmount = Math.round(total * 0.18);
+  const taxAmount = Math.round(subtotalAmount * 0.18);
   const now = new Date();
   const invoiceDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const invoice = {
@@ -939,9 +986,9 @@ export async function generateInvoice(companyId, month) {
     invoice_date: invoiceDate,
     entries_count: lineItems.length,
     line_items: lineItems,
-    subtotal: Math.round(total),
+    subtotal: Math.round(subtotalAmount),
     tax: taxAmount,
-    total: Math.round(total) + taxAmount,
+    total: Math.round(subtotalAmount) + taxAmount,
     status: "draft",
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
@@ -1039,11 +1086,24 @@ export async function generateVehicleInvoice(vehicleId, month) {
   const pricingBySlot = new Map(
     vehiclePricing
       .filter((price) => price.cab_type === vehicleData.cab_type)
-      .map((price) => [price.slot, Number(price.rate) || 0])
+      .map((price) => [price.slot, price])
   );
 
   const lineItems = entries.map((entry) => {
-    const rate = pricingBySlot.get(entry.slot) || 0;
+    const priceConfig = pricingBySlot.get(entry.slot) || {};
+    const rate = Number(priceConfig.rate) || 0;
+    const billing = computeEntryBilling({
+      slot: entry.slot,
+      rate,
+      extra_per_hour: Number(priceConfig.extra_per_hour) || 0,
+      extra_per_km: Number(priceConfig.extra_per_km) || 0,
+      tolls: Number(entry.tolls) || 0,
+      start_time: entry.start_time,
+      end_time: entry.end_time,
+      odometer_start: entry.odometer_start,
+      odometer_end: entry.odometer_end,
+    });
+
     return {
       entry_id: entry.entry_id,
       date: entry.entry_date || "",
@@ -1051,8 +1111,8 @@ export async function generateVehicleInvoice(vehicleId, month) {
       slot: entry.slot || "",
       cab_type: vehicleData.cab_type || entry.cab_type || "",
       vehicle_number: vehicleData.vehicle_number || entry.vehicle_number || "",
-      rate,
-      amount: rate,
+      rate: billing.rate,
+      amount: billing.total,
     };
   });
 

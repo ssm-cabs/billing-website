@@ -499,7 +499,7 @@ export default function InvoicePage() {
                               <span className={styles.column}>{item.slot}</span>
                               <span className={styles.column}>{item.cab_type}</span>
                               <span className={styles.column}>{item.vehicle_number}</span>
-                              <span className={styles.column}>₹{item.rate}</span>
+                              <span className={styles.column}>₹{item.amount ?? item.rate ?? 0}</span>
                             </div>
                           ))}
                         </>

@@ -41,6 +41,8 @@ const getMonthMeta = (monthValue) => {
   return { year, month, totalDays };
 };
 
+const getEntryAmount = (entry) => Number(entry.total) || Number(entry.rate) || 0;
+
 export default function RevenuePage() {
   const router = useRouter();
   const { canView, loading: permissionsLoading } = usePermissions("revenue");
@@ -137,7 +139,7 @@ export default function RevenuePage() {
     }
 
     const totalRevenue = entries.reduce(
-      (sum, entry) => sum + (Number(entry.rate) || 0),
+      (sum, entry) => sum + getEntryAmount(entry),
       0
     );
     const totalEntries = entries.length;
@@ -146,7 +148,7 @@ export default function RevenuePage() {
 
     const revenueByCompany = entries.reduce((acc, entry) => {
       const name = entry.company_name || "Unknown";
-      acc[name] = (acc[name] || 0) + (Number(entry.rate) || 0);
+      acc[name] = (acc[name] || 0) + getEntryAmount(entry);
       return acc;
     }, {});
 
@@ -190,7 +192,7 @@ export default function RevenuePage() {
         acc[name] = { name, rides: 0, revenue: 0, invoiceRaised: 0, invoicePaid: 0 };
       }
       acc[name].rides += 1;
-      acc[name].revenue += Number(entry.rate) || 0;
+      acc[name].revenue += getEntryAmount(entry);
       return acc;
     }, {});
 
@@ -255,7 +257,7 @@ export default function RevenuePage() {
         acc[vehicleNumber] = { vehicleNumber, rides: 0, revenue: 0 };
       }
       acc[vehicleNumber].rides += 1;
-      acc[vehicleNumber].revenue += Number(entry.rate) || 0;
+      acc[vehicleNumber].revenue += getEntryAmount(entry);
       return acc;
     }, {});
 
@@ -276,7 +278,7 @@ export default function RevenuePage() {
       if (parts.length !== 3) return;
       const dayIndex = Number(parts[2]) - 1;
       if (Number.isNaN(dayIndex) || dayIndex < 0 || dayIndex >= totalDays) return;
-      totals[dayIndex] += Number(entry.rate) || 0;
+      totals[dayIndex] += getEntryAmount(entry);
     });
 
     payments.forEach((payment) => {

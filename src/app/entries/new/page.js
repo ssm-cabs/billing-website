@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import DatePicker from "../DatePicker";
@@ -13,6 +13,7 @@ import {
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
+import { computeEntryBilling } from "@/lib/entryBilling";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./new.module.css";
 
@@ -50,6 +51,7 @@ const initialState = {
   cab_type: "",
   user_name: "",
   rate: "",
+  tolls: "",
   notes: "",
 };
 
@@ -130,8 +132,35 @@ export default function NewEntryPage() {
     (p) => p.cab_type === resolvedCabType && p.slot === form.slot
   );
   const resolvedRate = matchingPrice?.rate || 0;
+  const resolvedExtraPerHour = Number(matchingPrice?.extra_per_hour) || 0;
+  const resolvedExtraPerKm = Number(matchingPrice?.extra_per_km) || 0;
   const effectiveRate =
     form.rate === "" || form.rate === null ? resolvedRate : Number(form.rate) || 0;
+  const billingPreview = useMemo(
+    () =>
+      computeEntryBilling({
+        slot: form.slot,
+        rate: effectiveRate,
+        extra_per_hour: resolvedExtraPerHour,
+        extra_per_km: resolvedExtraPerKm,
+        tolls: form.tolls,
+        start_time: form.start_time,
+        end_time: form.end_time,
+        odometer_start: form.odometer_start,
+        odometer_end: form.odometer_end,
+      }),
+    [
+      effectiveRate,
+      form.end_time,
+      form.odometer_end,
+      form.odometer_start,
+      form.slot,
+      form.start_time,
+      form.tolls,
+      resolvedExtraPerHour,
+      resolvedExtraPerKm,
+    ]
+  );
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -175,11 +204,19 @@ export default function NewEntryPage() {
         company_id: selectedCompany?.company_id || "",
         vehicle_id: selectedVehicle?.vehicle_id || "",
         cab_type: resolvedCabType,
-        rate: effectiveRate,
+        rate: billingPreview.rate,
         start_time: String(form.start_time || "").trim(),
         end_time: String(form.end_time || "").trim(),
         odometer_start: odometerStart,
         odometer_end: odometerEnd,
+        hours: billingPreview.extraHours,
+        kms: billingPreview.extraKms,
+        extra_per_hour: billingPreview.extra_per_hour,
+        extra_per_km: billingPreview.extra_per_km,
+        extra_time_cost: billingPreview.extra_time_cost,
+        extra_kms_cost: billingPreview.extra_kms_cost,
+        tolls: billingPreview.tolls,
+        total: billingPreview.total,
         user_name: loggedInName || form.user_name,
       });
       setStatus("success");
@@ -299,6 +336,12 @@ export default function NewEntryPage() {
             getValue={(slot) => slot}
             placeholder="Select slot"
           />
+          {pricingStatus === "loading" && (
+            <span className={styles.helper}>Loading pricing...</span>
+          )}
+          {pricingStatus === "error" && (
+            <span className={styles.helperError}>Unable to load pricing.</span>
+          )}
         </label>
         {form.vehicle_number && form.slot && (
           <label className={styles.field}>
@@ -313,6 +356,18 @@ export default function NewEntryPage() {
             />
           </label>
         )}
+        <label className={styles.field}>
+          Toll Charges
+          <input
+            type="number"
+            name="tolls"
+            value={form.tolls}
+            onChange={updateField}
+            min="0"
+            step="1"
+            placeholder="e.g. 250"
+          />
+        </label>
         <label className={styles.field}>
           Odometer start
           <input
@@ -379,6 +434,15 @@ export default function NewEntryPage() {
             value={form.notes}
             onChange={updateField}
             rows={3}
+          />
+        </label>
+        <label className={styles.field}>
+          Total (Auto Calculated)
+          <input
+            type="number"
+            value={billingPreview.total}
+            disabled
+            readOnly
           />
         </label>
 

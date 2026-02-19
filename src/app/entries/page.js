@@ -276,7 +276,7 @@ export default function EntriesPage() {
                 <th>Company</th>
                 <th>Vehicle</th>
                 <th>Slot</th>
-                <th>Rate</th>
+                <th>Total</th>
                 <th>Time Taken</th>
                 <th>KMS</th>
                 <th className={styles.routeColumn}>Route</th>
@@ -292,8 +292,10 @@ export default function EntriesPage() {
                   <td data-label="Company">{entry.company_name}</td>
                   <td data-label="Vehicle">{entry.vehicle_number}</td>
                   <td data-label="Slot">{entry.slot}</td>
-                  <td data-label="Rate">
-                    {entry.rate > 0 ? `₹${entry.rate}` : "-"}
+                  <td data-label="Total">
+                    {(Number(entry.total) || Number(entry.rate) || 0) > 0
+                      ? `₹${Number(entry.total) || Number(entry.rate) || 0}`
+                      : "-"}
                   </td>
                   <td data-label="Time Taken">
                     {computeTimeTaken(entry) ?? "-"}

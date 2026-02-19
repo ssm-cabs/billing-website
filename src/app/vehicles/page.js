@@ -54,6 +54,8 @@ const initialPricing = {
   cab_type: "",
   slot: "",
   rate: "",
+  extra_per_hour: "",
+  extra_per_km: "",
 };
 
 export default function VehiclesPage() {
@@ -144,12 +146,16 @@ export default function VehiclesPage() {
     event.preventDefault();
     const payload = pricingFormByVehicle[vehicle.vehicle_id] || initialPricing;
     const rateValue = payload.rate ? Number(payload.rate) : 0;
+    const extraPerHourValue = payload.extra_per_hour ? Number(payload.extra_per_hour) : 0;
+    const extraPerKmValue = payload.extra_per_km ? Number(payload.extra_per_km) : 0;
 
     try {
       await createVehiclePricing(vehicle.vehicle_id, {
         ...payload,
         cab_type: payload.cab_type || vehicle.cab_type || "",
         rate: rateValue,
+        extra_per_hour: extraPerHourValue,
+        extra_per_km: extraPerKmValue,
       });
       const data = await fetchVehiclePricing(vehicle.vehicle_id);
       setPricingByVehicle((prev) => ({ ...prev, [vehicle.vehicle_id]: data }));
@@ -172,6 +178,8 @@ export default function VehiclesPage() {
           cab_type: pricing.cab_type || "",
           slot: pricing.slot || "",
           rate: pricing.rate ?? "",
+          extra_per_hour: pricing.extra_per_hour ?? "",
+          extra_per_km: pricing.extra_per_km ?? "",
         },
       },
     }));
@@ -208,11 +216,15 @@ export default function VehiclesPage() {
     const payload = pricingEditByVehicle?.[vehicleId]?.[pricingId];
     if (!payload) return;
     const rateValue = payload.rate ? Number(payload.rate) : 0;
+    const extraPerHourValue = payload.extra_per_hour ? Number(payload.extra_per_hour) : 0;
+    const extraPerKmValue = payload.extra_per_km ? Number(payload.extra_per_km) : 0;
 
     try {
       await updateVehiclePricing(vehicleId, pricingId, {
         ...payload,
         rate: rateValue,
+        extra_per_hour: extraPerHourValue,
+        extra_per_km: extraPerKmValue,
       });
       const data = await fetchVehiclePricing(vehicleId);
       setPricingByVehicle((prev) => ({ ...prev, [vehicleId]: data }));
@@ -645,6 +657,36 @@ export default function VehiclesPage() {
                     required
                   />
                 </label>
+                <label className={styles.field}>
+                  Extra / hour
+                  <input
+                    type="number"
+                    name="extra_per_hour"
+                    value={
+                      (pricingFormByVehicle[pricingVehicle.vehicle_id] || initialPricing)
+                        .extra_per_hour
+                    }
+                    onChange={(event) =>
+                      updatePricingField(pricingVehicle.vehicle_id, event)
+                    }
+                    min="0"
+                  />
+                </label>
+                <label className={styles.field}>
+                  Extra / km
+                  <input
+                    type="number"
+                    name="extra_per_km"
+                    value={
+                      (pricingFormByVehicle[pricingVehicle.vehicle_id] || initialPricing)
+                        .extra_per_km
+                    }
+                    onChange={(event) =>
+                      updatePricingField(pricingVehicle.vehicle_id, event)
+                    }
+                    min="0"
+                  />
+                </label>
                 <button className={styles.secondaryButton} type="submit">
                   Add rate
                 </button>
@@ -654,6 +696,8 @@ export default function VehiclesPage() {
                   <span>Cab type</span>
                   <span>Slot</span>
                   <span>Rate</span>
+                  <span>Extra / hour</span>
+                  <span>Extra / km</span>
                 </div>
                 {(pricingByVehicle[pricingVehicle.vehicle_id] || []).map((pricing) => {
                   const edits =
@@ -696,12 +740,40 @@ export default function VehiclesPage() {
                             }
                             min="0"
                           />
+                          <input
+                            type="number"
+                            name="extra_per_hour"
+                            value={edits.extra_per_hour}
+                            onChange={(event) =>
+                              updateEditPricingField(
+                                pricingVehicle.vehicle_id,
+                                pricing.pricing_id,
+                                event
+                              )
+                            }
+                            min="0"
+                          />
+                          <input
+                            type="number"
+                            name="extra_per_km"
+                            value={edits.extra_per_km}
+                            onChange={(event) =>
+                              updateEditPricingField(
+                                pricingVehicle.vehicle_id,
+                                pricing.pricing_id,
+                                event
+                              )
+                            }
+                            min="0"
+                          />
                         </>
                       ) : (
                         <>
                           <span>{pricing.cab_type}</span>
                           <span>{pricing.slot}</span>
                           <span>₹ {pricing.rate}</span>
+                          <span>₹ {Number(pricing.extra_per_hour) || 0}</span>
+                          <span>₹ {Number(pricing.extra_per_km) || 0}</span>
                         </>
                       )}
                       <div className={styles.pricingActions}>

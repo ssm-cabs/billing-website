@@ -30,6 +30,8 @@ const initialPricing = {
   cab_type: "",
   slot: "",
   rate: "",
+  extra_per_hour: "",
+  extra_per_km: "",
 };
 
 const billingCycleOptions = [
@@ -149,9 +151,16 @@ export default function CompaniesPage() {
     event.preventDefault();
     const payload = pricingFormByCompany[companyId] || initialPricing;
     const rateValue = payload.rate ? Number(payload.rate) : 0;
+    const extraPerHourValue = payload.extra_per_hour ? Number(payload.extra_per_hour) : 0;
+    const extraPerKmValue = payload.extra_per_km ? Number(payload.extra_per_km) : 0;
 
     try {
-      await createPricing(companyId, { ...payload, rate: rateValue });
+      await createPricing(companyId, {
+        ...payload,
+        rate: rateValue,
+        extra_per_hour: extraPerHourValue,
+        extra_per_km: extraPerKmValue,
+      });
       const data = await fetchPricing(companyId);
       setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
       setPricingFormByCompany((prev) => ({
@@ -173,6 +182,8 @@ export default function CompaniesPage() {
           cab_type: pricing.cab_type || "",
           slot: pricing.slot || "",
           rate: pricing.rate ?? "",
+          extra_per_hour: pricing.extra_per_hour ?? "",
+          extra_per_km: pricing.extra_per_km ?? "",
         },
       },
     }));
@@ -209,11 +220,15 @@ export default function CompaniesPage() {
     const payload = pricingEditByCompany?.[companyId]?.[pricingId];
     if (!payload) return;
     const rateValue = payload.rate ? Number(payload.rate) : 0;
+    const extraPerHourValue = payload.extra_per_hour ? Number(payload.extra_per_hour) : 0;
+    const extraPerKmValue = payload.extra_per_km ? Number(payload.extra_per_km) : 0;
 
     try {
       await updatePricing(companyId, pricingId, {
         ...payload,
         rate: rateValue,
+        extra_per_hour: extraPerHourValue,
+        extra_per_km: extraPerKmValue,
       });
       const data = await fetchPricing(companyId);
       setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
@@ -648,6 +663,36 @@ export default function CompaniesPage() {
                         required
                       />
                     </label>
+                    <label className={styles.field}>
+                      Extra / hour
+                      <input
+                        type="number"
+                        name="extra_per_hour"
+                        value={
+                          (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
+                            .extra_per_hour
+                        }
+                        onChange={(event) =>
+                          updatePricingField(pricingCompany.company_id, event)
+                        }
+                        min="0"
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      Extra / km
+                      <input
+                        type="number"
+                        name="extra_per_km"
+                        value={
+                          (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
+                            .extra_per_km
+                        }
+                        onChange={(event) =>
+                          updatePricingField(pricingCompany.company_id, event)
+                        }
+                        min="0"
+                      />
+                    </label>
                     <button className={styles.secondaryButton} type="submit">
                       Add rate
                     </button>
@@ -658,6 +703,8 @@ export default function CompaniesPage() {
                       <span>Cab type</span>
                       <span>Slot</span>
                       <span>Rate</span>
+                      <span>Extra / hour</span>
+                      <span>Extra / km</span>
                     </div>
                     {(pricingByCompany[pricingCompany.company_id] || []).map((pricing) => {
                       const edits =
@@ -714,12 +761,40 @@ export default function CompaniesPage() {
                                 }
                                 min="0"
                               />
+                              <input
+                                type="number"
+                                name="extra_per_hour"
+                                value={edits.extra_per_hour}
+                                onChange={(event) =>
+                                  updateEditPricingField(
+                                    pricingCompany.company_id,
+                                    pricing.pricing_id,
+                                    event
+                                  )
+                                }
+                                min="0"
+                              />
+                              <input
+                                type="number"
+                                name="extra_per_km"
+                                value={edits.extra_per_km}
+                                onChange={(event) =>
+                                  updateEditPricingField(
+                                    pricingCompany.company_id,
+                                    pricing.pricing_id,
+                                    event
+                                  )
+                                }
+                                min="0"
+                              />
                             </>
                           ) : (
                             <>
                               <span>{pricing.cab_type}</span>
                               <span>{pricing.slot}</span>
                               <span>₹ {pricing.rate}</span>
+                              <span>₹ {Number(pricing.extra_per_hour) || 0}</span>
+                              <span>₹ {Number(pricing.extra_per_km) || 0}</span>
                             </>
                           )}
                           <div className={styles.pricingActions}>
