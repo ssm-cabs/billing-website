@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
+  deleteEntryUpdateRequest,
   fetchEntryById,
   fetchEntryUpdateRequestById,
-  updateEntryUpdateRequest,
+  updateEntry,
 } from "@/lib/api";
 import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
 import { usePermissions } from "@/lib/usePermissions";
@@ -42,6 +43,7 @@ function formatValue(value) {
 }
 
 export default function EntryUpdateDifferencesPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestId = String(searchParams.get("id") || "").trim();
   const { canView, loading: permissionsLoading } = usePermissions("entries");
@@ -126,23 +128,23 @@ export default function EntryUpdateDifferencesPage() {
     try {
       setReviewStatus(nextStatus);
       setReviewMessage("");
-      await updateEntryUpdateRequest(request.entry_update_id, {
-        status: nextStatus,
-        reviewed_by: reviewerName,
-      });
-      setRequest((prev) => (
-        prev
-          ? {
-              ...prev,
-              status: nextStatus,
-              reviewed_by: reviewerName,
-              updated_at: Date.now(),
-            }
-          : prev
-      ));
-      setReviewMessage(
-        nextStatus === "approved" ? "Request approved successfully." : "Request rejected successfully."
-      );
+
+      if (nextStatus === "approved") {
+        await updateEntry(request.entry_id, {
+          ...(request.requested_updates || {}),
+        });
+        await deleteEntryUpdateRequest(request.entry_update_id);
+        setReviewMessage("Request accepted, entry updated, and request removed.");
+        setTimeout(() => {
+          router.push("/entries/update-requests");
+        }, 700);
+      } else {
+        await deleteEntryUpdateRequest(request.entry_update_id);
+        setReviewMessage("Request rejected and removed.");
+        setTimeout(() => {
+          router.push("/entries/update-requests");
+        }, 700);
+      }
     } catch (reviewError) {
       setReviewMessage(reviewError.message || "Failed to update request status.");
     } finally {
@@ -217,27 +219,6 @@ export default function EntryUpdateDifferencesPage() {
         </p>
       ) : null}
 
-      {request && request.status !== "approved" && request.status !== "rejected" ? (
-        <section className={styles.actionBar}>
-          <button
-            type="button"
-            className={styles.acceptBtn}
-            onClick={() => handleReview("approved")}
-            disabled={reviewStatus !== "idle"}
-          >
-            {reviewStatus === "approved" ? "Approving..." : "Accept"}
-          </button>
-          <button
-            type="button"
-            className={styles.rejectBtn}
-            onClick={() => handleReview("rejected")}
-            disabled={reviewStatus !== "idle"}
-          >
-            {reviewStatus === "rejected" ? "Rejecting..." : "Reject"}
-          </button>
-        </section>
-      ) : null}
-
       {status === "success" && request ? (
         <>
           <section className={styles.card}>
@@ -286,6 +267,27 @@ export default function EntryUpdateDifferencesPage() {
               </div>
             )}
           </section>
+
+          {request.status !== "approved" && request.status !== "rejected" ? (
+            <section className={styles.actionBar}>
+              <button
+                type="button"
+                className={styles.acceptBtn}
+                onClick={() => handleReview("approved")}
+                disabled={reviewStatus !== "idle"}
+              >
+                {reviewStatus === "approved" ? "Approving..." : "Accept"}
+              </button>
+              <button
+                type="button"
+                className={styles.rejectBtn}
+                onClick={() => handleReview("rejected")}
+                disabled={reviewStatus !== "idle"}
+              >
+                {reviewStatus === "rejected" ? "Rejecting..." : "Reject"}
+              </button>
+            </section>
+          ) : null}
         </>
       ) : null}
     </div>
