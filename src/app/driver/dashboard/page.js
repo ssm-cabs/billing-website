@@ -10,6 +10,7 @@ import {
   fetchEntries,
   fetchEntryUpdateRequests,
   fetchVehicles,
+  updateEntryUpdateRequest,
 } from "@/lib/api";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
@@ -232,19 +233,35 @@ export default function DriverDashboardPage() {
   };
 
   const openUpdateRequestModal = (entry) => {
+    const existingRequest = requestByEntryId[String(entry?.entry_id || "").trim()] || null;
+    const existingUpdates =
+      existingRequest?.requested_updates &&
+      typeof existingRequest.requested_updates === "object"
+        ? existingRequest.requested_updates
+        : {};
     setPendingEntry(entry);
     setRequestMessage("");
     setRequestSubmitStatus("idle");
     setRequestForm({
-      start_time: String(entry?.start_time || "").trim(),
-      end_time: String(entry?.end_time || "").trim(),
-      pickup_location: String(entry?.pickup_location || "").trim(),
-      drop_location: String(entry?.drop_location || "").trim(),
-      odometer_start: String(entry?.odometer_start ?? "").trim(),
-      odometer_end: String(entry?.odometer_end ?? "").trim(),
-      tolls: String(entry?.tolls ?? "").trim(),
-      notes: String(entry?.notes || "").trim(),
-      reason: "",
+      start_time: String(
+        existingUpdates.start_time ?? entry?.start_time ?? ""
+      ).trim(),
+      end_time: String(existingUpdates.end_time ?? entry?.end_time ?? "").trim(),
+      pickup_location: String(
+        existingUpdates.pickup_location ?? entry?.pickup_location ?? ""
+      ).trim(),
+      drop_location: String(
+        existingUpdates.drop_location ?? entry?.drop_location ?? ""
+      ).trim(),
+      odometer_start: String(
+        existingUpdates.odometer_start ?? entry?.odometer_start ?? ""
+      ).trim(),
+      odometer_end: String(
+        existingUpdates.odometer_end ?? entry?.odometer_end ?? ""
+      ).trim(),
+      tolls: String(existingUpdates.tolls ?? entry?.tolls ?? "").trim(),
+      notes: String(existingUpdates.notes ?? entry?.notes ?? "").trim(),
+      reason: String(existingRequest?.reason || "").trim(),
     });
   };
 
@@ -283,7 +300,9 @@ export default function DriverDashboardPage() {
     try {
       setRequestSubmitStatus("loading");
       setRequestMessage("");
-      const created = await createEntryUpdateRequest({
+      const existingRequest = requestByEntryId[pendingEntry.entry_id];
+      const existingId = String(existingRequest?.entry_update_id || "").trim();
+      const payload = {
         entry_id: pendingEntry.entry_id,
         entry_date: pendingEntry.entry_date || "",
         vehicle_id: pendingEntry.vehicle_id || "",
@@ -291,12 +310,18 @@ export default function DriverDashboardPage() {
         user_name: userData?.name || userData?.phone || "",
         requested_updates: requestedUpdates,
         reason: String(requestForm.reason || "").trim(),
-      });
+        status: "submitted",
+        reviewed_by: "",
+        review_note: "",
+      };
+      const saved = existingId
+        ? await updateEntryUpdateRequest(existingId, payload)
+        : await createEntryUpdateRequest(payload);
 
       setRequestByEntryId((prev) => ({
         ...prev,
         [pendingEntry.entry_id]: {
-          entry_update_id: created.entry_update_id,
+          entry_update_id: saved.entry_update_id,
           entry_id: pendingEntry.entry_id,
           status: "submitted",
           reason: String(requestForm.reason || "").trim(),
@@ -398,15 +423,13 @@ export default function DriverDashboardPage() {
               <span>Slot</span>
               <span>Route</span>
               <span>Total</span>
-              <span>Update Request</span>
+              <span>Update Status</span>
               <span>Action</span>
             </div>
             {entries.map((entry) => {
               const latestRequest = requestByEntryId[entry.entry_id] || null;
               const statusLabel = latestRequest?.status || "-";
               const statusDetail = latestRequest?.reason || "";
-              const canRequestUpdate =
-                String(latestRequest?.status || "").toLowerCase() !== "submitted";
               return (
                 <div key={entry.entry_id} className={styles.requestRow}>
                   <span>
@@ -442,9 +465,10 @@ export default function DriverDashboardPage() {
                       type="button"
                       className={styles.editBtn}
                       onClick={() => openUpdateRequestModal(entry)}
-                      disabled={!canRequestUpdate}
+                      title="Edit"
+                      aria-label="Edit"
                     >
-                      {canRequestUpdate ? "Request" : "Pending"}
+                      <span className={styles.editIcon}>✎</span>
                     </button>
                   </span>
                 </div>

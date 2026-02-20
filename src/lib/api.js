@@ -955,6 +955,74 @@ export async function createEntryUpdateRequest(payload = {}) {
   return { entry_update_id: docRef.id };
 }
 
+export async function updateEntryUpdateRequest(entryUpdateId, payload = {}) {
+  if (!entryUpdateId) {
+    throw new Error("entryUpdateId is required");
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, "status")) {
+    assertValidEntryUpdateRequestStatus(payload.status);
+  }
+
+  const normalizedPayload = {
+    ...payload,
+    ...(Object.prototype.hasOwnProperty.call(payload, "entry_id")
+      ? { entry_id: String(payload.entry_id || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "entry_date")
+      ? { entry_date: String(payload.entry_date || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "vehicle_id")
+      ? { vehicle_id: String(payload.vehicle_id || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "vehicle_number")
+      ? { vehicle_number: String(payload.vehicle_number || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "requested_by")
+      ? { requested_by: String(payload.requested_by || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "user_name")
+      ? { user_name: String(payload.user_name || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "reason")
+      ? { reason: String(payload.reason || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "reviewed_by")
+      ? { reviewed_by: String(payload.reviewed_by || "").trim() }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(payload, "review_note")
+      ? { review_note: String(payload.review_note || "").trim() }
+      : {}),
+  };
+
+  if (
+    Object.prototype.hasOwnProperty.call(normalizedPayload, "requested_updates") &&
+    (
+      !normalizedPayload.requested_updates ||
+      typeof normalizedPayload.requested_updates !== "object" ||
+      !Object.keys(normalizedPayload.requested_updates).length
+    )
+  ) {
+    throw new Error("requested_updates is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, entry_update_id: entryUpdateId };
+  }
+
+  const requestRef = doc(db, "entry_update_requests", entryUpdateId);
+  await setDoc(
+    requestRef,
+    {
+      ...normalizedPayload,
+      entry_update_id: entryUpdateId,
+      updated_at: serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { entry_update_id: entryUpdateId };
+}
+
 export async function fetchCompanies() {
   if (!isFirebaseConfigured || !db) {
     return mockCompanies;
