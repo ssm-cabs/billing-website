@@ -176,11 +176,11 @@ const ALLOWED_SLOTS = new Set(["4hr", "8hr"]);
 const BOOKING_REQUEST_STATUS_CATALOG = [
   {
     status: "submitted",
-    detail: "Request received and waiting for operations acknowledgement.",
+    detail: "Request received and waiting for operations acceptance.",
   },
   {
-    status: "acknowledged",
-    detail: "Request acknowledged by operations and under processing.",
+    status: "accepted",
+    detail: "Request accepted by operations and under processing.",
   },
   {
     status: "rejected",
@@ -672,7 +672,7 @@ export async function deleteBookingRequest(requestId) {
   return { booking_id: requestId };
 }
 
-export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
+export async function acceptBookingRequest(requestId, reviewedBy = "") {
   if (!requestId) {
     throw new Error("requestId is required");
   }
@@ -691,7 +691,7 @@ export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
   const requestStatus = String(requestData.status || "").trim();
 
   if (requestStatus === "rejected" || requestStatus === "cancelled") {
-    throw new Error(`Cannot acknowledge a ${requestStatus} request.`);
+    throw new Error(`Cannot accept a ${requestStatus} request.`);
   }
   if (requestStatus === "allotted") {
     throw new Error("Request is already allotted.");
@@ -720,13 +720,13 @@ export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
       total: 0,
       billed: false,
       booking_request_id: requestId,
-      booking_request_status: "acknowledged",
+      booking_request_status: "accepted",
     });
     entryId = entryResult.entry_id;
   }
 
   await updateBookingRequest(requestId, {
-    status: "acknowledged",
+    status: "accepted",
     approved_by: String(reviewedBy || "").trim(),
     converted_entry_id: entryId || null,
   });

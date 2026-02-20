@@ -122,7 +122,7 @@ export default function CompanyDashboardPage() {
   const getStatusClassName = (status) => {
     const normalized = String(status || "").trim().toLowerCase();
     if (normalized === "submitted") return `${styles.status} ${styles.submitted}`;
-    if (normalized === "acknowledged") return `${styles.status} ${styles.acknowledged}`;
+    if (normalized === "accepted") return `${styles.status} ${styles.accepted}`;
     if (normalized === "allotted") return `${styles.status} ${styles.allotted}`;
     if (normalized === "cancelled") return `${styles.status} ${styles.cancelled}`;
     if (normalized === "rejected") return `${styles.status} ${styles.rejected}`;

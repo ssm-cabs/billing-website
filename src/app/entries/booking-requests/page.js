@@ -6,7 +6,7 @@ import MonthPicker from "../MonthPicker";
 import CustomDropdown from "../CustomDropdown";
 import { usePermissions } from "@/lib/usePermissions";
 import {
-  acknowledgeBookingRequest,
+  acceptBookingRequest,
   fetchBookingRequests,
   rejectBookingRequest,
 } from "@/lib/api";
@@ -15,7 +15,7 @@ import styles from "./page.module.css";
 const STATUS_OPTIONS = [
   { value: "all", label: "All statuses" },
   { value: "submitted", label: "Submitted" },
-  { value: "acknowledged", label: "Acknowledged" },
+  { value: "accepted", label: "Accepted" },
   { value: "rejected", label: "Rejected" },
   { value: "cancelled", label: "Cancelled" },
   { value: "allotted", label: "Allotted" },
@@ -72,19 +72,19 @@ export default function BookingRequestsPage() {
     loadRequests();
   }, [loadRequests, permissionsLoading, canView]);
 
-  const handleAcknowledge = async (requestId) => {
+  const handleAccept = async (requestId) => {
     setActionRequestId(requestId);
     setMessage("");
     setError("");
     setLastCreatedEntryId("");
 
     try {
-      const result = await acknowledgeBookingRequest(requestId, getReviewerName());
+      const result = await acceptBookingRequest(requestId, getReviewerName());
       setLastCreatedEntryId(result.entry_id || "");
-      setMessage("Request acknowledged and entry created. Allot a vehicle on that entry to move status to allotted.");
+      setMessage("Request accepted and entry created. Allot a vehicle on that entry to move status to allotted.");
       await loadRequests();
     } catch (actionError) {
-      setError(actionError.message || "Failed to acknowledge request.");
+      setError(actionError.message || "Failed to accept request.");
     } finally {
       setActionRequestId("");
     }
@@ -116,7 +116,7 @@ export default function BookingRequestsPage() {
   const getStatusClassName = (status) => {
     const normalized = String(status || "").trim().toLowerCase();
     if (normalized === "submitted") return `${styles.status} ${styles.submitted}`;
-    if (normalized === "acknowledged") return `${styles.status} ${styles.acknowledged}`;
+    if (normalized === "accepted") return `${styles.status} ${styles.accepted}`;
     if (normalized === "allotted") return `${styles.status} ${styles.allotted}`;
     if (normalized === "cancelled") return `${styles.status} ${styles.cancelled}`;
     if (normalized === "rejected") return `${styles.status} ${styles.rejected}`;
@@ -145,7 +145,7 @@ export default function BookingRequestsPage() {
           <p className={styles.eyebrow}>Booking requests</p>
           <h1>Review Booking Requests</h1>
           <p className={styles.lead}>
-            Acknowledge to create an entry. Reject to close the request.
+            Accept to create an entry. Reject to close the request.
           </p>
         </div>
       </header>
@@ -240,11 +240,11 @@ export default function BookingRequestsPage() {
                       <div className={styles.actions}>
                         <button
                           type="button"
-                          onClick={() => handleAcknowledge(request.booking_id)}
+                          onClick={() => handleAccept(request.booking_id)}
                           disabled={actionRequestId === request.booking_id}
                           className={styles.ackBtn}
                         >
-                          Ack
+                          Accept
                         </button>
                         <button
                           type="button"
