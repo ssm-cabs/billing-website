@@ -179,11 +179,7 @@ export default function NewEntryPage() {
     try {
       const odometerStartRaw = String(form.odometer_start).trim();
       const odometerEndRaw = String(form.odometer_end).trim();
-      if (!odometerStartRaw) {
-        throw new Error("Odometer start is required.");
-      }
-
-      const odometerStart = Number(odometerStartRaw);
+      const odometerStart = odometerStartRaw === "" ? null : Number(odometerStartRaw);
       const odometerEnd = odometerEndRaw === "" ? null : Number(odometerEndRaw);
 
       if (odometerStart !== null && (!Number.isFinite(odometerStart) || odometerStart < 0)) {
@@ -379,7 +375,7 @@ export default function NewEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          Odometer start
+          Odometer start (optional)
           <input
             type="number"
             name="odometer_start"
@@ -387,7 +383,6 @@ export default function NewEntryPage() {
             onChange={updateField}
             min="0"
             step="1"
-            required
             placeholder="e.g. 125430"
           />
         </label>
