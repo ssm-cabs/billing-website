@@ -39,6 +39,13 @@
   line-height: 1.6;
 }
 
+.filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 340px);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

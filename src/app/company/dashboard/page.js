@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import MonthPicker from "@/app/entries/MonthPicker";
 import { fetchBookingRequests, fetchCompanies, updateBookingRequest } from "@/lib/api";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
@@ -23,6 +24,12 @@ export default function CompanyDashboardPage() {
   const [userData, setUserData] = useState(null);
   const [myRequests, setMyRequests] = useState([]);
   const [myRequestsStatus, setMyRequestsStatus] = useState("idle");
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const monthIndex = String(now.getMonth() + 1).padStart(2, "0");
+    return `${year}-${monthIndex}`;
+  });
   const [actionRequestId, setActionRequestId] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [pendingCancelRequest, setPendingCancelRequest] = useState(null);
@@ -90,6 +97,7 @@ export default function CompanyDashboardPage() {
           companies.map((company) =>
             fetchBookingRequests({
               companyId: company.company_id,
+              month,
               orderByField: "created_at",
               orderByDirection: "desc",
             })
@@ -98,7 +106,7 @@ export default function CompanyDashboardPage() {
         const flattened = allRequests
           .flat()
           .sort((a, b) =>
-            String(b.trip_date || "").localeCompare(String(a.trip_date || ""))
+            String(b.entry_date || "").localeCompare(String(a.entry_date || ""))
           );
         setMyRequests(flattened);
         setMyRequestsStatus("success");
@@ -109,7 +117,7 @@ export default function CompanyDashboardPage() {
     };
 
     loadMyRequests();
-  }, [companies]);
+  }, [companies, month]);
 
   const getStatusClassName = (status) => {
     const normalized = String(status || "").trim().toLowerCase();
@@ -196,6 +204,12 @@ export default function CompanyDashboardPage() {
         <div className={styles.panelHeader}>
           <h3>My Booking Requests</h3>
         </div>
+        <section className={styles.filters}>
+          <label className={styles.field}>
+            Month
+            <MonthPicker value={month} onChange={setMonth} />
+          </label>
+        </section>
         {error && <p className={styles.error}>{error}</p>}
         {myRequestsStatus === "loading" && <p className={styles.empty}>Loading requests...</p>}
         {myRequestsStatus === "error" && (
@@ -218,7 +232,7 @@ export default function CompanyDashboardPage() {
             {myRequests.slice(0, 12).map((request) => (
               <div key={request.request_id} className={styles.requestRow}>
                 <span>
-                  {request.trip_date || "-"} {request.start_time || ""}
+                  {request.entry_date || "-"} {request.start_time || ""}
                 </span>
                 <span>{request.company_name || "-"}</span>
                 <span>
@@ -277,7 +291,7 @@ export default function CompanyDashboardPage() {
             <h3 className={styles.modalTitle}>Cancel Booking Request</h3>
             <p className={styles.modalSubtitle}>
               Do you want to cancel this submitted request for{" "}
-              <strong>{pendingCancelRequest.trip_date || "-"}</strong>{" "}
+              <strong>{pendingCancelRequest.entry_date || "-"}</strong>{" "}
               <strong>{pendingCancelRequest.start_time || ""}</strong>?
             </p>
             <div className={styles.modalActions}>

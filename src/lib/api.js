@@ -446,6 +446,7 @@ export async function deleteEntry(entryId) {
 export async function fetchBookingRequests({
   companyId = "",
   status = "",
+  month = "",
   orderByField = "created_at",
   orderByDirection = "desc",
   limitCount = 0,
@@ -482,10 +483,15 @@ export async function fetchBookingRequests({
     : bookingRequestsRef;
   const snapshot = await getDocs(bookingRequestsQuery);
 
-  return snapshot.docs.map((docSnap) => ({
+  const requests = snapshot.docs.map((docSnap) => ({
     request_id: docSnap.id,
     ...docSnap.data(),
   }));
+  return month
+    ? requests.filter((request) =>
+        String(request.entry_date || "").startsWith(`${month}-`)
+      )
+    : requests;
 }
 
 export async function fetchBookingRequestById(requestId) {
@@ -515,7 +521,7 @@ export async function createBookingRequest(payload = {}) {
   const normalizedPayload = {
     company_id: String(payload.company_id || "").trim(),
     company_name: String(payload.company_name || "").trim(),
-    trip_date: String(payload.trip_date || "").trim(),
+    entry_date: String(payload.entry_date || "").trim(),
     start_time: String(payload.start_time || "").trim(),
     pickup_location: String(payload.pickup_location || "").trim(),
     drop_location: String(payload.drop_location || "").trim(),
@@ -537,8 +543,8 @@ export async function createBookingRequest(payload = {}) {
   if (!normalizedPayload.company_name) {
     throw new Error("company_name is required");
   }
-  if (!normalizedPayload.trip_date) {
-    throw new Error("trip_date is required");
+  if (!normalizedPayload.entry_date) {
+    throw new Error("entry_date is required");
   }
   if (!normalizedPayload.start_time) {
     throw new Error("start_time is required");
@@ -661,7 +667,7 @@ export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
 
   if (!entryId) {
     const entryResult = await createEntry({
-      entry_date: requestData.trip_date || "",
+      entry_date: requestData.entry_date || "",
       company_id: requestData.company_id || "",
       company_name: requestData.company_name || "",
       slot: requestData.slot || "",

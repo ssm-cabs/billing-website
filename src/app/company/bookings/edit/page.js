@@ -33,7 +33,7 @@ function getCompanyIds(userData) {
 
 const initialForm = {
   company_id: "",
-  trip_date: "",
+  entry_date: "",
   start_time: "",
   pickup_location: "",
   drop_location: "",
@@ -110,7 +110,7 @@ export default function EditCompanyBookingPage() {
         setRequestData(bookingRequest);
         setForm({
           company_id: bookingRequest.company_id || "",
-          trip_date: bookingRequest.trip_date || "",
+          entry_date: bookingRequest.entry_date || "",
           start_time: bookingRequest.start_time || "",
           pickup_location: bookingRequest.pickup_location || "",
           drop_location: bookingRequest.drop_location || "",
@@ -154,8 +154,8 @@ export default function EditCompanyBookingPage() {
 
     try {
       const today = getToday();
-      if (String(form.trip_date || "") < today) {
-        throw new Error("Trip date cannot be earlier than today.");
+      if (String(form.entry_date || "") < today) {
+        throw new Error("Entry date cannot be earlier than today.");
       }
 
       if (!allowedCompanyIds.has(form.company_id)) {
@@ -165,7 +165,7 @@ export default function EditCompanyBookingPage() {
       await updateBookingRequest(requestId, {
         company_id: form.company_id,
         company_name: companyNameById.get(form.company_id) || "",
-        trip_date: form.trip_date,
+        entry_date: form.entry_date,
         start_time: form.start_time,
         pickup_location: form.pickup_location,
         drop_location: form.drop_location,
@@ -239,11 +239,11 @@ export default function EditCompanyBookingPage() {
           </label>
 
           <label className={styles.field}>
-            Trip date
+            Entry date
             <DatePicker
-              value={form.trip_date}
+              value={form.entry_date}
               minDate={getToday()}
-              onChange={(value) => setForm((prev) => ({ ...prev, trip_date: value }))}
+              onChange={(value) => setForm((prev) => ({ ...prev, entry_date: value }))}
             />
           </label>
 

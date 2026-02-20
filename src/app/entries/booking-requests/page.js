@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import MonthPicker from "../MonthPicker";
 import CustomDropdown from "../CustomDropdown";
 import { usePermissions } from "@/lib/usePermissions";
 import {
@@ -35,6 +36,12 @@ function getReviewerName() {
 export default function BookingRequestsPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [requests, setRequests] = useState([]);
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const monthIndex = String(now.getMonth() + 1).padStart(2, "0");
+    return `${year}-${monthIndex}`;
+  });
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -48,6 +55,7 @@ export default function BookingRequestsPage() {
     try {
       const data = await fetchBookingRequests({
         status: statusFilter === "all" ? "" : statusFilter,
+        month,
         orderByField: "created_at",
         orderByDirection: "desc",
       });
@@ -57,7 +65,7 @@ export default function BookingRequestsPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [month, statusFilter]);
 
   useEffect(() => {
     if (permissionsLoading || !canView) return;
@@ -144,6 +152,10 @@ export default function BookingRequestsPage() {
 
       <section className={styles.filters}>
         <label className={styles.field}>
+          Month
+          <MonthPicker value={month} onChange={setMonth} />
+        </label>
+        <label className={styles.field}>
           Status
           <CustomDropdown
             options={STATUS_OPTIONS}
@@ -191,7 +203,7 @@ export default function BookingRequestsPage() {
               {rows.map((request) => (
                 <tr key={request.request_id}>
                   <td data-label="Trip">
-                    {request.trip_date || "-"} {request.start_time || ""}
+                    {request.entry_date || "-"} {request.start_time || ""}
                   </td>
                   <td data-label="Company">{request.company_name || "-"}</td>
                   <td data-label="Route">

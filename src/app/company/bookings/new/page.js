@@ -32,7 +32,7 @@ function getCompanyIds(userData) {
 
 const initialRequestForm = {
   company_id: "",
-  trip_date: getToday(),
+  entry_date: getToday(),
   start_time: "",
   pickup_location: "",
   drop_location: "",
@@ -131,8 +131,8 @@ export default function NewCompanyBookingPage() {
 
     try {
       const today = getToday();
-      if (String(requestForm.trip_date || "") < today) {
-        throw new Error("Trip date cannot be earlier than today.");
+      if (String(requestForm.entry_date || "") < today) {
+        throw new Error("Entry date cannot be earlier than today.");
       }
 
       const selectedCompany = companies.find(
@@ -151,7 +151,7 @@ export default function NewCompanyBookingPage() {
       await createBookingRequest({
         company_id: selectedCompany.company_id,
         company_name: selectedCompany.name || selectedCompany.company_id,
-        trip_date: requestForm.trip_date,
+        entry_date: requestForm.entry_date,
         start_time: requestForm.start_time,
         pickup_location: requestForm.pickup_location,
         drop_location: requestForm.drop_location,
@@ -226,12 +226,12 @@ export default function NewCompanyBookingPage() {
         </label>
 
         <label className={styles.field}>
-          Trip date
+          Entry date
           <DatePicker
-            value={requestForm.trip_date}
+            value={requestForm.entry_date}
             minDate={getToday()}
             onChange={(value) =>
-              setRequestForm((prev) => ({ ...prev, trip_date: value }))
+              setRequestForm((prev) => ({ ...prev, entry_date: value }))
             }
           />
         </label>
