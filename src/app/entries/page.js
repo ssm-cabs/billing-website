@@ -207,7 +207,7 @@ export default function EntriesPage() {
         </div>
         {canEdit && (
           <div className={styles.headerActions}>
-            <Link className={styles.primaryCta} href="/booking-requests">
+            <Link className={styles.primaryCta} href="/entries/booking-requests">
               Booking Requests
             </Link>
             <Link className={styles.primaryCta} href="/entries/new">

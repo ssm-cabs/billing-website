@@ -119,7 +119,7 @@ export default function BookingRequestsPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Link className={styles.backLink} href="/dashboard">
+          <Link className={styles.backLink} href="/entries">
             ← Back
           </Link>
           <p className={styles.eyebrow}>Booking requests</p>
