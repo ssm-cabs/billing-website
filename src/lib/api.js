@@ -227,8 +227,7 @@ function getBookingRequestStatusDetail(status) {
 
 function normalizeBookingRequest(data = {}, requestId = "") {
   const status = String(data.status || "").trim();
-  const normalizedEntryDate =
-    String(data.entry_date || "").trim() || String(data.trip_date || "").trim();
+  const normalizedEntryDate = String(data.entry_date || "").trim();
   return {
     ...data,
     entry_date: normalizedEntryDate,
@@ -487,32 +486,48 @@ export async function fetchBookingRequests({
     return [];
   }
 
-  const constraints = [];
+  const bookingRequestsRef = collection(db, "booking_requests");
+  const baseConstraints = [];
   if (companyId) {
-    constraints.push(where("company_id", "==", companyId));
+    baseConstraints.push(where("company_id", "==", companyId));
   }
   if (status) {
-    constraints.push(where("status", "==", status));
+    baseConstraints.push(where("status", "==", status));
   }
+  if (lastDoc) {
+    baseConstraints.push(startAfter(lastDoc));
+  }
+
+  let requestDocs = [];
   if (month) {
     const nextMonth = getNextMonth(month);
     if (nextMonth) {
-      constraints.push(where("entry_date", ">=", `${month}-01`));
-      constraints.push(where("entry_date", "<", `${nextMonth}-01`));
+      const lower = `${month}-01`;
+      const upper = `${nextMonth}-01`;
+      const monthQuery = query(
+        bookingRequestsRef,
+        ...baseConstraints,
+        where("entry_date", ">=", lower),
+        where("entry_date", "<", upper)
+      );
+      const snapshot = await getDocs(monthQuery);
+      requestDocs = snapshot.docs;
+    } else {
+      const snapshot = await getDocs(
+        baseConstraints.length ? query(bookingRequestsRef, ...baseConstraints) : bookingRequestsRef
+      );
+      requestDocs = snapshot.docs;
     }
+  } else {
+    const snapshot = await getDocs(
+      baseConstraints.length ? query(bookingRequestsRef, ...baseConstraints) : bookingRequestsRef
+    );
+    requestDocs = snapshot.docs;
   }
-  if (lastDoc) constraints.push(startAfter(lastDoc));
 
-  const bookingRequestsRef = collection(db, "booking_requests");
-  const bookingRequestsQuery = constraints.length
-    ? query(bookingRequestsRef, ...constraints)
-    : bookingRequestsRef;
-  const snapshot = await getDocs(bookingRequestsQuery);
-
-  const requests = snapshot.docs.map((docSnap) =>
+  let filteredRequests = requestDocs.map((docSnap) =>
     normalizeBookingRequest(docSnap.data(), docSnap.id)
   );
-  let filteredRequests = requests;
 
   const direction = String(orderByDirection || "desc").toLowerCase() === "asc" ? 1 : -1;
   const field = String(orderByField || "").trim();
