@@ -302,18 +302,6 @@ export default function DriverDashboardPage() {
         requested_by_name: userData?.name || requesterId,
         requested_updates: requestedUpdates,
         reason: String(requestForm.reason || "").trim(),
-        current_entry: {
-          entry_id: pendingEntry.entry_id || "",
-          entry_date: pendingEntry.entry_date || "",
-          start_time: pendingEntry.start_time || "",
-          end_time: pendingEntry.end_time || "",
-          pickup_location: pendingEntry.pickup_location || "",
-          drop_location: pendingEntry.drop_location || "",
-          odometer_start: pendingEntry.odometer_start ?? "",
-          odometer_end: pendingEntry.odometer_end ?? "",
-          tolls: pendingEntry.tolls ?? "",
-          notes: pendingEntry.notes || "",
-        },
       });
 
       setRequestByEntryId((prev) => ({
@@ -322,7 +310,6 @@ export default function DriverDashboardPage() {
           request_id: created.request_id,
           entry_id: pendingEntry.entry_id,
           status: "submitted",
-          status_detail: "Update request submitted and awaiting review.",
           reason: String(requestForm.reason || "").trim(),
         },
       }));
@@ -428,8 +415,7 @@ export default function DriverDashboardPage() {
             {entries.map((entry) => {
               const latestRequest = requestByEntryId[entry.entry_id] || null;
               const statusLabel = latestRequest?.status || "-";
-              const statusDetail =
-                latestRequest?.status_detail || latestRequest?.reason || "";
+              const statusDetail = latestRequest?.reason || "";
               const canRequestUpdate =
                 String(latestRequest?.status || "").toLowerCase() !== "submitted";
               return (

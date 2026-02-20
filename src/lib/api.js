@@ -251,14 +251,6 @@ function getBookingRequestStatusDetail(status) {
   return match?.detail || "";
 }
 
-function getEntryUpdateRequestStatusDetail(status) {
-  if (!status) return "";
-  const match = ENTRY_UPDATE_REQUEST_STATUS_CATALOG.find(
-    (item) => item.status === status
-  );
-  return match?.detail || "";
-}
-
 function normalizeBookingRequest(data = {}, requestId = "") {
   const status = String(data.status || "").trim();
   const normalizedEntryDate = String(data.entry_date || "").trim();
@@ -276,8 +268,6 @@ function normalizeEntryUpdateRequest(data = {}, requestId = "") {
     ...data,
     ...(requestId ? { request_id: requestId } : {}),
     status,
-    status_detail:
-      String(data.status_detail || "").trim() || getEntryUpdateRequestStatusDetail(status),
   };
 }
 
@@ -937,10 +927,6 @@ export async function createEntryUpdateRequest(payload = {}) {
         ? payload.requested_updates
         : {},
     reason: String(payload.reason || "").trim(),
-    current_entry:
-      payload.current_entry && typeof payload.current_entry === "object"
-        ? payload.current_entry
-        : {},
     status: resolvedStatus,
     reviewed_by: String(payload.reviewed_by || "").trim(),
     review_note: String(payload.review_note || "").trim(),
@@ -968,7 +954,6 @@ export async function createEntryUpdateRequest(payload = {}) {
   const requestData = {
     ...normalizedPayload,
     request_id: docRef.id,
-    status_detail: getEntryUpdateRequestStatusDetail(normalizedPayload.status),
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   };
