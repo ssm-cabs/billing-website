@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import MonthPicker from "@/app/entries/MonthPicker";
 import CustomDropdown from "@/app/entries/CustomDropdown";
 import TimePicker from "@/app/entries/TimePicker";
+import NotesPreview from "@/components/NotesPreview";
 import {
   createEntryUpdateRequest,
   fetchEntries,
@@ -35,6 +36,73 @@ function toTimestampValue(value) {
   if (typeof value.seconds === "number") return value.seconds * 1000;
   if (typeof value === "number") return value;
   return 0;
+}
+
+function computeKmsFromOdometer(entry) {
+  const startRaw = entry?.odometer_start;
+  const endRaw = entry?.odometer_end;
+
+  if (endRaw === "" || endRaw === null || endRaw === undefined) {
+    return null;
+  }
+
+  if (startRaw === "" || startRaw === null || startRaw === undefined) {
+    return null;
+  }
+
+  const start = Number(startRaw);
+  const end = Number(endRaw);
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return null;
+  }
+
+  return end - start;
+}
+
+function computeTimeTaken(entry) {
+  const startTime = String(entry?.start_time || "").trim();
+  const endTime = String(entry?.end_time || "").trim();
+
+  if (!startTime || !endTime) {
+    return null;
+  }
+
+  const [startHourRaw, startMinuteRaw] = startTime.split(":");
+  const [endHourRaw, endMinuteRaw] = endTime.split(":");
+
+  const startHour = Number(startHourRaw);
+  const startMinute = Number(startMinuteRaw);
+  const endHour = Number(endHourRaw);
+  const endMinute = Number(endMinuteRaw);
+
+  if (
+    !Number.isInteger(startHour) ||
+    !Number.isInteger(startMinute) ||
+    !Number.isInteger(endHour) ||
+    !Number.isInteger(endMinute)
+  ) {
+    return null;
+  }
+
+  const startTotalMinutes = startHour * 60 + startMinute;
+  const endTotalMinutes = endHour * 60 + endMinute;
+
+  if (endTotalMinutes < startTotalMinutes) {
+    return null;
+  }
+
+  const diffMinutes = endTotalMinutes - startTotalMinutes;
+  const hours = Math.floor(diffMinutes / 60);
+  const minutes = diffMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  if (hours > 0) {
+    return `${hours}h`;
+  }
+  return `${minutes}m`;
 }
 
 export default function DriverDashboardPage() {
@@ -421,8 +489,9 @@ export default function DriverDashboardPage() {
               <span>Vehicle</span>
               <span>Slot</span>
               <span>Route</span>
-              <span>Total</span>
-              <span>Update Status</span>
+              <span>Time Taken</span>
+              <span>Kms</span>
+              <span>Status</span>
               <span>Action</span>
             </div>
             {entries.map((entry) => {
@@ -435,17 +504,19 @@ export default function DriverDashboardPage() {
                   <span>
                     {entry.entry_date || "-"} {entry.start_time || ""}
                   </span>
-                  <span>{entry.company_name || "-"}</span>
+                  <span>
+                    <NotesPreview text={entry.company_name} maxWidth={165} />
+                  </span>
                   <span>{entry.vehicle_number || "-"}</span>
                   <span>{entry.slot || "-"}</span>
                   <span>
-                    {entry.pickup_location || "-"} → {entry.drop_location || "-"}
+                    <NotesPreview
+                      text={`${entry.pickup_location || "-"} → ${entry.drop_location || "-"}`}
+                      maxWidth={180}
+                    />
                   </span>
-                  <span>
-                    {(Number(entry.total) || Number(entry.rate) || 0) > 0
-                      ? `₹${Number(entry.total) || Number(entry.rate) || 0}`
-                      : "-"}
-                  </span>
+                  <span>{computeTimeTaken(entry) ?? "-"}</span>
+                  <span>{computeKmsFromOdometer(entry) ?? "-"}</span>
                   <span>
                     {latestRequest ? (
                       <span

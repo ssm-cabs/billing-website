@@ -9,6 +9,7 @@ import {
   fetchEntryUpdateRequestById,
   updateEntry,
 } from "@/lib/api";
+import { composeEntryNotes, computeEntryBilling } from "@/lib/entryBilling";
 import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./page.module.css";
@@ -130,8 +131,42 @@ export default function EntryUpdateDifferencesPage() {
       setReviewMessage("");
 
       if (nextStatus === "approved") {
+        const mergedEntry = {
+          ...(entry || {}),
+          ...(request.requested_updates || {}),
+        };
+        const billing = computeEntryBilling({
+          slot: mergedEntry.slot,
+          rate: mergedEntry.rate,
+          extra_per_hour: mergedEntry.extra_per_hour,
+          extra_per_km: mergedEntry.extra_per_km,
+          tolls: mergedEntry.tolls,
+          start_time: mergedEntry.start_time,
+          end_time: mergedEntry.end_time,
+          odometer_start: mergedEntry.odometer_start,
+          odometer_end: mergedEntry.odometer_end,
+        });
+        const computedNotes = composeEntryNotes({
+          notes: mergedEntry.notes,
+          slot: mergedEntry.slot,
+          start_time: mergedEntry.start_time,
+          end_time: mergedEntry.end_time,
+          odometer_start: mergedEntry.odometer_start,
+          odometer_end: mergedEntry.odometer_end,
+          billing,
+        });
+
         await updateEntry(request.entry_id, {
           ...(request.requested_updates || {}),
+          hours: billing.extraHours,
+          kms: billing.extraKms,
+          extra_per_hour: billing.extra_per_hour,
+          extra_per_km: billing.extra_per_km,
+          extra_time_cost: billing.extra_time_cost,
+          extra_kms_cost: billing.extra_kms_cost,
+          tolls: billing.tolls,
+          total: billing.total,
+          notes: computedNotes,
         });
         await deleteEntryUpdateRequest(request.entry_update_id);
         setReviewMessage("Request accepted, entry updated, and request removed.");
