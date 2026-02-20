@@ -130,14 +130,14 @@ export default function CompanyDashboardPage() {
   };
 
   const handleCancelRequest = (request) => {
-    const requestId = String(request?.request_id || "").trim();
+    const requestId = String(request?.booking_id || "").trim();
     if (!requestId) return;
     setPendingCancelRequest(request);
   };
 
   const confirmCancelRequest = async () => {
     const request = pendingCancelRequest;
-    const requestId = String(request?.request_id || "").trim();
+    const requestId = String(request?.booking_id || "").trim();
     if (!requestId) return;
     if (String(request?.status || "").trim().toLowerCase() !== "submitted") {
       setError("Only submitted requests can be cancelled.");
@@ -155,7 +155,7 @@ export default function CompanyDashboardPage() {
       });
       setMyRequests((prev) =>
         prev.map((row) =>
-          row.request_id === requestId
+          row.booking_id === requestId
             ? {
                 ...row,
                 status: "cancelled",
@@ -230,7 +230,7 @@ export default function CompanyDashboardPage() {
               <span>Actions</span>
             </div>
             {myRequests.slice(0, 12).map((request) => (
-              <div key={request.request_id} className={styles.requestRow}>
+              <div key={request.booking_id} className={styles.requestRow}>
                 <span>
                   {request.entry_date || "-"} {request.start_time || ""}
                 </span>
@@ -258,7 +258,7 @@ export default function CompanyDashboardPage() {
                     <div className={styles.rowActions}>
                       <Link
                         className={styles.editBtn}
-                        href={`/company/bookings/edit?id=${encodeURIComponent(request.request_id)}`}
+                        href={`/company/bookings/edit?id=${encodeURIComponent(request.booking_id)}`}
                         title="Edit"
                         aria-label="Edit"
                       >
@@ -268,7 +268,7 @@ export default function CompanyDashboardPage() {
                         type="button"
                         className={styles.cancelBtn}
                         onClick={() => handleCancelRequest(request)}
-                        disabled={actionRequestId === request.request_id}
+                        disabled={actionRequestId === request.booking_id}
                         title="Cancel"
                         aria-label="Cancel"
                       >
@@ -306,9 +306,9 @@ export default function CompanyDashboardPage() {
                 type="button"
                 className={styles.primaryButton}
                 onClick={confirmCancelRequest}
-                disabled={actionRequestId === pendingCancelRequest.request_id}
+                disabled={actionRequestId === pendingCancelRequest.booking_id}
               >
-                {actionRequestId === pendingCancelRequest.request_id ? "Cancelling..." : "Confirm"}
+                {actionRequestId === pendingCancelRequest.booking_id ? "Cancelling..." : "Confirm"}
               </button>
             </div>
           </div>

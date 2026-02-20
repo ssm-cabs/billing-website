@@ -143,7 +143,7 @@ export default function BookingRequestsPage() {
             ← Back
           </Link>
           <p className={styles.eyebrow}>Booking requests</p>
-          <h1>Review Company Requests</h1>
+          <h1>Review Booking Requests</h1>
           <p className={styles.lead}>
             Acknowledge to create an entry. Reject to close the request.
           </p>
@@ -201,7 +201,7 @@ export default function BookingRequestsPage() {
             </thead>
             <tbody>
               {rows.map((request) => (
-                <tr key={request.request_id}>
+                <tr key={request.booking_id}>
                   <td data-label="Trip">
                     {request.entry_date || "-"} {request.start_time || ""}
                   </td>
@@ -240,16 +240,16 @@ export default function BookingRequestsPage() {
                       <div className={styles.actions}>
                         <button
                           type="button"
-                          onClick={() => handleAcknowledge(request.request_id)}
-                          disabled={actionRequestId === request.request_id}
+                          onClick={() => handleAcknowledge(request.booking_id)}
+                          disabled={actionRequestId === request.booking_id}
                           className={styles.ackBtn}
                         >
                           Ack
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleReject(request.request_id)}
-                          disabled={actionRequestId === request.request_id}
+                          onClick={() => handleReject(request.booking_id)}
+                          disabled={actionRequestId === request.booking_id}
                           className={styles.rejectBtn}
                         >
                           Reject

@@ -225,6 +225,33 @@ function getBookingRequestStatusDetail(status) {
   return match?.detail || "";
 }
 
+function normalizeBookingRequest(data = {}, requestId = "") {
+  const status = String(data.status || "").trim();
+  const normalizedEntryDate =
+    String(data.entry_date || "").trim() || String(data.trip_date || "").trim();
+  return {
+    ...data,
+    entry_date: normalizedEntryDate,
+    ...(requestId ? { booking_id: requestId } : {}),
+    status_detail: getBookingRequestStatusDetail(status),
+  };
+}
+
+function getNextMonth(month = "") {
+  const [yearRaw, monthRaw] = String(month || "").split("-");
+  const year = Number(yearRaw);
+  const monthIndex = Number(monthRaw);
+  if (!Number.isInteger(year) || !Number.isInteger(monthIndex)) {
+    return "";
+  }
+  if (monthIndex < 1 || monthIndex > 12) {
+    return "";
+  }
+  const nextYear = monthIndex === 12 ? year + 1 : year;
+  const nextMonth = monthIndex === 12 ? 1 : monthIndex + 1;
+  return `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
+}
+
 function normalizeVehicle(vehicle = {}, vehicleId = "") {
   const isActive =
     typeof vehicle.active === "boolean"
@@ -467,15 +494,14 @@ export async function fetchBookingRequests({
   if (status) {
     constraints.push(where("status", "==", status));
   }
-  if (orderByField) {
-    constraints.push(orderBy(orderByField, orderByDirection));
+  if (month) {
+    const nextMonth = getNextMonth(month);
+    if (nextMonth) {
+      constraints.push(where("entry_date", ">=", `${month}-01`));
+      constraints.push(where("entry_date", "<", `${nextMonth}-01`));
+    }
   }
-  if (limitCount > 0) {
-    constraints.push(limit(limitCount));
-  }
-  if (lastDoc) {
-    constraints.push(startAfter(lastDoc));
-  }
+  if (lastDoc) constraints.push(startAfter(lastDoc));
 
   const bookingRequestsRef = collection(db, "booking_requests");
   const bookingRequestsQuery = constraints.length
@@ -483,15 +509,36 @@ export async function fetchBookingRequests({
     : bookingRequestsRef;
   const snapshot = await getDocs(bookingRequestsQuery);
 
-  const requests = snapshot.docs.map((docSnap) => ({
-    request_id: docSnap.id,
-    ...docSnap.data(),
-  }));
-  return month
-    ? requests.filter((request) =>
-        String(request.entry_date || "").startsWith(`${month}-`)
-      )
-    : requests;
+  const requests = snapshot.docs.map((docSnap) =>
+    normalizeBookingRequest(docSnap.data(), docSnap.id)
+  );
+  let filteredRequests = requests;
+
+  const direction = String(orderByDirection || "desc").toLowerCase() === "asc" ? 1 : -1;
+  const field = String(orderByField || "").trim();
+  if (field) {
+    const toSortable = (value) => {
+      if (value === null || value === undefined) return "";
+      if (typeof value === "number") return value;
+      if (typeof value === "string") return value;
+      if (typeof value?.toMillis === "function") return value.toMillis();
+      if (typeof value?.seconds === "number") return value.seconds * 1000;
+      return String(value);
+    };
+    filteredRequests = filteredRequests.sort((a, b) => {
+      const left = toSortable(a[field]);
+      const right = toSortable(b[field]);
+      if (left < right) return -1 * direction;
+      if (left > right) return 1 * direction;
+      return 0;
+    });
+  }
+
+  if (limitCount > 0) {
+    filteredRequests = filteredRequests.slice(0, limitCount);
+  }
+
+  return filteredRequests;
 }
 
 export async function fetchBookingRequestById(requestId) {
@@ -510,10 +557,7 @@ export async function fetchBookingRequestById(requestId) {
     throw new Error("Booking request not found");
   }
 
-  return {
-    request_id: bookingRequestSnap.id,
-    ...bookingRequestSnap.data(),
-  };
+  return normalizeBookingRequest(bookingRequestSnap.data(), bookingRequestSnap.id);
 }
 
 export async function createBookingRequest(payload = {}) {
@@ -529,9 +573,6 @@ export async function createBookingRequest(payload = {}) {
     slot: String(payload.slot || "").trim(),
     notes: String(payload.notes || "").trim(),
     status: resolvedStatus,
-    status_detail:
-      String(payload.status_detail || "").trim() ||
-      getBookingRequestStatusDetail(resolvedStatus),
     created_by: String(payload.created_by || "").trim(),
     approved_by: String(payload.approved_by || "").trim(),
     converted_entry_id: payload.converted_entry_id || null,
@@ -562,19 +603,19 @@ export async function createBookingRequest(payload = {}) {
   assertValidBookingRequestStatus(normalizedPayload.status);
 
   if (!isFirebaseConfigured || !db) {
-    return { ok: true, request_id: "REQ-NEW" };
+    return { ok: true, booking_id: "REQ-NEW" };
   }
 
   const docRef = doc(collection(db, "booking_requests"));
   const bookingRequest = {
     ...normalizedPayload,
-    request_id: docRef.id,
+    booking_id: docRef.id,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   };
 
   await setDoc(docRef, bookingRequest);
-  return { request_id: docRef.id };
+  return { booking_id: docRef.id };
 }
 
 export async function updateBookingRequest(requestId, payload = {}) {
@@ -589,30 +630,25 @@ export async function updateBookingRequest(requestId, payload = {}) {
     assertValidSlot(payload.slot);
   }
 
-  const statusFromPayload = Object.prototype.hasOwnProperty.call(payload, "status")
-    ? String(payload.status || "").trim()
-    : "";
-  const detailFromPayload = String(payload.status_detail || "").trim();
-  const resolvedStatusDetail = statusFromPayload
-    ? detailFromPayload || getBookingRequestStatusDetail(statusFromPayload)
-    : detailFromPayload || undefined;
   const hasConvertedEntryId = Object.prototype.hasOwnProperty.call(
     payload,
     "converted_entry_id"
   );
+  const payloadWithoutStatusDetail = { ...payload };
+  if (Object.prototype.hasOwnProperty.call(payloadWithoutStatusDetail, "status_detail")) {
+    delete payloadWithoutStatusDetail.status_detail;
+  }
 
   if (!isFirebaseConfigured || !db) {
-    return { ok: true, request_id: requestId };
+    return { ok: true, booking_id: requestId };
   }
 
   const bookingRequestRef = doc(db, "booking_requests", requestId);
   await setDoc(
     bookingRequestRef,
     {
-      ...payload,
-      ...(resolvedStatusDetail !== undefined
-        ? { status_detail: resolvedStatusDetail }
-        : {}),
+      ...payloadWithoutStatusDetail,
+      status_detail: deleteField(),
       ...(hasConvertedEntryId
         ? { converted_entry_id: payload.converted_entry_id || null }
         : {}),
@@ -620,7 +656,7 @@ export async function updateBookingRequest(requestId, payload = {}) {
     },
     { merge: true }
   );
-  return { request_id: requestId };
+  return { booking_id: requestId };
 }
 
 export async function deleteBookingRequest(requestId) {
@@ -629,12 +665,12 @@ export async function deleteBookingRequest(requestId) {
   }
 
   if (!isFirebaseConfigured || !db) {
-    return { ok: true, request_id: requestId };
+    return { ok: true, booking_id: requestId };
   }
 
   const bookingRequestRef = doc(db, "booking_requests", requestId);
   await deleteDoc(bookingRequestRef);
-  return { request_id: requestId };
+  return { booking_id: requestId };
 }
 
 export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
@@ -643,7 +679,7 @@ export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
   }
 
   if (!isFirebaseConfigured || !db) {
-    return { ok: true, request_id: requestId, entry_id: "ENT-NEW" };
+    return { ok: true, booking_id: requestId, entry_id: "ENT-NEW" };
   }
 
   const bookingRequestRef = doc(db, "booking_requests", requestId);
@@ -696,7 +732,7 @@ export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
     converted_entry_id: entryId || null,
   });
 
-  return { request_id: requestId, entry_id: entryId };
+  return { booking_id: requestId, entry_id: entryId };
 }
 
 export async function rejectBookingRequest(requestId, reviewedBy = "") {
@@ -705,7 +741,7 @@ export async function rejectBookingRequest(requestId, reviewedBy = "") {
   }
 
   if (!isFirebaseConfigured || !db) {
-    return { ok: true, request_id: requestId };
+    return { ok: true, booking_id: requestId };
   }
 
   const bookingRequestRef = doc(db, "booking_requests", requestId);
@@ -720,7 +756,7 @@ export async function rejectBookingRequest(requestId, reviewedBy = "") {
     throw new Error("Allotted requests cannot be rejected.");
   }
   if (requestStatus === "rejected") {
-    return { request_id: requestId };
+    return { booking_id: requestId };
   }
 
   await updateBookingRequest(requestId, {
@@ -728,7 +764,7 @@ export async function rejectBookingRequest(requestId, reviewedBy = "") {
     approved_by: String(reviewedBy || "").trim(),
   });
 
-  return { request_id: requestId };
+  return { booking_id: requestId };
 }
 
 export function getBookingRequestStatusCatalog() {
