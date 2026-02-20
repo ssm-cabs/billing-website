@@ -487,43 +487,27 @@ export async function fetchBookingRequests({
   }
 
   const bookingRequestsRef = collection(db, "booking_requests");
-  const baseConstraints = [];
+  const constraints = [];
   if (companyId) {
-    baseConstraints.push(where("company_id", "==", companyId));
+    constraints.push(where("company_id", "==", companyId));
   }
   if (status) {
-    baseConstraints.push(where("status", "==", status));
+    constraints.push(where("status", "==", status));
   }
-  if (lastDoc) {
-    baseConstraints.push(startAfter(lastDoc));
-  }
-
-  let requestDocs = [];
   if (month) {
     const nextMonth = getNextMonth(month);
     if (nextMonth) {
-      const lower = `${month}-01`;
-      const upper = `${nextMonth}-01`;
-      const monthQuery = query(
-        bookingRequestsRef,
-        ...baseConstraints,
-        where("entry_date", ">=", lower),
-        where("entry_date", "<", upper)
-      );
-      const snapshot = await getDocs(monthQuery);
-      requestDocs = snapshot.docs;
-    } else {
-      const snapshot = await getDocs(
-        baseConstraints.length ? query(bookingRequestsRef, ...baseConstraints) : bookingRequestsRef
-      );
-      requestDocs = snapshot.docs;
+      constraints.push(where("entry_date", ">=", `${month}-01`));
+      constraints.push(where("entry_date", "<", `${nextMonth}-01`));
     }
-  } else {
-    const snapshot = await getDocs(
-      baseConstraints.length ? query(bookingRequestsRef, ...baseConstraints) : bookingRequestsRef
-    );
-    requestDocs = snapshot.docs;
   }
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+  const snapshot = await getDocs(
+    constraints.length ? query(bookingRequestsRef, ...constraints) : bookingRequestsRef
+  );
+  const requestDocs = snapshot.docs;
 
   let filteredRequests = requestDocs.map((docSnap) =>
     normalizeBookingRequest(docSnap.data(), docSnap.id)
