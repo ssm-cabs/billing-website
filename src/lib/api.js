@@ -173,6 +173,28 @@ const mockPayments = [
 ];
 
 const ALLOWED_SLOTS = new Set(["4hr", "8hr"]);
+const BOOKING_REQUEST_STATUS_CATALOG = [
+  {
+    status: "submitted",
+    detail: "Request received and waiting for operations acknowledgement.",
+  },
+  {
+    status: "acknowledged",
+    detail: "Request acknowledged by operations and under processing.",
+  },
+  {
+    status: "rejected",
+    detail: "Request was reviewed but cannot be fulfilled.",
+  },
+  {
+    status: "cancelled",
+    detail: "Request was cancelled by the requester.",
+  },
+  {
+    status: "allotted",
+    detail: "Request approved and cab has been allotted.",
+  },
+];
 
 function assertValidSlot(slot) {
   if (!slot) {
@@ -181,6 +203,26 @@ function assertValidSlot(slot) {
   if (!ALLOWED_SLOTS.has(slot)) {
     throw new Error("slot must be either 4hr or 8hr");
   }
+}
+
+function assertValidBookingRequestStatus(status) {
+  if (!status) {
+    throw new Error("status is required");
+  }
+  const validStatuses = BOOKING_REQUEST_STATUS_CATALOG.map((item) => item.status);
+  if (!validStatuses.includes(status)) {
+    throw new Error(
+      `status must be one of ${validStatuses.join(", ")}`
+    );
+  }
+}
+
+function getBookingRequestStatusDetail(status) {
+  if (!status) return "";
+  const match = BOOKING_REQUEST_STATUS_CATALOG.find(
+    (item) => item.status === status
+  );
+  return match?.detail || "";
 }
 
 function normalizeVehicle(vehicle = {}, vehicleId = "") {
@@ -378,6 +420,156 @@ export async function deleteEntry(entryId) {
   const entryRef = doc(db, "entries", entryId);
   await deleteDoc(entryRef);
   return { entry_id: entryId };
+}
+
+export async function fetchBookingRequests({
+  companyId = "",
+  status = "",
+  orderByField = "created_at",
+  orderByDirection = "desc",
+  limitCount = 0,
+  lastDoc = null,
+} = {}) {
+  if (status) {
+    assertValidBookingRequestStatus(status);
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return [];
+  }
+
+  const constraints = [];
+  if (companyId) {
+    constraints.push(where("company_id", "==", companyId));
+  }
+  if (status) {
+    constraints.push(where("status", "==", status));
+  }
+  if (orderByField) {
+    constraints.push(orderBy(orderByField, orderByDirection));
+  }
+  if (limitCount > 0) {
+    constraints.push(limit(limitCount));
+  }
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+
+  const bookingRequestsRef = collection(db, "booking_requests");
+  const bookingRequestsQuery = constraints.length
+    ? query(bookingRequestsRef, ...constraints)
+    : bookingRequestsRef;
+  const snapshot = await getDocs(bookingRequestsQuery);
+
+  return snapshot.docs.map((docSnap) => ({
+    request_id: docSnap.id,
+    ...docSnap.data(),
+  }));
+}
+
+export async function createBookingRequest(payload = {}) {
+  const resolvedStatus = String(payload.status || "submitted").trim();
+  const normalizedPayload = {
+    company_id: String(payload.company_id || "").trim(),
+    company_name: String(payload.company_name || "").trim(),
+    trip_date: String(payload.trip_date || "").trim(),
+    trip_time: String(payload.trip_time || "").trim(),
+    pickup_location: String(payload.pickup_location || "").trim(),
+    drop_location: String(payload.drop_location || "").trim(),
+    cab_type: String(payload.cab_type || "").trim(),
+    slot: String(payload.slot || "").trim(),
+    notes: String(payload.notes || "").trim(),
+    status: resolvedStatus,
+    status_detail:
+      String(payload.status_detail || "").trim() ||
+      getBookingRequestStatusDetail(resolvedStatus),
+    created_by: String(payload.created_by || "").trim(),
+    approved_by: String(payload.approved_by || "").trim(),
+    converted_entry_id: payload.converted_entry_id || null,
+  };
+
+  if (!normalizedPayload.company_id) {
+    throw new Error("company_id is required");
+  }
+  if (!normalizedPayload.company_name) {
+    throw new Error("company_name is required");
+  }
+  if (!normalizedPayload.trip_date) {
+    throw new Error("trip_date is required");
+  }
+  if (!normalizedPayload.trip_time) {
+    throw new Error("trip_time is required");
+  }
+  if (!normalizedPayload.pickup_location) {
+    throw new Error("pickup_location is required");
+  }
+  if (!normalizedPayload.drop_location) {
+    throw new Error("drop_location is required");
+  }
+  if (!normalizedPayload.cab_type) {
+    throw new Error("cab_type is required");
+  }
+  assertValidSlot(normalizedPayload.slot);
+  assertValidBookingRequestStatus(normalizedPayload.status);
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, request_id: "REQ-NEW" };
+  }
+
+  const docRef = doc(collection(db, "booking_requests"));
+  const bookingRequest = {
+    ...normalizedPayload,
+    request_id: docRef.id,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, bookingRequest);
+  return { request_id: docRef.id };
+}
+
+export async function updateBookingRequest(requestId, payload = {}) {
+  if (!requestId) {
+    throw new Error("requestId is required");
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, "status")) {
+    assertValidBookingRequestStatus(payload.status);
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "slot")) {
+    assertValidSlot(payload.slot);
+  }
+
+  const statusFromPayload = Object.prototype.hasOwnProperty.call(payload, "status")
+    ? String(payload.status || "").trim()
+    : "";
+  const detailFromPayload = String(payload.status_detail || "").trim();
+  const resolvedStatusDetail = statusFromPayload
+    ? detailFromPayload || getBookingRequestStatusDetail(statusFromPayload)
+    : detailFromPayload || undefined;
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, request_id: requestId };
+  }
+
+  const bookingRequestRef = doc(db, "booking_requests", requestId);
+  await setDoc(
+    bookingRequestRef,
+    {
+      ...payload,
+      ...(resolvedStatusDetail !== undefined
+        ? { status_detail: resolvedStatusDetail }
+        : {}),
+      converted_entry_id: payload.converted_entry_id || null,
+      updated_at: serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { request_id: requestId };
+}
+
+export function getBookingRequestStatusCatalog() {
+  return BOOKING_REQUEST_STATUS_CATALOG.map((item) => ({ ...item }));
 }
 
 export async function fetchCompanies() {

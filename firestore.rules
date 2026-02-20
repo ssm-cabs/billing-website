@@ -22,6 +22,12 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
 
+    // BOOKING REQUESTS
+    // Company-submitted requests stay separate from operational entries.
+    match /booking_requests/{requestId} {
+      allow read, write: if isSignedIn();
+    }
+
     // COMPANIES
     // Client master data is internal and requires authentication.
     match /companies/{companyId} {
