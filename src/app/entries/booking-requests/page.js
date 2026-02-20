@@ -48,6 +48,7 @@ export default function BookingRequestsPage() {
   const [error, setError] = useState("");
   const [actionRequestId, setActionRequestId] = useState("");
   const [lastCreatedEntryId, setLastCreatedEntryId] = useState("");
+  const [pendingRejectRequest, setPendingRejectRequest] = useState(null);
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
@@ -90,11 +91,14 @@ export default function BookingRequestsPage() {
     }
   };
 
-  const handleReject = async (requestId) => {
-    if (!window.confirm("Reject this booking request? This will close the request flow.")) {
-      return;
-    }
+  const handleReject = (request) => {
+    if (!request?.booking_id) return;
+    setPendingRejectRequest(request);
+  };
 
+  const confirmReject = async () => {
+    const requestId = String(pendingRejectRequest?.booking_id || "").trim();
+    if (!requestId) return;
     setActionRequestId(requestId);
     setMessage("");
     setError("");
@@ -103,6 +107,7 @@ export default function BookingRequestsPage() {
     try {
       await rejectBookingRequest(requestId, getReviewerName());
       setMessage("Request rejected.");
+      setPendingRejectRequest(null);
       await loadRequests();
     } catch (actionError) {
       setError(actionError.message || "Failed to reject request.");
@@ -242,17 +247,21 @@ export default function BookingRequestsPage() {
                           type="button"
                           onClick={() => handleAccept(request.booking_id)}
                           disabled={actionRequestId === request.booking_id}
-                          className={styles.ackBtn}
+                          className={`${styles.actionBtn} ${styles.acceptBtn}`}
+                          title="Accept"
+                          aria-label="Accept"
                         >
-                          Accept
+                          <span className={styles.actionIcon}>✓</span>
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleReject(request.booking_id)}
+                          onClick={() => handleReject(request)}
                           disabled={actionRequestId === request.booking_id}
-                          className={styles.rejectBtn}
+                          className={`${styles.actionBtn} ${styles.rejectBtn}`}
+                          title="Reject"
+                          aria-label="Reject"
                         >
-                          Reject
+                          <span className={styles.actionIcon}>✕</span>
                         </button>
                       </div>
                     ) : (
@@ -265,6 +274,36 @@ export default function BookingRequestsPage() {
           </table>
         )}
       </section>
+
+      {pendingRejectRequest ? (
+        <div className={styles.modalOverlay} onClick={() => setPendingRejectRequest(null)}>
+          <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Reject Booking Request</h3>
+            <p className={styles.modalSubtitle}>
+              Reject request for{" "}
+              <strong>{pendingRejectRequest.entry_date || "-"}</strong>{" "}
+              <strong>{pendingRejectRequest.start_time || ""}</strong>?
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setPendingRejectRequest(null)}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={confirmReject}
+                disabled={actionRequestId === pendingRejectRequest.booking_id}
+              >
+                {actionRequestId === pendingRejectRequest.booking_id ? "Rejecting..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

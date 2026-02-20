@@ -173,29 +173,119 @@
   gap: 8px;
 }
 
-.ackBtn,
-.rejectBtn {
-  border: none;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 12px;
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  text-decoration: none;
 }
 
-.ackBtn {
-  background: #1f7a39;
+.actionIcon {
+  display: inline-block;
+  line-height: 1;
+}
+
+.acceptBtn {
+  color: #ea5a32;
+}
+
+.acceptBtn:hover {
+  background: #ea5a32;
   color: #fff;
+  border-color: #ea5a32;
 }
 
 .rejectBtn {
-  background: #c23d2b;
-  color: #fff;
+  color: #c74624;
 }
 
-.ackBtn:disabled,
+.rejectBtn:hover {
+  background: #c74624;
+  color: #fff;
+  border-color: #c74624;
+}
+
+.actionBtn:disabled,
 .rejectBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 460px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.modalTitle {
+  margin: 0 0 10px;
+  font-size: 20px;
+  color: #1e1916;
+}
+
+.modalSubtitle {
+  margin: 0 0 20px;
+  color: #5f5750;
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.primaryButton {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #c74624;
+  color: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 25, 22, 0.2);
+  background: #fff;
+  color: #1e1916;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 @media (max-width: 900px) {
