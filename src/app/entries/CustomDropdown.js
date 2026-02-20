@@ -15,6 +15,7 @@ export default function CustomDropdown({
   defaultOption = null,
   searchable = false,
   searchPlaceholder = "Search...",
+  searchKeywords,
 }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -56,11 +57,26 @@ export default function CustomDropdown({
     return selected ? getLabel(selected) : placeholder;
   };
 
+  const normalizeForSearch = (text) =>
+    String(text || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+
   const normalizedSearch = searchText.trim().toLowerCase();
+  const normalizedSearchCompact = normalizeForSearch(searchText);
   const filteredOptions =
     searchable && normalizedSearch
       ? options.filter((option) =>
-          String(getLabel(option)).toLowerCase().includes(normalizedSearch)
+          [
+            String(getLabel(option)).toLowerCase(),
+            ...(typeof searchKeywords === "function"
+              ? searchKeywords(option).map((keyword) => String(keyword || "").toLowerCase())
+              : []),
+          ].some((candidate) => {
+            const plain = String(candidate || "");
+            if (plain.includes(normalizedSearch)) return true;
+            return normalizeForSearch(plain).includes(normalizedSearchCompact);
+          })
         )
       : options;
 
