@@ -321,10 +321,19 @@ export default function DriverDashboardPage() {
       setRequestByEntryId((prev) => ({
         ...prev,
         [pendingEntry.entry_id]: {
+          ...(prev[pendingEntry.entry_id] || {}),
           entry_update_id: saved.entry_update_id,
           entry_id: pendingEntry.entry_id,
+          entry_date: pendingEntry.entry_date || "",
+          vehicle_id: pendingEntry.vehicle_id || "",
+          vehicle_number: pendingEntry.vehicle_number || "",
+          user_name: userData?.name || userData?.phone || "",
+          requested_updates: requestedUpdates,
           status: "submitted",
           reason: String(requestForm.reason || "").trim(),
+          reviewed_by: "",
+          review_note: "",
+          updated_at: Date.now(),
         },
       }));
       setRequestSubmitStatus("success");
