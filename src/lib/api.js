@@ -17,7 +17,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
-import { computeEntryBilling } from "./entryBilling";
+import { composeEntryNotes, computeEntryBilling } from "./entryBilling";
 
 const mockEntries = [
   {
@@ -703,6 +703,33 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
   let entryId = existingEntryId;
 
   if (!entryId) {
+    const pricing = await fetchPricing(requestData.company_id || "");
+    const matchedPricing = pricing.find(
+      (item) =>
+        String(item.cab_type || "").trim() === String(requestData.cab_type || "").trim() &&
+        String(item.slot || "").trim() === String(requestData.slot || "").trim()
+    );
+    const billing = computeEntryBilling({
+      slot: requestData.slot || "",
+      rate: Number(matchedPricing?.rate) || 0,
+      extra_per_hour: Number(matchedPricing?.extra_per_hour) || 0,
+      extra_per_km: Number(matchedPricing?.extra_per_km) || 0,
+      tolls: 0,
+      start_time: requestData.start_time || "",
+      end_time: "",
+      odometer_start: null,
+      odometer_end: null,
+    });
+    const computedNotes = composeEntryNotes({
+      notes: requestData.notes || "",
+      slot: requestData.slot || "",
+      start_time: requestData.start_time || "",
+      end_time: "",
+      odometer_start: null,
+      odometer_end: null,
+      billing,
+    });
+
     const entryResult = await createEntry({
       entry_date: requestData.entry_date || "",
       company_id: requestData.company_id || "",
@@ -716,10 +743,16 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       vehicle_number: "",
       cab_type: requestData.cab_type || "",
       user_name: reviewerName,
-      notes: requestData.notes || "",
-      rate: 0,
-      tolls: 0,
-      total: 0,
+      notes: computedNotes,
+      rate: billing.rate,
+      hours: billing.extraHours,
+      kms: billing.extraKms,
+      extra_per_hour: billing.extra_per_hour,
+      extra_per_km: billing.extra_per_km,
+      extra_time_cost: billing.extra_time_cost,
+      extra_kms_cost: billing.extra_kms_cost,
+      tolls: billing.tolls,
+      total: billing.total,
       billed: false,
       booking_request_id: requestId,
       booking_request_status: "accepted",
