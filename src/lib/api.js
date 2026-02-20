@@ -573,6 +573,7 @@ export async function createBookingRequest(payload = {}) {
     notes: String(payload.notes || "").trim(),
     status: resolvedStatus,
     created_by: String(payload.created_by || "").trim(),
+    user_name: String(payload.user_name || "").trim(),
     approved_by: String(payload.approved_by || "").trim(),
     converted_entry_id: payload.converted_entry_id || null,
   };
@@ -713,7 +714,7 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       vehicle_id: "",
       vehicle_number: "",
       cab_type: requestData.cab_type || "",
-      user_name: requestData.created_by || "",
+      user_name: requestData.user_name || requestData.created_by || "",
       notes: requestData.notes || "",
       rate: 0,
       tolls: 0,

@@ -217,7 +217,7 @@ export default function BookingRequestsPage() {
                   <td data-label="Cab / Slot">
                     {request.cab_type || "-"} / {request.slot || "-"}
                   </td>
-                  <td data-label="Requested By">{request.created_by || "-"}</td>
+                  <td data-label="Requested By">{request.user_name || request.created_by || "-"}</td>
                   <td data-label="Notes">{request.notes || "-"}</td>
                   <td data-label="Status">
                     <span

@@ -147,6 +147,10 @@ export default function NewCompanyBookingPage() {
         String(userData?.user_id || "").trim() ||
         String(userData?.phone || "").trim() ||
         String(userData?.name || "").trim();
+      const userName =
+        String(userData?.name || "").trim() ||
+        String(userData?.phone || "").trim() ||
+        createdBy;
 
       await createBookingRequest({
         company_id: selectedCompany.company_id,
@@ -160,6 +164,7 @@ export default function NewCompanyBookingPage() {
         notes: requestForm.notes,
         status: "submitted",
         created_by: createdBy,
+        user_name: userName,
         approved_by: "",
         converted_entry_id: null,
       });
