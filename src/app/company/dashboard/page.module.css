@@ -234,6 +234,7 @@
   color: #2e7d32;
 }
 
+.cancelled,
 .rejected {
   background: #ffebee;
   color: #c62828;

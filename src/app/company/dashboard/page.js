@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { deleteBookingRequest, fetchBookingRequests, fetchCompanies } from "@/lib/api";
+import { fetchBookingRequests, fetchCompanies, updateBookingRequest } from "@/lib/api";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
@@ -116,6 +116,7 @@ export default function CompanyDashboardPage() {
     if (normalized === "submitted") return `${styles.status} ${styles.submitted}`;
     if (normalized === "acknowledged") return `${styles.status} ${styles.acknowledged}`;
     if (normalized === "allotted") return `${styles.status} ${styles.allotted}`;
+    if (normalized === "cancelled") return `${styles.status} ${styles.cancelled}`;
     if (normalized === "rejected") return `${styles.status} ${styles.rejected}`;
     return styles.status;
   };
@@ -141,12 +142,24 @@ export default function CompanyDashboardPage() {
     setError("");
 
     try {
-      await deleteBookingRequest(requestId);
-      setMyRequests((prev) => prev.filter((row) => row.request_id !== requestId));
-      setActionMessage("Booking request deleted.");
+      await updateBookingRequest(requestId, {
+        status: "cancelled",
+      });
+      setMyRequests((prev) =>
+        prev.map((row) =>
+          row.request_id === requestId
+            ? {
+                ...row,
+                status: "cancelled",
+                status_detail: "Request was cancelled by the requester.",
+              }
+            : row
+        )
+      );
+      setActionMessage("Booking request cancelled.");
       setPendingCancelRequest(null);
     } catch (cancelError) {
-      setError(cancelError.message || "Failed to delete booking request.");
+      setError(cancelError.message || "Failed to cancel booking request.");
     } finally {
       setActionRequestId("");
     }
@@ -263,7 +276,7 @@ export default function CompanyDashboardPage() {
           <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
             <h3 className={styles.modalTitle}>Cancel Booking Request</h3>
             <p className={styles.modalSubtitle}>
-              Do you want to delete this submitted request for{" "}
+              Do you want to cancel this submitted request for{" "}
               <strong>{pendingCancelRequest.trip_date || "-"}</strong>{" "}
               <strong>{pendingCancelRequest.start_time || ""}</strong>?
             </p>

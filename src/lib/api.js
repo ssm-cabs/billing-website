@@ -187,6 +187,10 @@ const BOOKING_REQUEST_STATUS_CATALOG = [
     detail: "Request was reviewed but cannot be fulfilled.",
   },
   {
+    status: "cancelled",
+    detail: "Request was cancelled by the requester.",
+  },
+  {
     status: "allotted",
     detail: "Request approved and cab has been allotted.",
   },
@@ -645,7 +649,7 @@ export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
   const requestData = bookingRequestSnap.data() || {};
   const requestStatus = String(requestData.status || "").trim();
 
-  if (requestStatus === "rejected") {
+  if (requestStatus === "rejected" || requestStatus === "cancelled") {
     throw new Error(`Cannot acknowledge a ${requestStatus} request.`);
   }
   if (requestStatus === "allotted") {

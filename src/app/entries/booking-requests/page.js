@@ -16,6 +16,7 @@ const STATUS_OPTIONS = [
   { value: "submitted", label: "Submitted" },
   { value: "acknowledged", label: "Acknowledged" },
   { value: "rejected", label: "Rejected" },
+  { value: "cancelled", label: "Cancelled" },
   { value: "allotted", label: "Allotted" },
 ];
 
@@ -109,6 +110,7 @@ export default function BookingRequestsPage() {
     if (normalized === "submitted") return `${styles.status} ${styles.submitted}`;
     if (normalized === "acknowledged") return `${styles.status} ${styles.acknowledged}`;
     if (normalized === "allotted") return `${styles.status} ${styles.allotted}`;
+    if (normalized === "cancelled") return `${styles.status} ${styles.cancelled}`;
     if (normalized === "rejected") return `${styles.status} ${styles.rejected}`;
     return styles.status;
   };
