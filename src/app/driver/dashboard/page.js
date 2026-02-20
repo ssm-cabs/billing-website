@@ -64,7 +64,6 @@ export default function DriverDashboardPage() {
     odometer_start: "",
     odometer_end: "",
     tolls: "",
-    notes: "",
     reason: "",
   });
 
@@ -260,7 +259,6 @@ export default function DriverDashboardPage() {
         existingUpdates.odometer_end ?? entry?.odometer_end ?? ""
       ).trim(),
       tolls: String(existingUpdates.tolls ?? entry?.tolls ?? "").trim(),
-      notes: String(existingUpdates.notes ?? entry?.notes ?? "").trim(),
       reason: String(existingRequest?.reason || "").trim(),
     });
   };
@@ -276,7 +274,6 @@ export default function DriverDashboardPage() {
       odometer_start: requestForm.odometer_start,
       odometer_end: requestForm.odometer_end,
       tolls: requestForm.tolls,
-      notes: requestForm.notes,
     };
 
     const requestedUpdates = Object.entries(rawUpdates).reduce((acc, [key, value]) => {
@@ -592,16 +589,6 @@ export default function DriverDashboardPage() {
                       ...prev,
                       tolls: event.target.value,
                     }))
-                  }
-                />
-              </label>
-              <label className={styles.field}>
-                Notes
-                <textarea
-                  rows={3}
-                  value={requestForm.notes}
-                  onChange={(event) =>
-                    setRequestForm((prev) => ({ ...prev, notes: event.target.value }))
                   }
                 />
               </label>
