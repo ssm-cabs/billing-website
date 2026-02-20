@@ -919,8 +919,6 @@ export async function createEntryUpdateRequest(payload = {}) {
     entry_date: String(payload.entry_date || "").trim(),
     vehicle_id: String(payload.vehicle_id || "").trim(),
     vehicle_number: String(payload.vehicle_number || "").trim(),
-    company_id: String(payload.company_id || "").trim(),
-    company_name: String(payload.company_name || "").trim(),
     requested_by: String(payload.requested_by || "").trim(),
     user_name: String(payload.user_name || "").trim(),
     requested_updates:
@@ -938,9 +936,6 @@ export async function createEntryUpdateRequest(payload = {}) {
   }
   if (!Object.keys(normalizedPayload.requested_updates).length) {
     throw new Error("requested_updates is required");
-  }
-  if (!normalizedPayload.reason) {
-    throw new Error("reason is required");
   }
   assertValidEntryUpdateRequestStatus(normalizedPayload.status);
 

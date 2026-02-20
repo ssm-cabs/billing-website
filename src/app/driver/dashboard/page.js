@@ -280,11 +280,6 @@ export default function DriverDashboardPage() {
       setRequestMessage("Please change at least one field before submitting.");
       return;
     }
-    if (!String(requestForm.reason || "").trim()) {
-      setRequestSubmitStatus("error");
-      setRequestMessage("Reason is required.");
-      return;
-    }
     try {
       setRequestSubmitStatus("loading");
       setRequestMessage("");
