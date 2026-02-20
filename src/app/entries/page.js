@@ -226,7 +226,7 @@ export default function EntriesPage() {
             ) : null}
             {isDashboardUser ? (
               <Link className={styles.primaryCta} href="/entries/update-requests">
-                Entry Update Requests
+                Update Requests
               </Link>
             ) : null}
             {canEdit ? (

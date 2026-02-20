@@ -29,6 +29,15 @@ function formatTimestamp(value) {
   }
 }
 
+function ViewIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
 export default function EntryUpdateRequestsPage() {
   const { canView, loading: permissionsLoading } = usePermissions("entries");
   const [month, setMonth] = useState(() => {
@@ -186,14 +195,18 @@ export default function EntryUpdateRequestsPage() {
                     </span>
                   </td>
                   <td data-label="Action">
-                    <Link
-                      className={styles.viewBtn}
-                      href={`/entries/update-requests/differences?id=${encodeURIComponent(
-                        request.entry_update_id
-                      )}`}
-                    >
-                      View Differences
-                    </Link>
+                    <div className={styles.actions}>
+                      <Link
+                        className={`${styles.actionBtn} ${styles.viewBtn}`}
+                        href={`/entries/update-requests/differences?id=${encodeURIComponent(
+                          request.entry_update_id
+                        )}`}
+                        title="View"
+                        aria-label="View"
+                      >
+                        <ViewIcon />
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}

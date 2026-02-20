@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   fetchEntryById,
   fetchEntryUpdateRequestById,
+  updateEntryUpdateRequest,
 } from "@/lib/api";
 import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
 import { usePermissions } from "@/lib/usePermissions";
@@ -49,6 +50,8 @@ export default function EntryUpdateDifferencesPage() {
   const [entry, setEntry] = useState(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
+  const [reviewStatus, setReviewStatus] = useState("idle");
+  const [reviewMessage, setReviewMessage] = useState("");
 
   const isDashboardUser = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -59,6 +62,17 @@ export default function EntryUpdateDifferencesPage() {
       return canAccessBackofficeDashboard(userData?.role);
     } catch (_) {
       return false;
+    }
+  }, []);
+  const reviewerName = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem("user_data");
+      if (!raw) return "";
+      const userData = JSON.parse(raw);
+      return String(userData?.name || userData?.phone || "").trim();
+    } catch (_) {
+      return "";
     }
   }, []);
 
@@ -107,6 +121,35 @@ export default function EntryUpdateDifferencesPage() {
     });
   }, [entry, request]);
 
+  const handleReview = async (nextStatus) => {
+    if (!request?.entry_update_id) return;
+    try {
+      setReviewStatus(nextStatus);
+      setReviewMessage("");
+      await updateEntryUpdateRequest(request.entry_update_id, {
+        status: nextStatus,
+        reviewed_by: reviewerName,
+      });
+      setRequest((prev) => (
+        prev
+          ? {
+              ...prev,
+              status: nextStatus,
+              reviewed_by: reviewerName,
+              updated_at: Date.now(),
+            }
+          : prev
+      ));
+      setReviewMessage(
+        nextStatus === "approved" ? "Request approved successfully." : "Request rejected successfully."
+      );
+    } catch (reviewError) {
+      setReviewMessage(reviewError.message || "Failed to update request status.");
+    } finally {
+      setReviewStatus("idle");
+    }
+  };
+
   if (permissionsLoading) {
     return (
       <div className={styles.page}>
@@ -123,7 +166,7 @@ export default function EntryUpdateDifferencesPage() {
     return (
       <div className={styles.page}>
         <Link className={styles.backLink} href="/entries/update-requests">
-          ← Back to Entry Update Requests
+          ← Back to Update Requests
         </Link>
         <p className={styles.error}>Missing update request id.</p>
       </div>
@@ -134,7 +177,7 @@ export default function EntryUpdateDifferencesPage() {
     return (
       <div className={styles.page}>
         <Link className={styles.backLink} href="/entries/update-requests">
-          ← Back to Entry Update Requests
+          ← Back to Update Requests
         </Link>
         <p className={styles.error}>Only dashboard users can view differences.</p>
       </div>
@@ -146,7 +189,7 @@ export default function EntryUpdateDifferencesPage() {
       <header className={styles.header}>
         <div>
           <Link className={styles.backLink} href="/entries/update-requests">
-            ← Back to Entry Update Requests
+            ← Back to Update Requests
           </Link>
           <p className={styles.eyebrow}>Entry Updates</p>
           <h1>Request Differences</h1>
@@ -158,6 +201,42 @@ export default function EntryUpdateDifferencesPage() {
 
       {status === "loading" && <p>Loading differences...</p>}
       {status === "error" && <p className={styles.error}>{error}</p>}
+      {reviewMessage ? (
+        <p className={styles.success}>
+          {reviewMessage}
+        </p>
+      ) : null}
+      {request?.status === "approved" ? (
+        <p className={styles.success}>
+          This request is already approved.
+        </p>
+      ) : null}
+      {request?.status === "rejected" ? (
+        <p className={styles.error}>
+          This request is already rejected.
+        </p>
+      ) : null}
+
+      {request && request.status !== "approved" && request.status !== "rejected" ? (
+        <section className={styles.actionBar}>
+          <button
+            type="button"
+            className={styles.acceptBtn}
+            onClick={() => handleReview("approved")}
+            disabled={reviewStatus !== "idle"}
+          >
+            {reviewStatus === "approved" ? "Approving..." : "Accept"}
+          </button>
+          <button
+            type="button"
+            className={styles.rejectBtn}
+            onClick={() => handleReview("rejected")}
+            disabled={reviewStatus !== "idle"}
+          >
+            {reviewStatus === "rejected" ? "Rejecting..." : "Reject"}
+          </button>
+        </section>
+      ) : null}
 
       {status === "success" && request ? (
         <>

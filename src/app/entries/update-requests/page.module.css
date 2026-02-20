@@ -137,23 +137,44 @@
   visibility: visible;
 }
 
-.viewBtn {
-  display: inline-flex;
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  width: 32px;
   height: 32px;
-  align-items: center;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
   border-radius: 6px;
-  border: 1px solid rgba(30, 25, 22, 0.18);
-  padding: 0 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  font-size: 11px;
-  color: #1e1916;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
+  padding: 0;
+}
+
+.actionBtn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.viewBtn {
+  color: #ea5a32;
 }
 
 .viewBtn:hover {
-  border-color: #1e1916;
-  background: #f6f3ef;
+  color: #fff;
+  border-color: #ea5a32;
+  background: #ea5a32;
 }
 
 .error {
