@@ -575,7 +575,7 @@ export default function ClientEditEntryPage() {
             name="notes"
             value={form.notes}
             onChange={updateField}
-            rows={3}
+            rows={7}
           />
         </label>
         <label className={styles.field}>
