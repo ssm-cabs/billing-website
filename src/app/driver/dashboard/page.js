@@ -9,6 +9,7 @@ import {
   createEntryUpdateRequest,
   fetchEntries,
   fetchEntryUpdateRequests,
+  getEntryUpdateRequestStatusCatalog,
   fetchVehicles,
   updateEntryUpdateRequest,
 } from "@/lib/api";
@@ -222,6 +223,15 @@ export default function DriverDashboardPage() {
 
   const vehicleCount = useMemo(() => vehicles.length, [vehicles]);
   const entryCount = useMemo(() => entries.length, [entries]);
+  const statusDetailByKey = useMemo(() => {
+    const catalog = getEntryUpdateRequestStatusCatalog();
+    return catalog.reduce((acc, item) => {
+      const key = String(item.status || "").trim().toLowerCase();
+      if (!key) return acc;
+      acc[key] = String(item.detail || "").trim();
+      return acc;
+    }, {});
+  }, []);
 
   const getRequestStatusClassName = (status) => {
     const normalized = String(status || "").trim().toLowerCase();
@@ -435,7 +445,8 @@ export default function DriverDashboardPage() {
             {entries.map((entry) => {
               const latestRequest = requestByEntryId[entry.entry_id] || null;
               const statusLabel = latestRequest?.status || "-";
-              const statusDetail = latestRequest?.reason || "";
+              const statusDetail =
+                statusDetailByKey[String(statusLabel || "").trim().toLowerCase()] || "";
               return (
                 <div key={entry.entry_id} className={styles.requestRow}>
                   <span>

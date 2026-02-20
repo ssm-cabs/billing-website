@@ -912,6 +912,25 @@ export async function fetchEntryUpdateRequests({
   return requests;
 }
 
+export async function fetchEntryUpdateRequestById(entryUpdateId) {
+  if (!entryUpdateId) {
+    throw new Error("entryUpdateId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    throw new Error("Entry update request not found in demo mode");
+  }
+
+  const requestRef = doc(db, "entry_update_requests", entryUpdateId);
+  const requestSnap = await getDoc(requestRef);
+
+  if (!requestSnap.exists()) {
+    throw new Error("Entry update request not found");
+  }
+
+  return normalizeEntryUpdateRequest(requestSnap.data(), requestSnap.id);
+}
+
 export async function createEntryUpdateRequest(payload = {}) {
   const resolvedStatus = String(payload.status || "submitted").trim();
   const normalizedPayload = {

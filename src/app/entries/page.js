@@ -6,6 +6,7 @@ import MonthPicker from "./MonthPicker";
 import CustomDropdown from "./CustomDropdown";
 import NotesPreview from "@/components/NotesPreview";
 import { usePermissions } from "@/lib/usePermissions";
+import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
 import {
   fetchCompanies,
   fetchEntries,
@@ -101,6 +102,17 @@ export default function EntriesPage() {
   const [vehicleStatus, setVehicleStatus] = useState("idle");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteEntryId, setDeleteEntryId] = useState(null);
+  const isDashboardUser = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const raw = localStorage.getItem("user_data");
+      if (!raw) return false;
+      const userData = JSON.parse(raw);
+      return canAccessBackofficeDashboard(userData?.role);
+    } catch (_) {
+      return false;
+    }
+  }, []);
 
   const vehicleOptions = useMemo(
     () => vehicles.filter((vehicle) => vehicle.active !== false),
@@ -205,14 +217,23 @@ export default function EntriesPage() {
             Review, filter, and export rides across corporate companies.
           </p>
         </div>
-        {canEdit && (
+        {(canEdit || isDashboardUser) && (
           <div className={styles.headerActions}>
-            <Link className={styles.primaryCta} href="/entries/booking-requests">
-              Booking Requests
-            </Link>
-            <Link className={styles.primaryCta} href="/entries/new">
-              New Entry
-            </Link>
+            {canEdit ? (
+              <Link className={styles.primaryCta} href="/entries/booking-requests">
+                Booking Requests
+              </Link>
+            ) : null}
+            {isDashboardUser ? (
+              <Link className={styles.primaryCta} href="/entries/update-requests">
+                Entry Update Requests
+              </Link>
+            ) : null}
+            {canEdit ? (
+              <Link className={styles.primaryCta} href="/entries/new">
+                New Entry
+              </Link>
+            ) : null}
           </div>
         )}
       </header>
