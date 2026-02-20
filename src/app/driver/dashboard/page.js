@@ -288,8 +288,6 @@ export default function DriverDashboardPage() {
         entry_date: pendingEntry.entry_date || "",
         vehicle_id: pendingEntry.vehicle_id || "",
         vehicle_number: pendingEntry.vehicle_number || "",
-        company_id: pendingEntry.company_id || "",
-        company_name: pendingEntry.company_name || "",
         user_name: userData?.name || userData?.phone || "",
         requested_updates: requestedUpdates,
         reason: String(requestForm.reason || "").trim(),
