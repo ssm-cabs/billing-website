@@ -18,6 +18,14 @@ import { UserSession } from "@/components/UserSession";
 import { getHomeRouteForRole, isRole, normalizeRole } from "@/lib/roleRouting";
 import styles from "./edit.module.css";
 
+function getToday() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function getCompanyIds(userData) {
   if (!Array.isArray(userData?.company_ids)) return [];
   return userData.company_ids.filter((id) => typeof id === "string" && id.trim());
@@ -145,6 +153,11 @@ export default function EditCompanyBookingPage() {
     setMessage("");
 
     try {
+      const today = getToday();
+      if (String(form.trip_date || "") < today) {
+        throw new Error("Trip date cannot be earlier than today.");
+      }
+
       if (!allowedCompanyIds.has(form.company_id)) {
         throw new Error("Please select a valid company.");
       }
@@ -229,6 +242,7 @@ export default function EditCompanyBookingPage() {
             Trip date
             <DatePicker
               value={form.trip_date}
+              minDate={getToday()}
               onChange={(value) => setForm((prev) => ({ ...prev, trip_date: value }))}
             />
           </label>

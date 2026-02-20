@@ -130,6 +130,11 @@ export default function NewCompanyBookingPage() {
     setMessage("");
 
     try {
+      const today = getToday();
+      if (String(requestForm.trip_date || "") < today) {
+        throw new Error("Trip date cannot be earlier than today.");
+      }
+
       const selectedCompany = companies.find(
         (company) => company.company_id === requestForm.company_id
       );
@@ -224,6 +229,7 @@ export default function NewCompanyBookingPage() {
           Trip date
           <DatePicker
             value={requestForm.trip_date}
+            minDate={getToday()}
             onChange={(value) =>
               setRequestForm((prev) => ({ ...prev, trip_date: value }))
             }

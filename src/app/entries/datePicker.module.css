@@ -120,6 +120,18 @@
   border-color: #1e1916;
 }
 
+.day.dayDisabled {
+  background: #f6f3ef;
+  color: #b9afa6;
+  border-color: rgba(30, 25, 22, 0.05);
+  cursor: not-allowed;
+}
+
+.day.dayDisabled:hover {
+  background: #f6f3ef;
+  border-color: rgba(30, 25, 22, 0.05);
+}
+
 .emptyDay {
   aspect-ratio: 1;
 }

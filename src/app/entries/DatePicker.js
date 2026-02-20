@@ -14,7 +14,7 @@ const months = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-export default function DatePicker({ value, onChange }) {
+export default function DatePicker({ value, onChange, minDate = "" }) {
   const [showPicker, setShowPicker] = useState(false);
   const containerRef = useRef(null);
 
@@ -71,7 +71,11 @@ export default function DatePicker({ value, onChange }) {
     const year = displayYear;
     const month = String(displayMonth + 1).padStart(2, "0");
     const date = String(day).padStart(2, "0");
-    onChange(`${year}-${month}-${date}`);
+    const selectedDate = `${year}-${month}-${date}`;
+    if (minDate && selectedDate < minDate) {
+      return;
+    }
+    onChange(selectedDate);
     setShowPicker(false);
   };
 
@@ -87,16 +91,20 @@ export default function DatePicker({ value, onChange }) {
 
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
+      const selectedDate = `${displayYear}-${String(displayMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const isSelected =
         value ===
-        `${displayYear}-${String(displayMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        selectedDate;
+      const isDisabled = Boolean(minDate) && selectedDate < minDate;
       days.push(
         <button
           key={day}
           type="button"
-          className={`${styles.day} ${isSelected ? styles.selected : ""}`}
+          className={`${styles.day} ${isSelected ? styles.selected : ""} ${isDisabled ? styles.dayDisabled : ""}`}
+          disabled={isDisabled}
           onMouseDown={(e) => {
             e.stopPropagation();
+            if (isDisabled) return;
             handleSelectDate(day);
           }}
         >

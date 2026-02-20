@@ -174,7 +174,7 @@ export default function CompanyDashboardPage() {
             Review your assigned company profile and raise new booking requests.
           </p>
         </div>
-        <Link className={styles.primaryCta} href="/company/booking/new">
+        <Link className={styles.primaryCta} href="/company/bookings/new">
           New Booking
         </Link>
       </header>
@@ -231,7 +231,7 @@ export default function CompanyDashboardPage() {
                     <div className={styles.rowActions}>
                       <Link
                         className={styles.editBtn}
-                        href={`/company/booking/edit?id=${encodeURIComponent(request.request_id)}`}
+                        href={`/company/bookings/edit?id=${encodeURIComponent(request.request_id)}`}
                         title="Edit"
                         aria-label="Edit"
                       >
