@@ -221,8 +221,6 @@ export default function DriverDashboardPage() {
     [vehicleId, vehicles]
   );
 
-  const vehicleCount = useMemo(() => vehicles.length, [vehicles]);
-  const entryCount = useMemo(() => entries.length, [entries]);
   const statusDetailByKey = useMemo(() => {
     const catalog = getEntryUpdateRequestStatusCatalog();
     return catalog.reduce((acc, item) => {
@@ -318,8 +316,6 @@ export default function DriverDashboardPage() {
         requested_updates: requestedUpdates,
         reason: String(requestForm.reason || "").trim(),
         status: "submitted",
-        reviewed_by: "",
-        review_note: "",
       };
       const saved = existingId
         ? await updateEntryUpdateRequest(existingId, payload)
@@ -338,8 +334,6 @@ export default function DriverDashboardPage() {
           requested_updates: requestedUpdates,
           status: "submitted",
           reason: String(requestForm.reason || "").trim(),
-          reviewed_by: "",
-          review_note: "",
           updated_at: Date.now(),
         },
       }));
@@ -375,17 +369,6 @@ export default function DriverDashboardPage() {
           </p>
         </div>
       </header>
-
-      <section className={styles.stats}>
-        <div className={styles.card}>
-          <p>Assigned vehicles</p>
-          <h2>{vehicleCount}</h2>
-        </div>
-        <div className={styles.card}>
-          <p>Entries in month</p>
-          <h2>{entryCount}</h2>
-        </div>
-      </section>
 
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
