@@ -266,7 +266,7 @@ function normalizeEntryUpdateRequest(data = {}, requestId = "") {
   const status = String(data.status || "").trim() || "submitted";
   return {
     ...data,
-    ...(requestId ? { request_id: requestId } : {}),
+    ...(requestId ? { entry_update_id: requestId } : {}),
     status,
   };
 }
@@ -835,7 +835,11 @@ export async function fetchEntryUpdateRequests({
     baseConstraints.push(where("requested_by", "==", requestedBy));
   }
   if (month) {
-    baseConstraints.push(where("entry_month", "==", month));
+    const nextMonth = getNextMonth(month);
+    if (nextMonth) {
+      baseConstraints.push(where("entry_date", ">=", `${month}-01`));
+      baseConstraints.push(where("entry_date", "<", `${nextMonth}-01`));
+    }
   }
   if (status) {
     baseConstraints.push(where("status", "==", status));
@@ -913,15 +917,12 @@ export async function createEntryUpdateRequest(payload = {}) {
   const normalizedPayload = {
     entry_id: String(payload.entry_id || "").trim(),
     entry_date: String(payload.entry_date || "").trim(),
-    entry_month:
-      String(payload.entry_month || "").trim() ||
-      String(payload.entry_date || "").trim().slice(0, 7),
     vehicle_id: String(payload.vehicle_id || "").trim(),
     vehicle_number: String(payload.vehicle_number || "").trim(),
     company_id: String(payload.company_id || "").trim(),
     company_name: String(payload.company_name || "").trim(),
     requested_by: String(payload.requested_by || "").trim(),
-    requested_by_name: String(payload.requested_by_name || "").trim(),
+    user_name: String(payload.user_name || "").trim(),
     requested_updates:
       payload.requested_updates && typeof payload.requested_updates === "object"
         ? payload.requested_updates
@@ -935,9 +936,6 @@ export async function createEntryUpdateRequest(payload = {}) {
   if (!normalizedPayload.entry_id) {
     throw new Error("entry_id is required");
   }
-  if (!normalizedPayload.requested_by) {
-    throw new Error("requested_by is required");
-  }
   if (!Object.keys(normalizedPayload.requested_updates).length) {
     throw new Error("requested_updates is required");
   }
@@ -947,19 +945,19 @@ export async function createEntryUpdateRequest(payload = {}) {
   assertValidEntryUpdateRequestStatus(normalizedPayload.status);
 
   if (!isFirebaseConfigured || !db) {
-    return { ok: true, request_id: "ENTRY-UPDATE-NEW" };
+    return { ok: true, entry_update_id: "ENTRY-UPDATE-NEW" };
   }
 
   const docRef = doc(collection(db, "entry_update_requests"));
   const requestData = {
     ...normalizedPayload,
-    request_id: docRef.id,
+    entry_update_id: docRef.id,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   };
 
   await setDoc(docRef, requestData);
-  return { request_id: docRef.id };
+  return { entry_update_id: docRef.id };
 }
 
 export async function fetchCompanies() {

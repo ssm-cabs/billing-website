@@ -66,7 +66,6 @@ export default function DriverDashboardPage() {
     notes: "",
     reason: "",
   });
-  const requesterId = String(userData?.phone || userData?.phone_number || "").trim();
 
   useSessionTimeout();
 
@@ -172,13 +171,19 @@ export default function DriverDashboardPage() {
   }, [month, userData, vehicleId]);
 
   useEffect(() => {
-    if (!requesterId) return;
-
     const loadRequests = async () => {
       setRequestStatus("loading");
       try {
+        const entryIds = entries
+          .map((entry) => String(entry?.entry_id || "").trim())
+          .filter(Boolean);
+        if (!entryIds.length) {
+          setRequestByEntryId({});
+          setRequestStatus("success");
+          return;
+        }
         const requests = await fetchEntryUpdateRequests({
-          requestedBy: requesterId,
+          entryIds,
           month,
           orderByField: "created_at",
           orderByDirection: "desc",
@@ -208,7 +213,7 @@ export default function DriverDashboardPage() {
     };
 
     loadRequests();
-  }, [month, requesterId]);
+  }, [entries, month]);
 
   const selectedVehicle = useMemo(
     () => vehicles.find((vehicle) => vehicle.vehicle_id === vehicleId) || null,
@@ -280,26 +285,17 @@ export default function DriverDashboardPage() {
       setRequestMessage("Reason is required.");
       return;
     }
-    if (!requesterId) {
-      setRequestSubmitStatus("error");
-      setRequestMessage("Unable to identify requester. Please re-login.");
-      return;
-    }
-
     try {
       setRequestSubmitStatus("loading");
       setRequestMessage("");
       const created = await createEntryUpdateRequest({
         entry_id: pendingEntry.entry_id,
         entry_date: pendingEntry.entry_date || "",
-        entry_month:
-          pendingEntry.entry_month || String(pendingEntry.entry_date || "").slice(0, 7),
         vehicle_id: pendingEntry.vehicle_id || "",
         vehicle_number: pendingEntry.vehicle_number || "",
         company_id: pendingEntry.company_id || "",
         company_name: pendingEntry.company_name || "",
-        requested_by: requesterId,
-        requested_by_name: userData?.name || requesterId,
+        user_name: userData?.name || userData?.phone || "",
         requested_updates: requestedUpdates,
         reason: String(requestForm.reason || "").trim(),
       });
@@ -307,7 +303,7 @@ export default function DriverDashboardPage() {
       setRequestByEntryId((prev) => ({
         ...prev,
         [pendingEntry.entry_id]: {
-          request_id: created.request_id,
+          entry_update_id: created.entry_update_id,
           entry_id: pendingEntry.entry_id,
           status: "submitted",
           reason: String(requestForm.reason || "").trim(),
