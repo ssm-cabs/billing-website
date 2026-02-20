@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -43,7 +43,7 @@ function formatValue(value) {
   return String(value);
 }
 
-export default function EntryUpdateDifferencesPage() {
+function EntryUpdateDifferencesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestId = String(searchParams.get("id") || "").trim();
@@ -315,5 +315,19 @@ export default function EntryUpdateDifferencesPage() {
         </>
       ) : null}
     </div>
+  );
+}
+
+export default function EntryUpdateDifferencesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.page}>
+          <p>Loading...</p>
+        </div>
+      }
+    >
+      <EntryUpdateDifferencesPageContent />
+    </Suspense>
   );
 }

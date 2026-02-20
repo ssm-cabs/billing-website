@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker from "@/app/entries/DatePicker";
@@ -54,7 +54,7 @@ const cabTypeOptions = [
   { label: "Premium SUV", value: "Premium SUV" },
 ];
 
-export default function EditCompanyBookingPage() {
+function EditCompanyBookingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestId = searchParams.get("id") || "";
@@ -328,5 +328,21 @@ export default function EditCompanyBookingPage() {
         </form>
       )}
     </div>
+  );
+}
+
+export default function EditCompanyBookingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.page}>
+          <div style={{ padding: "40px", textAlign: "center" }}>
+            <p>Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <EditCompanyBookingPageContent />
+    </Suspense>
   );
 }
