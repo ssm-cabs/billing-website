@@ -401,10 +401,31 @@ export async function updateEntry(entryId, payload) {
   }
 
   const entryRef = doc(db, "entries", entryId);
+  const existingEntrySnap = await getDoc(entryRef);
+  const existingEntry = existingEntrySnap.exists() ? existingEntrySnap.data() : {};
   await updateDoc(entryRef, {
     ...maybeAddEntryMonth(payload),
     updated_at: serverTimestamp(),
   });
+
+  const linkedRequestId = String(
+    payload?.booking_request_id || existingEntry?.booking_request_id || ""
+  ).trim();
+  const hasVehicleInPayload = Object.prototype.hasOwnProperty.call(
+    payload || {},
+    "vehicle_id"
+  );
+  const resolvedVehicleId = String(
+    hasVehicleInPayload ? payload?.vehicle_id || "" : existingEntry?.vehicle_id || ""
+  ).trim();
+
+  if (linkedRequestId && resolvedVehicleId) {
+    await updateBookingRequest(linkedRequestId, {
+      status: "allotted",
+      converted_entry_id: entryId,
+    });
+  }
+
   return { entry_id: entryId };
 }
 
@@ -473,7 +494,7 @@ export async function createBookingRequest(payload = {}) {
     company_id: String(payload.company_id || "").trim(),
     company_name: String(payload.company_name || "").trim(),
     trip_date: String(payload.trip_date || "").trim(),
-    trip_time: String(payload.trip_time || "").trim(),
+    start_time: String(payload.start_time || "").trim(),
     pickup_location: String(payload.pickup_location || "").trim(),
     drop_location: String(payload.drop_location || "").trim(),
     cab_type: String(payload.cab_type || "").trim(),
@@ -497,8 +518,8 @@ export async function createBookingRequest(payload = {}) {
   if (!normalizedPayload.trip_date) {
     throw new Error("trip_date is required");
   }
-  if (!normalizedPayload.trip_time) {
-    throw new Error("trip_time is required");
+  if (!normalizedPayload.start_time) {
+    throw new Error("start_time is required");
   }
   if (!normalizedPayload.pickup_location) {
     throw new Error("pickup_location is required");
@@ -547,6 +568,10 @@ export async function updateBookingRequest(requestId, payload = {}) {
   const resolvedStatusDetail = statusFromPayload
     ? detailFromPayload || getBookingRequestStatusDetail(statusFromPayload)
     : detailFromPayload || undefined;
+  const hasConvertedEntryId = Object.prototype.hasOwnProperty.call(
+    payload,
+    "converted_entry_id"
+  );
 
   if (!isFirebaseConfigured || !db) {
     return { ok: true, request_id: requestId };
@@ -560,11 +585,107 @@ export async function updateBookingRequest(requestId, payload = {}) {
       ...(resolvedStatusDetail !== undefined
         ? { status_detail: resolvedStatusDetail }
         : {}),
-      converted_entry_id: payload.converted_entry_id || null,
+      ...(hasConvertedEntryId
+        ? { converted_entry_id: payload.converted_entry_id || null }
+        : {}),
       updated_at: serverTimestamp(),
     },
     { merge: true }
   );
+  return { request_id: requestId };
+}
+
+export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
+  if (!requestId) {
+    throw new Error("requestId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, request_id: requestId, entry_id: "ENT-NEW" };
+  }
+
+  const bookingRequestRef = doc(db, "booking_requests", requestId);
+  const bookingRequestSnap = await getDoc(bookingRequestRef);
+  if (!bookingRequestSnap.exists()) {
+    throw new Error("Booking request not found");
+  }
+
+  const requestData = bookingRequestSnap.data() || {};
+  const requestStatus = String(requestData.status || "").trim();
+
+  if (requestStatus === "rejected" || requestStatus === "cancelled") {
+    throw new Error(`Cannot acknowledge a ${requestStatus} request.`);
+  }
+  if (requestStatus === "allotted") {
+    throw new Error("Request is already allotted.");
+  }
+
+  const existingEntryId = String(requestData.converted_entry_id || "").trim();
+  let entryId = existingEntryId;
+
+  if (!entryId) {
+    const entryResult = await createEntry({
+      entry_date: requestData.trip_date || "",
+      company_id: requestData.company_id || "",
+      company_name: requestData.company_name || "",
+      slot: requestData.slot || "",
+      start_time: requestData.start_time || "",
+      end_time: "",
+      pickup_location: requestData.pickup_location || "",
+      drop_location: requestData.drop_location || "",
+      vehicle_id: "",
+      vehicle_number: "",
+      cab_type: requestData.cab_type || "",
+      user_name: requestData.created_by || "",
+      notes: requestData.notes || "",
+      rate: 0,
+      tolls: 0,
+      total: 0,
+      billed: false,
+      booking_request_id: requestId,
+      booking_request_status: "acknowledged",
+    });
+    entryId = entryResult.entry_id;
+  }
+
+  await updateBookingRequest(requestId, {
+    status: "acknowledged",
+    approved_by: String(reviewedBy || "").trim(),
+    converted_entry_id: entryId || null,
+  });
+
+  return { request_id: requestId, entry_id: entryId };
+}
+
+export async function rejectBookingRequest(requestId, reviewedBy = "") {
+  if (!requestId) {
+    throw new Error("requestId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, request_id: requestId };
+  }
+
+  const bookingRequestRef = doc(db, "booking_requests", requestId);
+  const bookingRequestSnap = await getDoc(bookingRequestRef);
+  if (!bookingRequestSnap.exists()) {
+    throw new Error("Booking request not found");
+  }
+
+  const requestData = bookingRequestSnap.data() || {};
+  const requestStatus = String(requestData.status || "").trim();
+  if (requestStatus === "allotted") {
+    throw new Error("Allotted requests cannot be rejected.");
+  }
+  if (requestStatus === "rejected") {
+    return { request_id: requestId };
+  }
+
+  await updateBookingRequest(requestId, {
+    status: "rejected",
+    approved_by: String(reviewedBy || "").trim(),
+  });
+
   return { request_id: requestId };
 }
 

@@ -86,63 +86,66 @@
   font-size: 14px;
 }
 
-.formGrid {
+.form {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(30, 25, 22, 0.1);
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 18px;
 }
 
 .field {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-}
-
-.field span {
-  font-size: 12px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  font-size: 13px;
   color: var(--page-muted);
+  font-family: var(--font-space-grotesk), sans-serif;
 }
 
 .field input,
 .field select,
 .field textarea {
-  width: 100%;
-  border: 1px solid rgba(30, 25, 22, 0.2);
-  border-radius: 10px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  border-radius: 12px;
   padding: 10px 12px;
   font-size: 14px;
+  font-family: var(--font-space-grotesk), sans-serif;
   color: var(--page-ink);
   background: #fff;
 }
 
-.field textarea {
-  resize: vertical;
+.dropdownButton {
+  font-family: var(--font-space-grotesk), sans-serif;
 }
 
-.notesField {
-  grid-column: 1 / -1;
+.field textarea {
+  resize: vertical;
+  min-height: 88px;
 }
 
 .formActions {
-  grid-column: 1 / -1;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.formActions button {
-  border: none;
-  border-radius: 10px;
+.primaryCta {
+  padding: 12px 20px;
+  border-radius: 999px;
   background: #1e1916;
   color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
+  font-size: 13px;
+  font-family: var(--font-space-grotesk), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: none;
   cursor: pointer;
 }
 
-.formActions button:disabled {
+.primaryCta:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -184,14 +187,35 @@
   border-top: 1px solid rgba(30, 25, 22, 0.08);
 }
 
+.requestHeader,
+.requestRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.7fr 1.8fr;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.requestHeader {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--page-muted);
+}
+
+.requestRow {
+  padding: 10px 0;
+  border-top: 1px solid rgba(30, 25, 22, 0.08);
+}
+
 @media (max-width: 900px) {
-  .formGrid {
-    grid-template-columns: 1fr 1fr;
+  .form {
+    padding: 18px;
   }
 }
 
 @media (max-width: 700px) {
-  .formGrid,
+  .requestHeader,
+  .requestRow,
   .tableHeader,
   .tableRow {
     grid-template-columns: 1fr;

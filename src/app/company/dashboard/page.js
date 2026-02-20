@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBookingRequest, fetchCompanies, isFirebaseConfigured } from "@/lib/api";
+import Link from "next/link";
+import { fetchBookingRequests, fetchCompanies } from "@/lib/api";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
@@ -22,26 +23,14 @@ function getCompanyIds(userData) {
   return userData.company_ids.filter((id) => typeof id === "string" && id.trim());
 }
 
-const initialRequestForm = {
-  company_id: "",
-  trip_date: getToday(),
-  trip_time: "",
-  pickup_location: "",
-  drop_location: "",
-  cab_type: "",
-  slot: "",
-  notes: "",
-};
-
 export default function CompanyDashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [companies, setCompanies] = useState([]);
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
-  const [requestForm, setRequestForm] = useState(initialRequestForm);
-  const [requestStatus, setRequestStatus] = useState("idle");
-  const [requestMessage, setRequestMessage] = useState("");
+  const [myRequests, setMyRequests] = useState([]);
+  const [myRequestsStatus, setMyRequestsStatus] = useState("idle");
 
   useSessionTimeout();
 
@@ -87,10 +76,6 @@ export default function CompanyDashboardPage() {
           allowedCompanyIds.has(company.company_id)
         );
         setCompanies(linkedCompanies);
-        setRequestForm((prev) => ({
-          ...prev,
-          company_id: prev.company_id || linkedCompanies[0]?.company_id || "",
-        }));
       } catch (err) {
         console.error("Failed to load company data:", err);
         setError("Unable to load your company details.");
@@ -100,66 +85,36 @@ export default function CompanyDashboardPage() {
     loadCompanies();
   }, [userData]);
 
-  const companyCount = useMemo(() => companies.length, [companies]);
+  useEffect(() => {
+    if (!companies.length) return;
 
-  const handleRequestFieldChange = (event) => {
-    const { name, value } = event.target;
-    setRequestForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleRequestSubmit = async (event) => {
-    event.preventDefault();
-    setRequestStatus("loading");
-    setRequestMessage("");
-
-    try {
-      const selectedCompany = companies.find(
-        (company) => company.company_id === requestForm.company_id
-      );
-
-      if (!selectedCompany) {
-        throw new Error("Please select a valid company.");
+    const loadMyRequests = async () => {
+      setMyRequestsStatus("loading");
+      try {
+        const allRequests = await Promise.all(
+          companies.map((company) =>
+            fetchBookingRequests({
+              companyId: company.company_id,
+              orderByField: "created_at",
+              orderByDirection: "desc",
+            })
+          )
+        );
+        const flattened = allRequests
+          .flat()
+          .sort((a, b) =>
+            String(b.trip_date || "").localeCompare(String(a.trip_date || ""))
+          );
+        setMyRequests(flattened);
+        setMyRequestsStatus("success");
+      } catch (requestError) {
+        console.error("Failed to load booking requests:", requestError);
+        setMyRequestsStatus("error");
       }
+    };
 
-      const createdBy =
-        String(userData?.user_id || "").trim() ||
-        String(userData?.phone || "").trim() ||
-        String(userData?.name || "").trim();
-
-      await createBookingRequest({
-        company_id: selectedCompany.company_id,
-        company_name: selectedCompany.name || selectedCompany.company_id,
-        trip_date: requestForm.trip_date,
-        trip_time: requestForm.trip_time,
-        pickup_location: requestForm.pickup_location,
-        drop_location: requestForm.drop_location,
-        cab_type: requestForm.cab_type,
-        slot: requestForm.slot,
-        notes: requestForm.notes,
-        status: "submitted",
-        created_by: createdBy,
-        approved_by: "",
-        converted_entry_id: null,
-      });
-
-      setRequestStatus("success");
-      setRequestMessage(
-        isFirebaseConfigured
-          ? "Booking request submitted for review."
-          : "Demo mode: booking request prepared."
-      );
-      setRequestForm((prev) => ({
-        ...initialRequestForm,
-        company_id: prev.company_id,
-        trip_date: getToday(),
-      }));
-    } catch (submitError) {
-      setRequestStatus("error");
-      setRequestMessage(
-        submitError.message || "Failed to submit booking request."
-      );
-    }
-  };
+    loadMyRequests();
+  }, [companies]);
 
   if (isLoading) {
     return (
@@ -183,162 +138,38 @@ export default function CompanyDashboardPage() {
             Review your assigned company profile and raise new booking requests.
           </p>
         </div>
+        <Link className={styles.primaryCta} href="/company/booking/new">
+          New Booking
+        </Link>
       </header>
 
-      <section className={styles.stats}>
-        <div className={styles.card}>
-          <p>Linked companies</p>
-          <h2>{companyCount}</h2>
-        </div>
-      </section>
-
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
-          <h3>New Booking Request</h3>
+          <h3>My Booking Requests</h3>
         </div>
-        <p className={styles.requestHint}>
-          Company submissions are saved to <code>booking_requests</code> and reviewed before conversion.
-        </p>
-        <form className={styles.formGrid} onSubmit={handleRequestSubmit}>
-          <label className={styles.field}>
-            <span>Company</span>
-            <select
-              name="company_id"
-              value={requestForm.company_id}
-              onChange={handleRequestFieldChange}
-              required
-            >
-              <option value="">Select company</option>
-              {companies.map((company) => (
-                <option key={company.company_id} value={company.company_id}>
-                  {company.name || company.company_id}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className={styles.field}>
-            <span>Trip date</span>
-            <input
-              type="date"
-              name="trip_date"
-              value={requestForm.trip_date}
-              onChange={handleRequestFieldChange}
-              required
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Trip time</span>
-            <input
-              type="time"
-              name="trip_time"
-              value={requestForm.trip_time}
-              onChange={handleRequestFieldChange}
-              required
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Pickup</span>
-            <input
-              type="text"
-              name="pickup_location"
-              value={requestForm.pickup_location}
-              onChange={handleRequestFieldChange}
-              placeholder="Pickup location"
-              required
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Drop</span>
-            <input
-              type="text"
-              name="drop_location"
-              value={requestForm.drop_location}
-              onChange={handleRequestFieldChange}
-              placeholder="Drop location"
-              required
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Cab type</span>
-            <input
-              type="text"
-              name="cab_type"
-              value={requestForm.cab_type}
-              onChange={handleRequestFieldChange}
-              placeholder="Sedan / SUV"
-              required
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Slot</span>
-            <select
-              name="slot"
-              value={requestForm.slot}
-              onChange={handleRequestFieldChange}
-              required
-            >
-              <option value="">Select slot</option>
-              <option value="4hr">4hr</option>
-              <option value="8hr">8hr</option>
-            </select>
-          </label>
-
-          <label className={`${styles.field} ${styles.notesField}`}>
-            <span>Notes</span>
-            <textarea
-              name="notes"
-              value={requestForm.notes}
-              onChange={handleRequestFieldChange}
-              rows={4}
-              placeholder="Trip instructions"
-            />
-          </label>
-
-          <div className={styles.formActions}>
-            <button type="submit" disabled={requestStatus === "loading"}>
-              {requestStatus === "loading" ? "Submitting..." : "Submit Request"}
-            </button>
-            {requestMessage && (
-              <p
-                className={
-                  requestStatus === "error" ? styles.error : styles.success
-                }
-              >
-                {requestMessage}
-              </p>
-            )}
-          </div>
-        </form>
-      </section>
-
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}>
-          <h3>My Companies</h3>
-        </div>
-        {error && <p className={styles.error}>{error}</p>}
-        {!error && companies.length === 0 && (
-          <p className={styles.empty}>
-            No companies are linked yet. Contact your administrator.
-          </p>
+        {myRequestsStatus === "loading" && <p className={styles.empty}>Loading requests...</p>}
+        {myRequestsStatus === "error" && (
+          <p className={styles.error}>Unable to load your booking requests.</p>
         )}
-        {companies.length > 0 && (
+        {myRequestsStatus !== "loading" && myRequests.length === 0 && (
+          <p className={styles.empty}>No booking requests raised yet.</p>
+        )}
+        {myRequests.length > 0 && (
           <div className={styles.table}>
-            <div className={styles.tableHeader}>
+            <div className={styles.requestHeader}>
+              <span>Trip</span>
               <span>Company</span>
-              <span>Billing Cycle</span>
-              <span>Contact</span>
+              <span>Status</span>
+              <span>Status Detail</span>
             </div>
-            {companies.map((company) => (
-              <div key={company.company_id} className={styles.tableRow}>
-                <span>{company.name || "-"}</span>
-                <span>{company.billing_cycle || "-"}</span>
-                <span>{company.contact_name || "-"}</span>
+            {myRequests.slice(0, 12).map((request) => (
+              <div key={request.request_id} className={styles.requestRow}>
+                <span>
+                  {request.trip_date || "-"} {request.start_time || ""}
+                </span>
+                <span>{request.company_name || "-"}</span>
+                <span>{request.status || "-"}</span>
+                <span>{request.status_detail || "-"}</span>
               </div>
             ))}
           </div>
