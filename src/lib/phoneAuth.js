@@ -157,7 +157,10 @@ function startUserDocListener(userId) {
   userDocUnsubscribe = onSnapshot(
     userRef,
     async (snapshot) => {
-      if (!snapshot.exists()) return;
+      if (!snapshot.exists()) {
+        await signOutUser();
+        return;
+      }
 
       const userData = {
         ...snapshot.data(),
