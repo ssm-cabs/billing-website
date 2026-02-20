@@ -195,6 +195,20 @@ const BOOKING_REQUEST_STATUS_CATALOG = [
     detail: "Request approved and cab has been allotted.",
   },
 ];
+const ENTRY_UPDATE_REQUEST_STATUS_CATALOG = [
+  {
+    status: "submitted",
+    detail: "Update request submitted and awaiting review.",
+  },
+  {
+    status: "approved",
+    detail: "Update request approved and ready to apply.",
+  },
+  {
+    status: "rejected",
+    detail: "Update request was reviewed but rejected.",
+  },
+];
 
 function assertValidSlot(slot) {
   if (!slot) {
@@ -217,9 +231,29 @@ function assertValidBookingRequestStatus(status) {
   }
 }
 
+function assertValidEntryUpdateRequestStatus(status) {
+  if (!status) {
+    throw new Error("status is required");
+  }
+  const validStatuses = ENTRY_UPDATE_REQUEST_STATUS_CATALOG.map((item) => item.status);
+  if (!validStatuses.includes(status)) {
+    throw new Error(
+      `status must be one of ${validStatuses.join(", ")}`
+    );
+  }
+}
+
 function getBookingRequestStatusDetail(status) {
   if (!status) return "";
   const match = BOOKING_REQUEST_STATUS_CATALOG.find(
+    (item) => item.status === status
+  );
+  return match?.detail || "";
+}
+
+function getEntryUpdateRequestStatusDetail(status) {
+  if (!status) return "";
+  const match = ENTRY_UPDATE_REQUEST_STATUS_CATALOG.find(
     (item) => item.status === status
   );
   return match?.detail || "";
@@ -233,6 +267,17 @@ function normalizeBookingRequest(data = {}, requestId = "") {
     entry_date: normalizedEntryDate,
     ...(requestId ? { booking_id: requestId } : {}),
     status_detail: getBookingRequestStatusDetail(status),
+  };
+}
+
+function normalizeEntryUpdateRequest(data = {}, requestId = "") {
+  const status = String(data.status || "").trim() || "submitted";
+  return {
+    ...data,
+    ...(requestId ? { request_id: requestId } : {}),
+    status,
+    status_detail:
+      String(data.status_detail || "").trim() || getEntryUpdateRequestStatusDetail(status),
   };
 }
 
@@ -770,6 +815,166 @@ export async function rejectBookingRequest(requestId, reviewedBy = "") {
 
 export function getBookingRequestStatusCatalog() {
   return BOOKING_REQUEST_STATUS_CATALOG.map((item) => ({ ...item }));
+}
+
+export function getEntryUpdateRequestStatusCatalog() {
+  return ENTRY_UPDATE_REQUEST_STATUS_CATALOG.map((item) => ({ ...item }));
+}
+
+export async function fetchEntryUpdateRequests({
+  entryId = "",
+  entryIds = [],
+  requestedBy = "",
+  month = "",
+  status = "",
+  orderByField = "created_at",
+  orderByDirection = "desc",
+  limitCount = 0,
+  lastDoc = null,
+} = {}) {
+  if (status) {
+    assertValidEntryUpdateRequestStatus(status);
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return [];
+  }
+
+  const baseConstraints = [];
+  if (requestedBy) {
+    baseConstraints.push(where("requested_by", "==", requestedBy));
+  }
+  if (month) {
+    baseConstraints.push(where("entry_month", "==", month));
+  }
+  if (status) {
+    baseConstraints.push(where("status", "==", status));
+  }
+  if (lastDoc) {
+    baseConstraints.push(startAfter(lastDoc));
+  }
+
+  const requestsRef = collection(db, "entry_update_requests");
+  let requests = [];
+  const normalizedEntryIds = Array.isArray(entryIds)
+    ? entryIds.map((id) => String(id || "").trim()).filter(Boolean)
+    : [];
+  const resolvedEntryId = String(entryId || "").trim();
+
+  if (resolvedEntryId) {
+    const snapshot = await getDocs(
+      query(requestsRef, ...baseConstraints, where("entry_id", "==", resolvedEntryId))
+    );
+    requests = snapshot.docs.map((docSnap) =>
+      normalizeEntryUpdateRequest(docSnap.data(), docSnap.id)
+    );
+  } else if (normalizedEntryIds.length > 0) {
+    const chunkSize = 30;
+    const chunks = [];
+    for (let i = 0; i < normalizedEntryIds.length; i += chunkSize) {
+      chunks.push(normalizedEntryIds.slice(i, i + chunkSize));
+    }
+    const snapshots = await Promise.all(
+      chunks.map((chunk) =>
+        getDocs(query(requestsRef, ...baseConstraints, where("entry_id", "in", chunk)))
+      )
+    );
+    requests = snapshots
+      .flatMap((snapshot) => snapshot.docs)
+      .map((docSnap) => normalizeEntryUpdateRequest(docSnap.data(), docSnap.id));
+  } else {
+    const snapshot = await getDocs(
+      baseConstraints.length ? query(requestsRef, ...baseConstraints) : requestsRef
+    );
+    requests = snapshot.docs.map((docSnap) =>
+      normalizeEntryUpdateRequest(docSnap.data(), docSnap.id)
+    );
+  }
+
+  const direction = String(orderByDirection || "desc").toLowerCase() === "asc" ? 1 : -1;
+  const field = String(orderByField || "").trim();
+  if (field) {
+    const toSortable = (value) => {
+      if (value === null || value === undefined) return "";
+      if (typeof value === "number") return value;
+      if (typeof value === "string") return value;
+      if (typeof value?.toMillis === "function") return value.toMillis();
+      if (typeof value?.seconds === "number") return value.seconds * 1000;
+      return String(value);
+    };
+    requests = requests.sort((a, b) => {
+      const left = toSortable(a[field]);
+      const right = toSortable(b[field]);
+      if (left < right) return -1 * direction;
+      if (left > right) return 1 * direction;
+      return 0;
+    });
+  }
+
+  if (limitCount > 0) {
+    requests = requests.slice(0, limitCount);
+  }
+
+  return requests;
+}
+
+export async function createEntryUpdateRequest(payload = {}) {
+  const resolvedStatus = String(payload.status || "submitted").trim();
+  const normalizedPayload = {
+    entry_id: String(payload.entry_id || "").trim(),
+    entry_date: String(payload.entry_date || "").trim(),
+    entry_month:
+      String(payload.entry_month || "").trim() ||
+      String(payload.entry_date || "").trim().slice(0, 7),
+    vehicle_id: String(payload.vehicle_id || "").trim(),
+    vehicle_number: String(payload.vehicle_number || "").trim(),
+    company_id: String(payload.company_id || "").trim(),
+    company_name: String(payload.company_name || "").trim(),
+    requested_by: String(payload.requested_by || "").trim(),
+    requested_by_name: String(payload.requested_by_name || "").trim(),
+    requested_updates:
+      payload.requested_updates && typeof payload.requested_updates === "object"
+        ? payload.requested_updates
+        : {},
+    reason: String(payload.reason || "").trim(),
+    current_entry:
+      payload.current_entry && typeof payload.current_entry === "object"
+        ? payload.current_entry
+        : {},
+    status: resolvedStatus,
+    reviewed_by: String(payload.reviewed_by || "").trim(),
+    review_note: String(payload.review_note || "").trim(),
+  };
+
+  if (!normalizedPayload.entry_id) {
+    throw new Error("entry_id is required");
+  }
+  if (!normalizedPayload.requested_by) {
+    throw new Error("requested_by is required");
+  }
+  if (!Object.keys(normalizedPayload.requested_updates).length) {
+    throw new Error("requested_updates is required");
+  }
+  if (!normalizedPayload.reason) {
+    throw new Error("reason is required");
+  }
+  assertValidEntryUpdateRequestStatus(normalizedPayload.status);
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, request_id: "ENTRY-UPDATE-NEW" };
+  }
+
+  const docRef = doc(collection(db, "entry_update_requests"));
+  const requestData = {
+    ...normalizedPayload,
+    request_id: docRef.id,
+    status_detail: getEntryUpdateRequestStatusDetail(normalizedPayload.status),
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
+
+  await setDoc(docRef, requestData);
+  return { request_id: docRef.id };
 }
 
 export async function fetchCompanies() {

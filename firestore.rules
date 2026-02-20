@@ -28,6 +28,12 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
 
+    // ENTRY UPDATE REQUESTS
+    // Driver-raised correction requests for existing entries.
+    match /entry_update_requests/{requestId} {
+      allow read, write: if isSignedIn();
+    }
+
     // COMPANIES
     // Client master data is internal and requires authentication.
     match /companies/{companyId} {

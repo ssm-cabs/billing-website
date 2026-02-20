@@ -2,7 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchVehicles } from "@/lib/api";
+import MonthPicker from "@/app/entries/MonthPicker";
+import CustomDropdown from "@/app/entries/CustomDropdown";
+import TimePicker from "@/app/entries/TimePicker";
+import {
+  createEntryUpdateRequest,
+  fetchEntries,
+  fetchEntryUpdateRequests,
+  fetchVehicles,
+} from "@/lib/api";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
@@ -14,12 +22,51 @@ function getVehicleIds(userData) {
   return userData.vehicle_ids.filter((id) => typeof id === "string" && id.trim());
 }
 
+function toComparableValue(value) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+}
+
+function toTimestampValue(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+  if (typeof value === "number") return value;
+  return 0;
+}
+
 export default function DriverDashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [vehicles, setVehicles] = useState([]);
+  const [entries, setEntries] = useState([]);
+  const [entriesStatus, setEntriesStatus] = useState("idle");
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
+  const [vehicleId, setVehicleId] = useState("all");
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const monthIndex = String(now.getMonth() + 1).padStart(2, "0");
+    return `${year}-${monthIndex}`;
+  });
+  const [requestByEntryId, setRequestByEntryId] = useState({});
+  const [requestStatus, setRequestStatus] = useState("idle");
+  const [requestSubmitStatus, setRequestSubmitStatus] = useState("idle");
+  const [requestMessage, setRequestMessage] = useState("");
+  const [pendingEntry, setPendingEntry] = useState(null);
+  const [requestForm, setRequestForm] = useState({
+    start_time: "",
+    end_time: "",
+    pickup_location: "",
+    drop_location: "",
+    odometer_start: "",
+    odometer_end: "",
+    tolls: "",
+    notes: "",
+    reason: "",
+  });
+  const requesterId = String(userData?.phone || userData?.phone_number || "").trim();
 
   useSessionTimeout();
 
@@ -41,8 +88,8 @@ export default function DriverDashboardPage() {
           return;
         }
         setUserData(profile);
-      } catch (err) {
-        console.error("Failed to load driver profile:", err);
+      } catch (authError) {
+        console.error("Failed to load driver profile:", authError);
         setIsLoading(false);
         router.push("/login");
         return;
@@ -61,11 +108,12 @@ export default function DriverDashboardPage() {
       try {
         const allVehicles = await fetchVehicles();
         const allowedVehicleIds = new Set(getVehicleIds(userData));
-        setVehicles(
-          allVehicles.filter((vehicle) => allowedVehicleIds.has(vehicle.vehicle_id))
+        const linkedVehicles = allVehicles.filter((vehicle) =>
+          allowedVehicleIds.has(vehicle.vehicle_id)
         );
-      } catch (err) {
-        console.error("Failed to load driver vehicles:", err);
+        setVehicles(linkedVehicles);
+      } catch (loadVehiclesError) {
+        console.error("Failed to load driver vehicles:", loadVehiclesError);
         setError("Unable to load your vehicles.");
       }
     };
@@ -73,7 +121,219 @@ export default function DriverDashboardPage() {
     loadVehicles();
   }, [userData]);
 
+  useEffect(() => {
+    if (!userData) return;
+
+    const loadEntries = async () => {
+      setEntriesStatus("loading");
+      setError("");
+      try {
+        const allowedVehicleIds = getVehicleIds(userData);
+        const resolvedVehicleIds =
+          vehicleId === "all"
+            ? allowedVehicleIds
+            : allowedVehicleIds.includes(vehicleId)
+              ? [vehicleId]
+              : [];
+
+        if (!resolvedVehicleIds.length) {
+          setEntries([]);
+          setEntriesStatus("success");
+          return;
+        }
+
+        const allEntries = await Promise.all(
+          resolvedVehicleIds.map((resolvedId) =>
+            fetchEntries({
+              vehicleId: resolvedId,
+              month,
+            })
+          )
+        );
+        const flattened = allEntries
+          .flat()
+          .sort((a, b) => {
+            const dateSort = String(b.entry_date || "").localeCompare(
+              String(a.entry_date || "")
+            );
+            if (dateSort !== 0) return dateSort;
+            return String(b.start_time || "").localeCompare(String(a.start_time || ""));
+          });
+        setEntries(flattened);
+        setEntriesStatus("success");
+      } catch (loadEntriesError) {
+        console.error("Failed to load driver entries:", loadEntriesError);
+        setEntriesStatus("error");
+        setError(loadEntriesError.message || "Unable to load entries.");
+      }
+    };
+
+    loadEntries();
+  }, [month, userData, vehicleId]);
+
+  useEffect(() => {
+    if (!requesterId) return;
+
+    const loadRequests = async () => {
+      setRequestStatus("loading");
+      try {
+        const requests = await fetchEntryUpdateRequests({
+          requestedBy: requesterId,
+          month,
+          orderByField: "created_at",
+          orderByDirection: "desc",
+          limitCount: 200,
+        });
+        const latestByEntryId = requests.reduce((acc, request) => {
+          const entryKey = String(request.entry_id || "").trim();
+          if (!entryKey) return acc;
+          const existing = acc[entryKey];
+          if (!existing) {
+            acc[entryKey] = request;
+            return acc;
+          }
+          const existingTs = toTimestampValue(existing.updated_at || existing.created_at);
+          const currentTs = toTimestampValue(request.updated_at || request.created_at);
+          if (currentTs >= existingTs) {
+            acc[entryKey] = request;
+          }
+          return acc;
+        }, {});
+        setRequestByEntryId(latestByEntryId);
+        setRequestStatus("success");
+      } catch (loadRequestsError) {
+        console.error("Failed to load entry update requests:", loadRequestsError);
+        setRequestStatus("error");
+      }
+    };
+
+    loadRequests();
+  }, [month, requesterId]);
+
+  const selectedVehicle = useMemo(
+    () => vehicles.find((vehicle) => vehicle.vehicle_id === vehicleId) || null,
+    [vehicleId, vehicles]
+  );
+
   const vehicleCount = useMemo(() => vehicles.length, [vehicles]);
+  const entryCount = useMemo(() => entries.length, [entries]);
+
+  const getRequestStatusClassName = (status) => {
+    const normalized = String(status || "").trim().toLowerCase();
+    if (normalized === "submitted") return `${styles.status} ${styles.submitted}`;
+    if (normalized === "approved") return `${styles.status} ${styles.accepted}`;
+    if (normalized === "rejected") return `${styles.status} ${styles.rejected}`;
+    return styles.status;
+  };
+
+  const openUpdateRequestModal = (entry) => {
+    setPendingEntry(entry);
+    setRequestMessage("");
+    setRequestSubmitStatus("idle");
+    setRequestForm({
+      start_time: String(entry?.start_time || "").trim(),
+      end_time: String(entry?.end_time || "").trim(),
+      pickup_location: String(entry?.pickup_location || "").trim(),
+      drop_location: String(entry?.drop_location || "").trim(),
+      odometer_start: String(entry?.odometer_start ?? "").trim(),
+      odometer_end: String(entry?.odometer_end ?? "").trim(),
+      tolls: String(entry?.tolls ?? "").trim(),
+      notes: String(entry?.notes || "").trim(),
+      reason: "",
+    });
+  };
+
+  const handleUpdateRequest = async () => {
+    if (!pendingEntry) return;
+
+    const rawUpdates = {
+      start_time: requestForm.start_time,
+      end_time: requestForm.end_time,
+      pickup_location: requestForm.pickup_location,
+      drop_location: requestForm.drop_location,
+      odometer_start: requestForm.odometer_start,
+      odometer_end: requestForm.odometer_end,
+      tolls: requestForm.tolls,
+      notes: requestForm.notes,
+    };
+
+    const requestedUpdates = Object.entries(rawUpdates).reduce((acc, [key, value]) => {
+      const currentValue = toComparableValue(pendingEntry?.[key]);
+      const nextValue = toComparableValue(value);
+      if (nextValue !== currentValue) {
+        if (key === "odometer_start" || key === "odometer_end" || key === "tolls") {
+          acc[key] = nextValue === "" ? "" : Number(nextValue);
+        } else {
+          acc[key] = nextValue;
+        }
+      }
+      return acc;
+    }, {});
+
+    if (!Object.keys(requestedUpdates).length) {
+      setRequestSubmitStatus("error");
+      setRequestMessage("Please change at least one field before submitting.");
+      return;
+    }
+    if (!String(requestForm.reason || "").trim()) {
+      setRequestSubmitStatus("error");
+      setRequestMessage("Reason is required.");
+      return;
+    }
+    if (!requesterId) {
+      setRequestSubmitStatus("error");
+      setRequestMessage("Unable to identify requester. Please re-login.");
+      return;
+    }
+
+    try {
+      setRequestSubmitStatus("loading");
+      setRequestMessage("");
+      const created = await createEntryUpdateRequest({
+        entry_id: pendingEntry.entry_id,
+        entry_date: pendingEntry.entry_date || "",
+        entry_month:
+          pendingEntry.entry_month || String(pendingEntry.entry_date || "").slice(0, 7),
+        vehicle_id: pendingEntry.vehicle_id || "",
+        vehicle_number: pendingEntry.vehicle_number || "",
+        company_id: pendingEntry.company_id || "",
+        company_name: pendingEntry.company_name || "",
+        requested_by: requesterId,
+        requested_by_name: userData?.name || requesterId,
+        requested_updates: requestedUpdates,
+        reason: String(requestForm.reason || "").trim(),
+        current_entry: {
+          entry_id: pendingEntry.entry_id || "",
+          entry_date: pendingEntry.entry_date || "",
+          start_time: pendingEntry.start_time || "",
+          end_time: pendingEntry.end_time || "",
+          pickup_location: pendingEntry.pickup_location || "",
+          drop_location: pendingEntry.drop_location || "",
+          odometer_start: pendingEntry.odometer_start ?? "",
+          odometer_end: pendingEntry.odometer_end ?? "",
+          tolls: pendingEntry.tolls ?? "",
+          notes: pendingEntry.notes || "",
+        },
+      });
+
+      setRequestByEntryId((prev) => ({
+        ...prev,
+        [pendingEntry.entry_id]: {
+          request_id: created.request_id,
+          entry_id: pendingEntry.entry_id,
+          status: "submitted",
+          status_detail: "Update request submitted and awaiting review.",
+          reason: String(requestForm.reason || "").trim(),
+        },
+      }));
+      setRequestSubmitStatus("success");
+      setRequestMessage("Update request submitted for approval.");
+      setPendingEntry(null);
+    } catch (submitError) {
+      setRequestSubmitStatus("error");
+      setRequestMessage(submitError.message || "Failed to submit update request.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -94,7 +354,7 @@ export default function DriverDashboardPage() {
           <p className={styles.eyebrow}>Driver</p>
           <h1>Driver Dashboard</h1>
           <p className={styles.lead}>
-            View your assigned vehicles and continue with driver operations.
+            Review your month-wise ride entries and raise update requests for approval.
           </p>
         </div>
       </header>
@@ -104,35 +364,277 @@ export default function DriverDashboardPage() {
           <p>Assigned vehicles</p>
           <h2>{vehicleCount}</h2>
         </div>
+        <div className={styles.card}>
+          <p>Entries in month</p>
+          <h2>{entryCount}</h2>
+        </div>
       </section>
 
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
-          <h3>My Vehicles</h3>
+          <h3>My Vehicle Entries</h3>
         </div>
+        <section className={styles.filters}>
+          <label className={styles.field}>
+            Month
+            <MonthPicker value={month} onChange={setMonth} />
+          </label>
+          <label className={styles.field}>
+            Vehicle
+            <CustomDropdown
+              options={vehicles}
+              value={vehicleId}
+              onChange={setVehicleId}
+              getLabel={(vehicle) =>
+                `${vehicle.vehicle_number || "-"} · ${vehicle.cab_type || "Cab"}`
+              }
+              getValue={(vehicle) => vehicle.vehicle_id}
+              placeholder="Select vehicle"
+              defaultOption={{ label: "All Vehicles", value: "all" }}
+              buttonClassName={styles.dropdownButton}
+            />
+          </label>
+        </section>
+        {selectedVehicle ? (
+          <p className={styles.requestHint}>
+            Showing entries for <strong>{selectedVehicle.vehicle_number}</strong>.
+          </p>
+        ) : null}
         {error && <p className={styles.error}>{error}</p>}
-        {!error && vehicles.length === 0 && (
-          <p className={styles.empty}>
-            No vehicles are assigned yet. Contact your administrator.
+        {requestMessage && (
+          <p className={requestSubmitStatus === "success" ? styles.success : styles.error}>
+            {requestMessage}
           </p>
         )}
-        {vehicles.length > 0 && (
+        {entriesStatus === "loading" && <p className={styles.empty}>Loading entries...</p>}
+        {entriesStatus === "error" && (
+          <p className={styles.error}>Unable to load your entries.</p>
+        )}
+        {entriesStatus === "success" && entries.length === 0 && (
+          <p className={styles.empty}>No entries found for selected filters.</p>
+        )}
+        {entries.length > 0 && (
           <div className={styles.table}>
-            <div className={styles.tableHeader}>
+            <div className={styles.requestHeader}>
+              <span>Date</span>
+              <span>Company</span>
               <span>Vehicle</span>
-              <span>Cab Type</span>
-              <span>Status</span>
+              <span>Slot</span>
+              <span>Route</span>
+              <span>Total</span>
+              <span>Update Request</span>
+              <span>Action</span>
             </div>
-            {vehicles.map((vehicle) => (
-              <div key={vehicle.vehicle_id} className={styles.tableRow}>
-                <span>{vehicle.vehicle_number || "-"}</span>
-                <span>{vehicle.cab_type || "-"}</span>
-                <span>{vehicle.active !== false ? "Active" : "Inactive"}</span>
-              </div>
-            ))}
+            {entries.map((entry) => {
+              const latestRequest = requestByEntryId[entry.entry_id] || null;
+              const statusLabel = latestRequest?.status || "-";
+              const statusDetail =
+                latestRequest?.status_detail || latestRequest?.reason || "";
+              const canRequestUpdate =
+                String(latestRequest?.status || "").toLowerCase() !== "submitted";
+              return (
+                <div key={entry.entry_id} className={styles.requestRow}>
+                  <span>
+                    {entry.entry_date || "-"} {entry.start_time || ""}
+                  </span>
+                  <span>{entry.company_name || "-"}</span>
+                  <span>{entry.vehicle_number || "-"}</span>
+                  <span>{entry.slot || "-"}</span>
+                  <span>
+                    {entry.pickup_location || "-"} → {entry.drop_location || "-"}
+                  </span>
+                  <span>
+                    {(Number(entry.total) || Number(entry.rate) || 0) > 0
+                      ? `₹${Number(entry.total) || Number(entry.rate) || 0}`
+                      : "-"}
+                  </span>
+                  <span>
+                    {latestRequest ? (
+                      <span
+                        className={`${getRequestStatusClassName(statusLabel)} ${styles.statusWithTooltip}`}
+                      >
+                        {statusLabel}
+                        {statusDetail ? (
+                          <span className={styles.statusTooltip}>{statusDetail}</span>
+                        ) : null}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </span>
+                  <span>
+                    <button
+                      type="button"
+                      className={styles.editBtn}
+                      onClick={() => openUpdateRequestModal(entry)}
+                      disabled={!canRequestUpdate}
+                    >
+                      {canRequestUpdate ? "Request" : "Pending"}
+                    </button>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
+        {requestStatus === "error" && (
+          <p className={styles.error}>Unable to load update request statuses.</p>
+        )}
       </section>
+
+      {pendingEntry ? (
+        <div className={styles.modalOverlay} onClick={() => setPendingEntry(null)}>
+          <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Request Entry Update</h3>
+            <p className={styles.modalSubtitle}>
+              Entry <strong>{pendingEntry.entry_date || "-"}</strong>{" "}
+              <strong>{pendingEntry.start_time || ""}</strong> for{" "}
+              <strong>{pendingEntry.vehicle_number || "-"}</strong>
+            </p>
+
+            <div className={styles.modalForm}>
+              <label className={styles.field}>
+                Start time
+                <TimePicker
+                  value={requestForm.start_time}
+                  onChange={(value) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      start_time: value,
+                    }))
+                  }
+                  placeholder="Select start time"
+                />
+              </label>
+              <label className={styles.field}>
+                End time
+                <TimePicker
+                  value={requestForm.end_time}
+                  onChange={(value) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      end_time: value,
+                    }))
+                  }
+                  placeholder="Select end time"
+                />
+              </label>
+              <label className={styles.field}>
+                Pickup location
+                <input
+                  type="text"
+                  value={requestForm.pickup_location}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      pickup_location: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                Drop location
+                <input
+                  type="text"
+                  value={requestForm.drop_location}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      drop_location: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                Odometer start
+                <input
+                  type="number"
+                  min="0"
+                  value={requestForm.odometer_start}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      odometer_start: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                Odometer end
+                <input
+                  type="number"
+                  min="0"
+                  value={requestForm.odometer_end}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      odometer_end: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                Tolls
+                <input
+                  type="number"
+                  min="0"
+                  value={requestForm.tolls}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      tolls: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                Notes
+                <textarea
+                  rows={3}
+                  value={requestForm.notes}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({ ...prev, notes: event.target.value }))
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                Reason for update
+                <textarea
+                  rows={3}
+                  value={requestForm.reason}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({ ...prev, reason: event.target.value }))
+                  }
+                  placeholder="Explain why this entry needs correction."
+                />
+              </label>
+            </div>
+            {requestMessage && (
+              <p className={requestSubmitStatus === "error" ? styles.error : styles.success}>
+                {requestMessage}
+              </p>
+            )}
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setPendingEntry(null)}
+                disabled={requestSubmitStatus === "loading"}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={handleUpdateRequest}
+                disabled={requestSubmitStatus === "loading"}
+              >
+                {requestSubmitStatus === "loading" ? "Submitting..." : "Submit Request"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

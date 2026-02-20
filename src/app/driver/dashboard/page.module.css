@@ -39,17 +39,11 @@
   line-height: 1.6;
 }
 
-.primaryCta {
-  padding: 12px 20px;
-  border-radius: 999px;
-  background: #1e1916;
-  color: #fff;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  border: none;
-  text-decoration: none;
-  white-space: nowrap;
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 320px));
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .stats {
@@ -92,8 +86,48 @@
   margin: 0;
 }
 
+.requestHint {
+  margin: 0 0 16px;
+  color: var(--page-muted);
+  font-size: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--page-muted);
+  font-family: var(--font-space-grotesk), sans-serif;
+}
+
+.field input,
+.field select,
+.field textarea {
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--font-space-grotesk), sans-serif;
+  color: var(--page-ink);
+  background: #fff;
+}
+
+.dropdownButton {
+  font-family: var(--font-space-grotesk), sans-serif;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
 .error {
   color: #c23d2b;
+}
+
+.success {
+  color: #1f7a39;
 }
 
 .empty {
@@ -105,24 +139,190 @@
   gap: 8px;
 }
 
-.tableHeader,
-.tableRow {
+.requestHeader,
+.requestRow {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 0.7fr 1.3fr 0.7fr 0.9fr 0.7fr;
   gap: 8px;
   font-size: 14px;
 }
 
-.tableHeader {
+.requestHeader {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--page-muted);
 }
 
-.tableRow {
+.requestRow {
   padding: 10px 0;
   border-top: 1px solid rgba(30, 25, 22, 0.08);
+  align-items: center;
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #f1eee9;
+  color: #5e534c;
+}
+
+.submitted {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.accepted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rejected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.statusWithTooltip {
+  position: relative;
+}
+
+.statusTooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #1e1916;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: 0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+.statusWithTooltip:hover .statusTooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.editBtn {
+  min-width: 92px;
+  height: 32px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #ea5a32;
+  transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
+}
+
+.editBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 720px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.modalTitle {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--page-ink);
+}
+
+.modalSubtitle {
+  margin: 0 0 18px;
+  color: var(--page-muted);
+  line-height: 1.5;
+}
+
+.modalForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modalForm .field:last-child,
+.modalForm .field:nth-last-child(2) {
+  grid-column: 1 / -1;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.primaryButton {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: #1e1916;
+  color: #fff;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(30, 25, 22, 0.18);
+  background: #fff;
+  color: var(--page-ink);
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .modal {
+    padding: 18px;
+  }
+
+  .modalForm {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
@@ -130,9 +330,8 @@
     flex-direction: column;
   }
 
-  .tableHeader,
-  .tableRow {
+  .requestHeader,
+  .requestRow {
     grid-template-columns: 1fr;
   }
 }
-
