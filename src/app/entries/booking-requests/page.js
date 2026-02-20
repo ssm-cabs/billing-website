@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MonthPicker from "../MonthPicker";
 import CustomDropdown from "../CustomDropdown";
-import TimePicker from "../TimePicker";
 import { usePermissions } from "@/lib/usePermissions";
 import {
   acceptBookingRequest,
@@ -44,7 +43,6 @@ export default function BookingRequestsPage() {
     return `${year}-${monthIndex}`;
   });
   const [statusFilter, setStatusFilter] = useState("all");
-  const [timeFilter, setTimeFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -118,11 +116,7 @@ export default function BookingRequestsPage() {
     }
   };
 
-  const rows = useMemo(() => {
-    const data = requests || [];
-    if (!timeFilter) return data;
-    return data.filter((request) => String(request.start_time || "").trim() === timeFilter);
-  }, [requests, timeFilter]);
+  const rows = useMemo(() => requests || [], [requests]);
 
   const getStatusClassName = (status) => {
     const normalized = String(status || "").trim().toLowerCase();
@@ -176,14 +170,6 @@ export default function BookingRequestsPage() {
             getValue={(option) => option.value}
             placeholder="Select status"
             defaultOption={null}
-          />
-        </label>
-        <label className={styles.field}>
-          Time
-          <TimePicker
-            value={timeFilter}
-            onChange={setTimeFilter}
-            placeholder="All times"
           />
         </label>
       </section>
