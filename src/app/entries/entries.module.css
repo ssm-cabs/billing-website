@@ -172,7 +172,8 @@
 }
 
 .editBtn,
-.deleteBtn {
+.deleteBtn,
+.viewBtn {
   width: 32px;
   height: 32px;
   border: 1px solid rgba(30, 25, 22, 0.12);
@@ -185,6 +186,26 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
+}
+
+.viewBtn {
+  color: #ea5a32;
+}
+
+.viewBtn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.viewBtn:hover {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
 }
 
 .editBtn {

@@ -67,17 +67,6 @@ export default function EntryUpdateDifferencesPage() {
       return false;
     }
   }, []);
-  const reviewerName = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    try {
-      const raw = localStorage.getItem("user_data");
-      if (!raw) return "";
-      const userData = JSON.parse(raw);
-      return String(userData?.name || userData?.phone || "").trim();
-    } catch (_) {
-      return "";
-    }
-  }, []);
 
   useEffect(() => {
     if (!requestId) return;
@@ -171,7 +160,7 @@ export default function EntryUpdateDifferencesPage() {
         await deleteEntryUpdateRequest(request.entry_update_id);
         setReviewMessage("Request accepted, entry updated, and request removed.");
         setTimeout(() => {
-          router.push("/entries/update-requests");
+          router.push(`/entries/view?id=${encodeURIComponent(request.entry_id)}`);
         }, 700);
       } else {
         await deleteEntryUpdateRequest(request.entry_update_id);

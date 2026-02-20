@@ -204,6 +204,18 @@ export default function EntriesPage() {
     }
   };
 
+  if (permissionsLoading) {
+    return (
+      <div className={styles.page}>
+        <p>Loading permissions...</p>
+      </div>
+    );
+  }
+
+  if (!canView) {
+    return null;
+  }
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -337,25 +349,42 @@ export default function EntriesPage() {
                   </td>
                   <td data-label="User">{entry.user_name || "-"}</td>
                   <td data-label="Actions" className={styles.actionsCell}>
-                    {canEdit && !entry.billed && (
+                    {(canView || (canEdit && !entry.billed)) && (
                       <div className={styles.actions}>
-                        <Link
-                          href={`/entries/edit?id=${encodeURIComponent(entry.entry_id)}`}
-                          className={styles.editBtn}
-                          title="Edit"
-                          aria-label="Edit"
-                        >
-                          <span className={styles.editIcon}>✎</span>
-                        </Link>
-                        <button
-                          type="button"
-                          className={styles.deleteBtn}
-                          onClick={() => handleDeleteEntry(entry.entry_id)}
-                          title="Delete"
-                          aria-label="Delete"
-                        >
-                          ✕
-                        </button>
+                        {canView ? (
+                          <Link
+                            href={`/entries/view?id=${encodeURIComponent(entry.entry_id)}`}
+                            className={styles.viewBtn}
+                            title="View"
+                            aria-label="View"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </Link>
+                        ) : null}
+                        {canEdit && !entry.billed ? (
+                          <>
+                            <Link
+                              href={`/entries/edit?id=${encodeURIComponent(entry.entry_id)}`}
+                              className={styles.editBtn}
+                              title="Edit"
+                              aria-label="Edit"
+                            >
+                              <span className={styles.editIcon}>✎</span>
+                            </Link>
+                            <button
+                              type="button"
+                              className={styles.deleteBtn}
+                              onClick={() => handleDeleteEntry(entry.entry_id)}
+                              title="Delete"
+                              aria-label="Delete"
+                            >
+                              ✕
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     )}
                   </td>
