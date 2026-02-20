@@ -690,6 +690,7 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
 
   const requestData = bookingRequestSnap.data() || {};
   const requestStatus = String(requestData.status || "").trim();
+  const reviewerName = String(reviewedBy || "").trim();
 
   if (requestStatus === "rejected" || requestStatus === "cancelled") {
     throw new Error(`Cannot accept a ${requestStatus} request.`);
@@ -714,7 +715,7 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       vehicle_id: "",
       vehicle_number: "",
       cab_type: requestData.cab_type || "",
-      user_name: requestData.user_name || requestData.created_by || "",
+      user_name: reviewerName,
       notes: requestData.notes || "",
       rate: 0,
       tolls: 0,
@@ -728,7 +729,7 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
 
   await updateBookingRequest(requestId, {
     status: "accepted",
-    approved_by: String(reviewedBy || "").trim(),
+    approved_by: reviewerName,
     converted_entry_id: entryId || null,
   });
 
