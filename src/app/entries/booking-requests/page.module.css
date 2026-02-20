@@ -103,6 +103,70 @@
   color: var(--page-muted);
 }
 
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #f1eee9;
+  color: #5e534c;
+}
+
+.submitted {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.acknowledged {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.allotted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rejected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.statusWithTooltip {
+  position: relative;
+}
+
+.statusTooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #1e1916;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: 0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+.statusWithTooltip:hover .statusTooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
 .actions {
   display: flex;
   gap: 8px;

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import CustomDropdown from "../CustomDropdown";
 import { usePermissions } from "@/lib/usePermissions";
 import {
   acknowledgeBookingRequest,
@@ -103,6 +104,15 @@ export default function BookingRequestsPage() {
 
   const rows = useMemo(() => requests || [], [requests]);
 
+  const getStatusClassName = (status) => {
+    const normalized = String(status || "").trim().toLowerCase();
+    if (normalized === "submitted") return `${styles.status} ${styles.submitted}`;
+    if (normalized === "acknowledged") return `${styles.status} ${styles.acknowledged}`;
+    if (normalized === "allotted") return `${styles.status} ${styles.allotted}`;
+    if (normalized === "rejected") return `${styles.status} ${styles.rejected}`;
+    return styles.status;
+  };
+
   if (permissionsLoading) {
     return (
       <div className={styles.page}>
@@ -133,16 +143,15 @@ export default function BookingRequestsPage() {
       <section className={styles.filters}>
         <label className={styles.field}>
           Status
-          <select
+          <CustomDropdown
+            options={STATUS_OPTIONS}
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={setStatusFilter}
+            getLabel={(option) => option.label}
+            getValue={(option) => option.value}
+            placeholder="Select status"
+            defaultOption={null}
+          />
         </label>
       </section>
 
@@ -169,8 +178,9 @@ export default function BookingRequestsPage() {
                 <th>Company</th>
                 <th>Route</th>
                 <th>Cab / Slot</th>
+                <th>Requested By</th>
+                <th>Notes</th>
                 <th>Status</th>
-                <th>Status detail</th>
                 <th>Entry</th>
                 <th>Actions</th>
               </tr>
@@ -188,8 +198,20 @@ export default function BookingRequestsPage() {
                   <td data-label="Cab / Slot">
                     {request.cab_type || "-"} / {request.slot || "-"}
                   </td>
-                  <td data-label="Status">{request.status || "-"}</td>
-                  <td data-label="Status detail">{request.status_detail || "-"}</td>
+                  <td data-label="Requested By">{request.created_by || "-"}</td>
+                  <td data-label="Notes">{request.notes || "-"}</td>
+                  <td data-label="Status">
+                    <span
+                      className={`${getStatusClassName(request.status)} ${styles.statusWithTooltip}`}
+                    >
+                      {request.status || "-"}
+                      {request.status_detail ? (
+                        <span className={styles.statusTooltip}>
+                          {request.status_detail}
+                        </span>
+                      ) : null}
+                    </span>
+                  </td>
                   <td data-label="Entry">
                     {request.converted_entry_id ? (
                       <Link href={`/entries/edit?id=${encodeURIComponent(request.converted_entry_id)}`}>
