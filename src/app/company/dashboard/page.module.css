@@ -190,7 +190,7 @@
 .requestHeader,
 .requestRow {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 0.7fr 1.8fr;
+  grid-template-columns: 1.2fr 1fr 1.2fr 0.9fr 0.8fr 0.6fr;
   gap: 8px;
   font-size: 14px;
 }
@@ -205,6 +205,178 @@
 .requestRow {
   padding: 10px 0;
   border-top: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #f1eee9;
+  color: #5e534c;
+}
+
+.submitted {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.acknowledged {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.allotted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rejected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.statusWithTooltip {
+  position: relative;
+}
+
+.statusTooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #1e1916;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: 0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+.statusWithTooltip:hover .statusTooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.rowActions {
+  display: flex;
+  gap: 8px;
+}
+
+.editBtn,
+.cancelBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.editBtn {
+  color: #ea5a32;
+}
+
+.editIcon {
+  display: inline-block;
+  transform: rotate(90deg);
+}
+
+.editBtn:hover {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
+}
+
+.cancelBtn {
+  color: #c74624;
+}
+
+.cancelBtn:hover {
+  background: #c74624;
+  color: #fff;
+  border-color: #c74624;
+}
+
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.modalTitle {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--page-ink);
+}
+
+.modalSubtitle {
+  margin: 0 0 18px;
+  color: var(--page-muted);
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.primaryButton {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: #1e1916;
+  color: #fff;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(30, 25, 22, 0.18);
+  background: #fff;
+  color: var(--page-ink);
+  cursor: pointer;
 }
 
 @media (max-width: 900px) {

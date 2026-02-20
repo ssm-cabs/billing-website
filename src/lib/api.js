@@ -187,10 +187,6 @@ const BOOKING_REQUEST_STATUS_CATALOG = [
     detail: "Request was reviewed but cannot be fulfilled.",
   },
   {
-    status: "cancelled",
-    detail: "Request was cancelled by the requester.",
-  },
-  {
     status: "allotted",
     detail: "Request approved and cab has been allotted.",
   },
@@ -488,6 +484,28 @@ export async function fetchBookingRequests({
   }));
 }
 
+export async function fetchBookingRequestById(requestId) {
+  if (!requestId) {
+    throw new Error("requestId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    throw new Error("Booking request not found in demo mode");
+  }
+
+  const bookingRequestRef = doc(db, "booking_requests", requestId);
+  const bookingRequestSnap = await getDoc(bookingRequestRef);
+
+  if (!bookingRequestSnap.exists()) {
+    throw new Error("Booking request not found");
+  }
+
+  return {
+    request_id: bookingRequestSnap.id,
+    ...bookingRequestSnap.data(),
+  };
+}
+
 export async function createBookingRequest(payload = {}) {
   const resolvedStatus = String(payload.status || "submitted").trim();
   const normalizedPayload = {
@@ -595,6 +613,20 @@ export async function updateBookingRequest(requestId, payload = {}) {
   return { request_id: requestId };
 }
 
+export async function deleteBookingRequest(requestId) {
+  if (!requestId) {
+    throw new Error("requestId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, request_id: requestId };
+  }
+
+  const bookingRequestRef = doc(db, "booking_requests", requestId);
+  await deleteDoc(bookingRequestRef);
+  return { request_id: requestId };
+}
+
 export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
   if (!requestId) {
     throw new Error("requestId is required");
@@ -613,7 +645,7 @@ export async function acknowledgeBookingRequest(requestId, reviewedBy = "") {
   const requestData = bookingRequestSnap.data() || {};
   const requestStatus = String(requestData.status || "").trim();
 
-  if (requestStatus === "rejected" || requestStatus === "cancelled") {
+  if (requestStatus === "rejected") {
     throw new Error(`Cannot acknowledge a ${requestStatus} request.`);
   }
   if (requestStatus === "allotted") {

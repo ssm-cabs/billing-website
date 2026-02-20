@@ -15,7 +15,6 @@ const STATUS_OPTIONS = [
   { value: "submitted", label: "Submitted" },
   { value: "acknowledged", label: "Acknowledged" },
   { value: "rejected", label: "Rejected" },
-  { value: "cancelled", label: "Cancelled" },
   { value: "allotted", label: "Allotted" },
 ];
 
