@@ -7,67 +7,88 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Custom-claims role helpers.
+    // Expected claim: request.auth.token.role in ["user", "driver", "company"].
+    function hasRole(role) {
+      return isSignedIn() && request.auth.token.role == role;
+    }
+
+    function isUser() {
+      return hasRole("user");
+    }
+
+    function isDriver() {
+      return hasRole("driver");
+    }
+
+    function isCompany() {
+      return hasRole("company");
+    }
+
     // USERS
     // Public read is required by current login flow:
     // phone number is checked in users collection before OTP verification.
-    // Writes are restricted to authenticated users.
+    // Write access is restricted to backoffice users.
     match /users/{userId} {
       allow read: if true;
-      allow create, update, delete: if isSignedIn();
+      allow create, update, delete: if isUser();
     }
 
     // ENTRIES
-    // Operational ride entries should only be available to signed-in users.
+    // Backoffice users can manage entries; drivers can read entries collection.
     match /entries/{entryId} {
-      allow read, write: if isSignedIn();
+      allow read: if isUser() || isDriver();
+      allow create, update, delete: if isUser();
     }
 
     // BOOKING REQUESTS
-    // Company-submitted requests stay separate from operational entries.
+    // Companies can manage booking requests; backoffice can also access.
     match /booking_requests/{requestId} {
-      allow read, write: if isSignedIn();
+      allow read: if isUser() || isCompany();
+      allow create, update, delete: if isUser() || isCompany();
     }
 
     // ENTRY UPDATE REQUESTS
-    // Driver-raised correction requests for existing entries.
+    // Drivers can manage entry update requests; backoffice can also access.
     match /entry_update_requests/{requestId} {
-      allow read, write: if isSignedIn();
+      allow read: if isUser() || isDriver();
+      allow create, update, delete: if isUser() || isDriver();
     }
 
     // COMPANIES
-    // Client master data is internal and requires authentication.
+    // Client master data is managed by backoffice users.
     match /companies/{companyId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isUser();
 
       // PRICING SUBCOLLECTION
       // Per-company pricing is sensitive business data.
       match /pricing/{pricingId} {
-        allow read, write: if isSignedIn();
+        allow read, write: if isUser();
       }
     }
 
     // VEHICLES
-    // Fleet and driver details are internal data.
+    // Fleet and vehicle pricing are managed by backoffice users.
     match /vehicles/{vehicleId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isUser();
 
       // PRICING SUBCOLLECTION
       // Leased-vehicle slot pricing is internal operational data.
       match /pricing/{pricingId} {
-        allow read, write: if isSignedIn();
+        allow read, write: if isUser();
       }
     }
 
     // INVOICES
-    // Billing records should only be accessible to authenticated users.
+    // Billing records are managed by backoffice users.
     match /invoices/{invoiceId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isUser();
     }
 
     // PAYMENTS
-    // Driver payments are internal finance records.
+    // Payments are managed by backoffice users.
     match /payments/{paymentId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isUser();
     }
 
     // Explicit default deny for any collection not listed above.

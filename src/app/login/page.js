@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { httpsCallable } from "firebase/functions";
 import styles from "./login.module.css";
 import {
   getAuthorizedUser,
@@ -15,6 +16,21 @@ import {
 import { setTokenExpiry } from "@/lib/useSessionTimeout";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { getHomeRouteForRole } from "@/lib/roleRouting";
+import { functions } from "@/lib/firebase";
+
+async function syncCustomClaims(firebaseUser) {
+  if (!firebaseUser) {
+    throw new Error("User is not authenticated.");
+  }
+  if (!functions) {
+    throw new Error("Firebase Functions is not initialized.");
+  }
+  const syncRoleClaim = httpsCallable(functions, "syncRoleClaim");
+  await syncRoleClaim();
+
+  // Force refresh so Firestore rules immediately receive the new claim.
+  await firebaseUser.getIdToken(true);
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,10 +55,11 @@ export default function LoginPage() {
           await signOutUser();
           return;
         }
+        await syncCustomClaims(user);
         router.push(getHomeRouteForRole(userData?.role));
       } catch (error) {
         console.error("Existing auth check failed:", error);
-        router.push("/dashboard");
+        await signOutUser();
       }
     };
     checkExistingAuth();
@@ -180,6 +197,7 @@ export default function LoginPage() {
       }
 
       const result = await verifyOTP(confirmationResult, otp);
+      await syncCustomClaims(result.user);
       
       // Set token expiry for 24-hour timeout
       setTokenExpiry();
