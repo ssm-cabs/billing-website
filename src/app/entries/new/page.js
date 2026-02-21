@@ -177,6 +177,10 @@ export default function NewEntryPage() {
     setMessage("");
 
     try {
+      if (!selectedCompany) {
+        throw new Error("Please select a company.");
+      }
+
       const odometerStartRaw = String(form.odometer_start).trim();
       const odometerEndRaw = String(form.odometer_end).trim();
       const odometerStart = odometerStartRaw === "" ? null : Number(odometerStartRaw);
@@ -375,7 +379,7 @@ export default function NewEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          Odometer start (optional)
+          Odometer start
           <input
             type="number"
             name="odometer_start"
@@ -399,7 +403,7 @@ export default function NewEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          Start time (optional)
+          Start time
           <TimePicker
             value={form.start_time}
             onChange={(value) => setForm((prev) => ({ ...prev, start_time: value }))}
@@ -407,7 +411,7 @@ export default function NewEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          End time (optional)
+          End time
           <TimePicker
             value={form.end_time}
             onChange={(value) => setForm((prev) => ({ ...prev, end_time: value }))}
