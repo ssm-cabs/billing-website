@@ -519,6 +519,10 @@
 }
 
 @media (max-width: 640px) {
+  .page {
+    padding: 84px 16px 60px;
+  }
+
   .tableContainer {
     background: transparent;
     border: none;
