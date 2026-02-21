@@ -3,11 +3,11 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-const ALLOWED_ROLES = new Set(["user", "driver", "company"]);
-
 function normalizeRole(value) {
   const role = String(value || "").trim().toLowerCase();
-  return ALLOWED_ROLES.has(role) ? role : "";
+  if (role === "admin") return "user";
+  if (role === "user" || role === "driver" || role === "company") return role;
+  return "";
 }
 
 exports.syncRoleClaim = onCall({ region: "asia-south1" }, async (request) => {
