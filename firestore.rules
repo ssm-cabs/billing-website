@@ -58,7 +58,8 @@ service cloud.firestore {
     // COMPANIES
     // Client master data is managed by backoffice users.
     match /companies/{companyId} {
-      allow read, write: if isUser();
+      allow read: if isUser() || isCompany();
+      allow write: if isUser();
 
       // PRICING SUBCOLLECTION
       // Per-company pricing is sensitive business data.
@@ -70,7 +71,8 @@ service cloud.firestore {
     // VEHICLES
     // Fleet and vehicle pricing are managed by backoffice users.
     match /vehicles/{vehicleId} {
-      allow read, write: if isUser();
+      allow read: if isUser() || isDriver();
+      allow write: if isUser();
 
       // PRICING SUBCOLLECTION
       // Leased-vehicle slot pricing is internal operational data.
