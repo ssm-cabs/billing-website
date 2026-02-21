@@ -231,17 +231,17 @@ export default function CompanyDashboardPage() {
             </div>
             {myRequests.slice(0, 12).map((request) => (
               <div key={request.booking_id} className={styles.requestRow}>
-                <span>
+                <span data-label="Trip">
                   {request.entry_date || "-"} {request.start_time || ""}
                 </span>
-                <span>{request.company_name || "-"}</span>
-                <span>
+                <span data-label="Company">{request.company_name || "-"}</span>
+                <span data-label="Route">
                   {request.pickup_location || "-"} → {request.drop_location || "-"}
                 </span>
-                <span>
+                <span data-label="Cab / Slot">
                   {request.cab_type || "-"} / {request.slot || "-"}
                 </span>
-                <span>
+                <span data-label="Status">
                   <span
                     className={`${getStatusClassName(request.status)} ${styles.statusWithTooltip}`}
                   >
@@ -253,7 +253,7 @@ export default function CompanyDashboardPage() {
                     ) : null}
                   </span>
                 </span>
-                <span>
+                <span data-label="Actions">
                   {request.status === "submitted" ? (
                     <div className={styles.rowActions}>
                       <Link

@@ -486,9 +486,9 @@ export default function DriverDashboardPage() {
             <div className={styles.requestHeader}>
               <span>Date</span>
               <span>Company</span>
-              <span>Vehicle</span>
               <span>Slot</span>
               <span>Route</span>
+              <span>Guest</span>
               <span>Time Taken</span>
               <span>Kms</span>
               <span>Status</span>
@@ -501,23 +501,28 @@ export default function DriverDashboardPage() {
                 statusDetailByKey[String(statusLabel || "").trim().toLowerCase()] || "";
               return (
                 <div key={entry.entry_id} className={styles.requestRow}>
-                  <span>
+                  <span data-label="Date">
                     {entry.entry_date || "-"} {entry.start_time || ""}
                   </span>
-                  <span>
+                  <span data-label="Company">
                     <NotesPreview text={entry.company_name} maxWidth={165} />
                   </span>
-                  <span>{entry.vehicle_number || "-"}</span>
-                  <span>{entry.slot || "-"}</span>
-                  <span>
+                  <span data-label="Slot">{entry.slot || "-"}</span>
+                  <span data-label="Route">
                     <NotesPreview
                       text={`${entry.pickup_location || "-"} → ${entry.drop_location || "-"}`}
                       maxWidth={180}
                     />
                   </span>
-                  <span>{computeTimeTaken(entry) ?? "-"}</span>
-                  <span>{computeKmsFromOdometer(entry) ?? "-"}</span>
-                  <span>
+                  <span data-label="Guest">
+                    <NotesPreview
+                      text={`${entry.guest_name || "-"} / ${entry.guest_number || "-"}`}
+                      maxWidth={260}
+                    />
+                  </span>
+                  <span data-label="Time Taken">{computeTimeTaken(entry) ?? "-"}</span>
+                  <span data-label="Kms">{computeKmsFromOdometer(entry) ?? "-"}</span>
+                  <span data-label="Status">
                     {latestRequest ? (
                       <span
                         className={`${getRequestStatusClassName(statusLabel)} ${styles.statusWithTooltip}`}
@@ -531,7 +536,7 @@ export default function DriverDashboardPage() {
                       "-"
                     )}
                   </span>
-                  <span>
+                  <span data-label="Action">
                     <button
                       type="button"
                       className={styles.editBtn}

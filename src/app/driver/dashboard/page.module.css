@@ -142,7 +142,7 @@
 .requestHeader,
 .requestRow {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 0.7fr 1.3fr 0.8fr 0.7fr 0.9fr 0.7fr;
+  grid-template-columns: 1fr 1fr 0.7fr 1.2fr 1.35fr 0.8fr 0.7fr 0.9fr 0.7fr;
   gap: 8px;
   font-size: 14px;
 }
@@ -337,8 +337,44 @@
     flex-direction: column;
   }
 
-  .requestHeader,
+  .requestHeader {
+    display: none;
+  }
+
   .requestRow {
-    grid-template-columns: 1fr;
+    display: block;
+    border: 1px solid rgba(30, 25, 22, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+    background: #fafaf8;
+    margin-bottom: 10px;
+  }
+
+  .requestRow > span {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 0;
+    border-top: 1px solid rgba(30, 25, 22, 0.06);
+  }
+
+  .requestRow > span:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .requestRow > span::before {
+    content: attr(data-label);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--page-muted);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .requestRow > span :global(*) {
+    text-align: right;
   }
 }
