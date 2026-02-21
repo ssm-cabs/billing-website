@@ -228,26 +228,44 @@ export default function EntriesPage() {
           <p className={styles.lead}>
             Review, filter, and export rides across corporate companies.
           </p>
+          {(canEdit || isDashboardUser) && (
+            <div className={styles.headerActions}>
+              {canEdit ? (
+                <Link className={styles.primaryCta} href="/entries/booking-requests">
+                  <span className={styles.ctaTopRow}>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 2v3M17 2v3M4 7h16M6 11h5M6 15h8M6 19h6M16 14l2 2 4-4" />
+                    </svg>
+                    <span className={styles.ctaTitle}>Booking Requests</span>
+                  </span>
+                  <span className={styles.ctaDescription}>Review and convert incoming ride requests.</span>
+                </Link>
+              ) : null}
+              {isDashboardUser ? (
+                <Link className={styles.primaryCta} href="/entries/update-requests">
+                  <span className={styles.ctaTopRow}>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 12a9 9 0 0 1 15.4-6.4M21 12a9 9 0 0 1-15.4 6.4M3 4v5h5M21 20v-5h-5" />
+                    </svg>
+                    <span className={styles.ctaTitle}>Update Requests</span>
+                  </span>
+                  <span className={styles.ctaDescription}>Review and approve incoming ride updates.</span>
+                </Link>
+              ) : null}
+              {canEdit ? (
+                <Link className={styles.primaryCta} href="/entries/new">
+                  <span className={styles.ctaTopRow}>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    <span className={styles.ctaTitle}>Create Entry</span>
+                  </span>
+                  <span className={styles.ctaDescription}>Create and submit daily ride entries.</span>
+                </Link>
+              ) : null}
+            </div>
+          )}
         </div>
-        {(canEdit || isDashboardUser) && (
-          <div className={styles.headerActions}>
-            {canEdit ? (
-              <Link className={styles.primaryCta} href="/entries/booking-requests">
-                Booking Requests
-              </Link>
-            ) : null}
-            {isDashboardUser ? (
-              <Link className={styles.primaryCta} href="/entries/update-requests">
-                Update Requests
-              </Link>
-            ) : null}
-            {canEdit ? (
-              <Link className={styles.primaryCta} href="/entries/new">
-                New Entry
-              </Link>
-            ) : null}
-          </div>
-        )}
       </header>
 
       {!isFirebaseConfigured && (
