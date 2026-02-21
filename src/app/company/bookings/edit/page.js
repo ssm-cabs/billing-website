@@ -37,6 +37,8 @@ const initialForm = {
   start_time: "",
   pickup_location: "",
   drop_location: "",
+  guest_name: "",
+  guest_number: "",
   cab_type: "",
   slot: "",
   notes: "",
@@ -114,6 +116,8 @@ function EditCompanyBookingPageContent() {
           start_time: bookingRequest.start_time || "",
           pickup_location: bookingRequest.pickup_location || "",
           drop_location: bookingRequest.drop_location || "",
+          guest_name: bookingRequest.guest_name || "",
+          guest_number: bookingRequest.guest_number || "",
           cab_type: bookingRequest.cab_type || "",
           slot: bookingRequest.slot || "",
           notes: bookingRequest.notes || "",
@@ -169,6 +173,8 @@ function EditCompanyBookingPageContent() {
         start_time: form.start_time,
         pickup_location: form.pickup_location,
         drop_location: form.drop_location,
+        guest_name: form.guest_name,
+        guest_number: form.guest_number,
         cab_type: form.cab_type,
         slot: form.slot,
         notes: form.notes,
@@ -303,6 +309,28 @@ function EditCompanyBookingPageContent() {
               onChange={handleChange}
               placeholder="Drop location"
               required
+            />
+          </label>
+
+          <label className={styles.field}>
+            Guest name
+            <input
+              type="text"
+              name="guest_name"
+              value={form.guest_name ?? ""}
+              onChange={handleChange}
+              placeholder="Guest full name"
+            />
+          </label>
+
+          <label className={styles.field}>
+            Guest number
+            <input
+              type="tel"
+              name="guest_number"
+              value={form.guest_number ?? ""}
+              onChange={handleChange}
+              placeholder="Guest contact number"
             />
           </label>
 

@@ -615,6 +615,8 @@ export async function createBookingRequest(payload = {}) {
     start_time: String(payload.start_time || "").trim(),
     pickup_location: String(payload.pickup_location || "").trim(),
     drop_location: String(payload.drop_location || "").trim(),
+    guest_name: String(payload.guest_name || "").trim(),
+    guest_number: String(payload.guest_number || "").trim(),
     cab_type: String(payload.cab_type || "").trim(),
     slot: String(payload.slot || "").trim(),
     notes: String(payload.notes || "").trim(),
