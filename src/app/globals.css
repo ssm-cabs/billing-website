@@ -34,3 +34,9 @@ a {
 button {
   font: inherit;
 }
+
+@media (max-width: 700px) {
+  .page {
+    padding: 84px 16px 60px !important;
+  }
+}
