@@ -309,6 +309,8 @@ export default function NewEntryPage() {
             getLabel={(c) => c.name}
             getValue={(c) => c.name}
             placeholder="Select company"
+            searchable
+            searchPlaceholder="Search company"
           />
         </label>
         <label className={styles.field}>
