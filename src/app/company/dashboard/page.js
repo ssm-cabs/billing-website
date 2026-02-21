@@ -223,9 +223,10 @@ export default function CompanyDashboardPage() {
           <div className={styles.table}>
             <div className={styles.requestHeader}>
               <span>Trip</span>
-              <span>Company</span>
               <span>Route</span>
               <span>Cab / Slot</span>
+              <span>Vehicle Number</span>
+              <span>Driver</span>
               <span>Status</span>
               <span>Actions</span>
             </div>
@@ -234,12 +235,18 @@ export default function CompanyDashboardPage() {
                 <span data-label="Trip">
                   {request.entry_date || "-"} {request.start_time || ""}
                 </span>
-                <span data-label="Company">{request.company_name || "-"}</span>
-                <span data-label="Route">
+                <span data-label="Route" className={styles.routeCell}>
                   {request.pickup_location || "-"} → {request.drop_location || "-"}
                 </span>
                 <span data-label="Cab / Slot">
                   {request.cab_type || "-"} / {request.slot || "-"}
+                </span>
+                <span data-label="Vehicle Number">
+                  {request.allotted_vehicle_number || "-"}
+                </span>
+                <span data-label="Driver">
+                  {request.allotted_driver_name || "-"} /{" "}
+                  {request.allotted_driver_number || request.allotted_driver_phone || "-"}
                 </span>
                 <span data-label="Status">
                   <span

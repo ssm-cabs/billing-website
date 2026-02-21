@@ -197,7 +197,7 @@
 .requestHeader,
 .requestRow {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.2fr 0.9fr 0.8fr 0.6fr;
+  grid-template-columns: 1fr 0.8fr 0.85fr 1fr 1.5fr 0.8fr 0.6fr;
   gap: 8px;
   font-size: 14px;
 }
@@ -212,6 +212,13 @@
 .requestRow {
   padding: 10px 0;
   border-top: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.routeCell {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status {
@@ -439,5 +446,11 @@
 
   .requestRow > span > * {
     text-align: right;
+  }
+
+  .routeCell {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 }
