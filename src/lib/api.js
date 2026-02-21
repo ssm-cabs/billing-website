@@ -479,11 +479,54 @@ export async function updateEntry(entryId, payload) {
   const resolvedVehicleId = String(
     hasVehicleInPayload ? payload?.vehicle_id || "" : existingEntry?.vehicle_id || ""
   ).trim();
+  const hasVehicleNumberInPayload = Object.prototype.hasOwnProperty.call(
+    payload || {},
+    "vehicle_number"
+  );
+  let resolvedVehicleNumber = String(
+    hasVehicleNumberInPayload
+      ? payload?.vehicle_number || ""
+      : existingEntry?.vehicle_number || ""
+  ).trim();
+  let resolvedDriverName = String(
+    payload?.driver_name || existingEntry?.driver_name || ""
+  ).trim();
+  let resolvedDriverNumber = String(
+    payload?.driver_number ||
+      payload?.driver_phone ||
+      existingEntry?.driver_number ||
+      existingEntry?.driver_phone ||
+      ""
+  ).trim();
 
   if (linkedRequestId && resolvedVehicleId) {
+    try {
+      const vehicleRef = doc(db, "vehicles", resolvedVehicleId);
+      const vehicleSnap = await getDoc(vehicleRef);
+      if (vehicleSnap.exists()) {
+        const vehicleData = normalizeVehicle(vehicleSnap.data(), vehicleSnap.id);
+        resolvedVehicleNumber = String(
+          vehicleData.vehicle_number || resolvedVehicleNumber || ""
+        ).trim();
+        resolvedDriverName = String(
+          vehicleData.driver_name || resolvedDriverName || ""
+        ).trim();
+        resolvedDriverNumber = String(
+          vehicleData.driver_phone || resolvedDriverNumber || ""
+        ).trim();
+      }
+    } catch {
+      // If vehicle lookup fails, continue with entry-derived values.
+    }
+
     await updateBookingRequest(linkedRequestId, {
       status: "allotted",
       converted_entry_id: entryId,
+      allotted_vehicle_id: resolvedVehicleId,
+      allotted_vehicle_number: resolvedVehicleNumber,
+      allotted_driver_name: resolvedDriverName,
+      allotted_driver_number: resolvedDriverNumber,
+      allotted_driver_phone: resolvedDriverNumber,
     });
   }
 
