@@ -16,6 +16,12 @@ import {
 } from "@/lib/api";
 import styles from "./entries.module.css";
 
+const ENTRY_ACTION_META = {
+  bookingRequests: { accent: "#8f5a3c", bg: "#f8eee6" },
+  updateRequests: { accent: "#4d5c9a", bg: "#eef1fb" },
+  createEntry: { accent: "#2b7a53", bg: "#e8f6ef" },
+};
+
 const computeKmsFromOdometer = (entry) => {
   const startRaw = entry?.odometer_start;
   const endRaw = entry?.odometer_end;
@@ -228,44 +234,74 @@ export default function EntriesPage() {
           <p className={styles.lead}>
             Review, filter, and export rides across corporate companies.
           </p>
-          {(canEdit || isDashboardUser) && (
-            <div className={styles.headerActions}>
-              {canEdit ? (
-                <Link className={styles.primaryCta} href="/entries/booking-requests">
-                  <span className={styles.ctaTopRow}>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M7 2v3M17 2v3M4 7h16M6 11h5M6 15h8M6 19h6M16 14l2 2 4-4" />
-                    </svg>
-                    <span className={styles.ctaTitle}>Booking Requests</span>
-                  </span>
-                  <span className={styles.ctaDescription}>Review and convert incoming ride requests.</span>
-                </Link>
-              ) : null}
-              {isDashboardUser ? (
-                <Link className={styles.primaryCta} href="/entries/update-requests">
-                  <span className={styles.ctaTopRow}>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M3 12a9 9 0 0 1 15.4-6.4M21 12a9 9 0 0 1-15.4 6.4M3 4v5h5M21 20v-5h-5" />
-                    </svg>
-                    <span className={styles.ctaTitle}>Update Requests</span>
-                  </span>
-                  <span className={styles.ctaDescription}>Review and approve incoming ride updates.</span>
-                </Link>
-              ) : null}
-              {canEdit ? (
-                <Link className={styles.primaryCta} href="/entries/new">
-                  <span className={styles.ctaTopRow}>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                    <span className={styles.ctaTitle}>Create Entry</span>
-                  </span>
-                  <span className={styles.ctaDescription}>Create and submit daily ride entries.</span>
-                </Link>
-              ) : null}
-            </div>
-          )}
         </div>
+        {(canEdit || isDashboardUser) && (
+          <div className={styles.headerActions}>
+            {canEdit ? (
+              <Link
+                className={styles.primaryCta}
+                href="/entries/booking-requests"
+                aria-label="Booking Requests"
+                style={{
+                  "--cta-accent": ENTRY_ACTION_META.bookingRequests.accent,
+                  "--cta-bg": ENTRY_ACTION_META.bookingRequests.bg,
+                }}
+              >
+                <span className={styles.ctaIconWrap}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 2v3M17 2v3M4 7h16M6 11h5M6 15h8M6 19h6M16 14l2 2 4-4" />
+                  </svg>
+                </span>
+                <span className={styles.ctaTooltip}>
+                  <span className={styles.ctaTooltipTitle}>Booking Requests</span>
+                  <span className={styles.ctaTooltipDescription}>Review and convert ride requests.</span>
+                </span>
+              </Link>
+            ) : null}
+            {isDashboardUser ? (
+              <Link
+                className={styles.primaryCta}
+                href="/entries/update-requests"
+                aria-label="Update Requests"
+                style={{
+                  "--cta-accent": ENTRY_ACTION_META.updateRequests.accent,
+                  "--cta-bg": ENTRY_ACTION_META.updateRequests.bg,
+                }}
+              >
+                <span className={styles.ctaIconWrap}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 12a9 9 0 0 1 15.4-6.4M21 12a9 9 0 0 1-15.4 6.4M3 4v5h5M21 20v-5h-5" />
+                  </svg>
+                </span>
+                <span className={styles.ctaTooltip}>
+                  <span className={styles.ctaTooltipTitle}>Update Requests</span>
+                  <span className={styles.ctaTooltipDescription}>Review and approve ride updates.</span>
+                </span>
+              </Link>
+            ) : null}
+            {canEdit ? (
+              <Link
+                className={styles.primaryCta}
+                href="/entries/new"
+                aria-label="Create Entry"
+                style={{
+                  "--cta-accent": ENTRY_ACTION_META.createEntry.accent,
+                  "--cta-bg": ENTRY_ACTION_META.createEntry.bg,
+                }}
+              >
+                <span className={styles.ctaIconWrap}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </span>
+                <span className={styles.ctaTooltip}>
+                  <span className={styles.ctaTooltipTitle}>Create Entry</span>
+                  <span className={styles.ctaTooltipDescription}>Create and submit ride entries.</span>
+                </span>
+              </Link>
+            ) : null}
+          </div>
+        )}
       </header>
 
       {!isFirebaseConfigured && (
