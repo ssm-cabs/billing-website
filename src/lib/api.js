@@ -755,6 +755,8 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       end_time: "",
       pickup_location: requestData.pickup_location || "",
       drop_location: requestData.drop_location || "",
+      guest_name: requestData.guest_name || "",
+      guest_number: requestData.guest_number || "",
       vehicle_id: "",
       vehicle_number: "",
       cab_type: requestData.cab_type || "",
