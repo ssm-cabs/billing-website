@@ -10,7 +10,7 @@ function normalizeRole(value) {
   return ALLOWED_ROLES.has(role) ? role : "";
 }
 
-exports.syncRoleClaim = onCall(async (request) => {
+exports.syncRoleClaim = onCall({ region: "asia-south1" }, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError("unauthenticated", "Authentication is required.");
   }
