@@ -288,7 +288,6 @@ export default function NewCompanyBookingPage() {
             value={requestForm.pickup_location}
             onChange={handleRequestFieldChange}
             placeholder="Pickup location"
-            required
           />
         </label>
 
@@ -300,7 +299,6 @@ export default function NewCompanyBookingPage() {
             value={requestForm.drop_location}
             onChange={handleRequestFieldChange}
             placeholder="Drop location"
-            required
           />
         </label>
 

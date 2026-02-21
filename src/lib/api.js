@@ -637,12 +637,6 @@ export async function createBookingRequest(payload = {}) {
   if (!normalizedPayload.start_time) {
     throw new Error("start_time is required");
   }
-  if (!normalizedPayload.pickup_location) {
-    throw new Error("pickup_location is required");
-  }
-  if (!normalizedPayload.drop_location) {
-    throw new Error("drop_location is required");
-  }
   if (!normalizedPayload.cab_type) {
     throw new Error("cab_type is required");
   }
