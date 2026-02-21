@@ -509,7 +509,7 @@ export async function fetchBookingRequests({
   status = "",
   month = "",
   orderByField = "created_at",
-  orderByDirection = "desc",
+  orderByDirection: _orderByDirection = "desc",
   limitCount = 0,
   lastDoc = null,
 } = {}) {
@@ -523,6 +523,8 @@ export async function fetchBookingRequests({
 
   const bookingRequestsRef = collection(db, "booking_requests");
   const constraints = [];
+  let hasMonthRange = false;
+
   if (companyId) {
     constraints.push(where("company_id", "==", companyId));
   }
@@ -534,11 +536,23 @@ export async function fetchBookingRequests({
     if (nextMonth) {
       constraints.push(where("entry_date", ">=", `${month}-01`));
       constraints.push(where("entry_date", "<", `${nextMonth}-01`));
+      hasMonthRange = true;
     }
+  }
+
+  const field = String(orderByField || "").trim();
+  if (field) {
+    if (hasMonthRange && field !== "entry_date") {
+      constraints.push(orderBy("entry_date", "desc"));
+    }
+    constraints.push(orderBy(field, "desc"));
+  } else if (hasMonthRange) {
+    constraints.push(orderBy("entry_date", "desc"));
   }
   if (lastDoc) {
     constraints.push(startAfter(lastDoc));
   }
+
   const snapshot = await getDocs(
     constraints.length ? query(bookingRequestsRef, ...constraints) : bookingRequestsRef
   );
@@ -548,8 +562,6 @@ export async function fetchBookingRequests({
     normalizeBookingRequest(docSnap.data(), docSnap.id)
   );
 
-  const direction = String(orderByDirection || "desc").toLowerCase() === "asc" ? 1 : -1;
-  const field = String(orderByField || "").trim();
   if (field) {
     const toSortable = (value) => {
       if (value === null || value === undefined) return "";
@@ -562,8 +574,8 @@ export async function fetchBookingRequests({
     filteredRequests = filteredRequests.sort((a, b) => {
       const left = toSortable(a[field]);
       const right = toSortable(b[field]);
-      if (left < right) return -1 * direction;
-      if (left > right) return 1 * direction;
+      if (left < right) return 1;
+      if (left > right) return -1;
       return 0;
     });
   }
