@@ -26,10 +26,13 @@ async function syncCustomClaims(firebaseUser) {
     throw new Error("Firebase Functions is not initialized.");
   }
   const syncRoleClaim = httpsCallable(functions, "syncRoleClaim");
-  await syncRoleClaim();
+  const callableResult = await syncRoleClaim();
+  console.log("syncRoleClaim callable response:", callableResult?.data || {});
 
   // Force refresh so Firestore rules immediately receive the new claim.
   await firebaseUser.getIdToken(true);
+  const tokenResult = await firebaseUser.getIdTokenResult();
+  console.log("Refreshed auth token role claim:", tokenResult?.claims?.role || "(missing)");
 }
 
 export default function LoginPage() {
