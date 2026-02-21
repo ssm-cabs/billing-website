@@ -15,6 +15,8 @@ const initialState = {
   end_time: "",
   pickup_location: "",
   drop_location: "",
+  guest_name: "",
+  guest_number: "",
   vehicle_number: "",
   cab_type: "",
   user_name: "",
@@ -53,6 +55,8 @@ export default function ClientViewEntryPage() {
           end_time: data.end_time || "",
           pickup_location: data.pickup_location || "",
           drop_location: data.drop_location || "",
+          guest_name: data.guest_name || "",
+          guest_number: data.guest_number || "",
           vehicle_number: data.vehicle_number || "",
           cab_type: data.cab_type || "",
           user_name: data.user_name || "",
@@ -178,6 +182,14 @@ export default function ClientViewEntryPage() {
         <label className={styles.field}>
           Drop location
           <input type="text" value={entry.drop_location} disabled readOnly />
+        </label>
+        <label className={styles.field}>
+          Guest name
+          <input type="text" value={entry.guest_name} disabled readOnly />
+        </label>
+        <label className={styles.field}>
+          Guest number
+          <input type="text" value={entry.guest_number} disabled readOnly />
         </label>
         <label className={styles.field}>
           User

@@ -27,6 +27,8 @@ const initialState = {
   end_time: "",
   pickup_location: "",
   drop_location: "",
+  guest_name: "",
+  guest_number: "",
   vehicle_id: "",
   vehicle_number: "",
   cab_type: "",
@@ -97,6 +99,8 @@ export default function ClientEditEntryPage() {
           end_time: entry.end_time || "",
           pickup_location: entry.pickup_location || "",
           drop_location: entry.drop_location || "",
+          guest_name: entry.guest_name || "",
+          guest_number: entry.guest_number || "",
           vehicle_id: entry.vehicle_id || "",
           vehicle_number: entry.vehicle_number || "",
           cab_type: entry.cab_type || "",
@@ -258,11 +262,7 @@ export default function ClientEditEntryPage() {
     try {
       const odometerStartRaw = String(form.odometer_start).trim();
       const odometerEndRaw = String(form.odometer_end).trim();
-      if (!odometerStartRaw) {
-        throw new Error("Odometer start is required.");
-      }
-
-      const odometerStart = Number(odometerStartRaw);
+      const odometerStart = odometerStartRaw === "" ? null : Number(odometerStartRaw);
       const odometerEnd = odometerEndRaw === "" ? null : Number(odometerEndRaw);
 
       if (odometerStart !== null && (!Number.isFinite(odometerStart) || odometerStart < 0)) {
@@ -511,7 +511,7 @@ export default function ClientEditEntryPage() {
           />
         </label>
         <label className={styles.field}>
-          Odometer start
+          Odometer start (optional)
           <input
             type="number"
             name="odometer_start"
@@ -519,7 +519,6 @@ export default function ClientEditEntryPage() {
             onChange={updateField}
             min="0"
             step="1"
-            required
             placeholder="e.g. 125430"
           />
         </label>
@@ -566,6 +565,24 @@ export default function ClientEditEntryPage() {
             type="text"
             name="drop_location"
             value={form.drop_location}
+            onChange={updateField}
+          />
+        </label>
+        <label className={styles.field}>
+          Guest name
+          <input
+            type="text"
+            name="guest_name"
+            value={form.guest_name ?? ""}
+            onChange={updateField}
+          />
+        </label>
+        <label className={styles.field}>
+          Guest number
+          <input
+            type="tel"
+            name="guest_number"
+            value={form.guest_number ?? ""}
             onChange={updateField}
           />
         </label>
