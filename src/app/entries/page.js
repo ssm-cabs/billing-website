@@ -8,8 +8,10 @@ import NotesPreview from "@/components/NotesPreview";
 import { usePermissions } from "@/lib/usePermissions";
 import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
 import {
+  fetchBookingRequests,
   fetchCompanies,
   fetchEntries,
+  fetchEntryUpdateRequests,
   fetchVehicles,
   isFirebaseConfigured,
   deleteEntry,
@@ -108,6 +110,8 @@ export default function EntriesPage() {
   const [vehicleStatus, setVehicleStatus] = useState("idle");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteEntryId, setDeleteEntryId] = useState(null);
+  const [bookingRequestCount, setBookingRequestCount] = useState(0);
+  const [updateRequestCount, setUpdateRequestCount] = useState(0);
   const isDashboardUser = useMemo(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -186,6 +190,69 @@ export default function EntriesPage() {
     loadVehicles();
   }, []);
 
+  useEffect(() => {
+    const loadRequestCounts = async () => {
+      if (permissionsLoading) return;
+
+      if (!canEdit) {
+        setBookingRequestCount(0);
+      }
+      if (!isDashboardUser) {
+        setUpdateRequestCount(0);
+      }
+
+      const requests = [];
+      if (canEdit) {
+        requests.push(
+          fetchBookingRequests({
+            month,
+            orderByField: "created_at",
+            orderByDirection: "desc",
+          })
+        );
+      }
+      if (isDashboardUser) {
+        requests.push(
+          fetchEntryUpdateRequests({
+            month,
+            orderByField: "updated_at",
+            orderByDirection: "desc",
+          })
+        );
+      }
+
+      if (!requests.length) return;
+
+      const results = await Promise.allSettled(requests);
+      let index = 0;
+
+      if (canEdit) {
+        const bookingResult = results[index];
+        if (bookingResult?.status === "fulfilled") {
+          const activeBookingCount = bookingResult.value.filter((request) => {
+            const normalizedStatus = String(request?.status || "").trim().toLowerCase();
+            return normalizedStatus === "submitted" || normalizedStatus === "accepted";
+          }).length;
+          setBookingRequestCount(activeBookingCount);
+        }
+        index += 1;
+      }
+
+      if (isDashboardUser) {
+        const updateResult = results[index];
+        if (updateResult?.status === "fulfilled") {
+          const submittedUpdateCount = updateResult.value.filter((request) => {
+            const normalizedStatus = String(request?.status || "").trim().toLowerCase();
+            return normalizedStatus === "submitted";
+          }).length;
+          setUpdateRequestCount(submittedUpdateCount);
+        }
+      }
+    };
+
+    loadRequestCounts();
+  }, [canEdit, isDashboardUser, month, permissionsLoading]);
+
   const handleDeleteEntry = (entryId) => {
     setDeleteEntryId(entryId);
     setShowDeleteConfirm(true);
@@ -251,6 +318,9 @@ export default function EntriesPage() {
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M7 2v3M17 2v3M4 7h16M6 11h5M6 15h8M6 19h6M16 14l2 2 4-4" />
                   </svg>
+                  {bookingRequestCount > 0 ? (
+                    <span className={styles.ctaCount}>{bookingRequestCount}</span>
+                  ) : null}
                 </span>
                 <span className={styles.ctaTooltip}>
                   <span className={styles.ctaTooltipTitle}>Booking Requests</span>
@@ -272,6 +342,9 @@ export default function EntriesPage() {
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M3 12a9 9 0 0 1 15.4-6.4M21 12a9 9 0 0 1-15.4 6.4M3 4v5h5M21 20v-5h-5" />
                   </svg>
+                  {updateRequestCount > 0 ? (
+                    <span className={styles.ctaCount}>{updateRequestCount}</span>
+                  ) : null}
                 </span>
                 <span className={styles.ctaTooltip}>
                   <span className={styles.ctaTooltipTitle}>Update Requests</span>
