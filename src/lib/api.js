@@ -1416,6 +1416,85 @@ export async function countEntriesByMonth(month = "") {
   return snapshot.data().count;
 }
 
+export async function countBookingRequests({
+  month = "",
+  statuses = [],
+} = {}) {
+  const normalizedStatuses = Array.isArray(statuses)
+    ? Array.from(
+        new Set(
+          statuses
+            .map((status) => String(status || "").trim().toLowerCase())
+            .filter(Boolean)
+        )
+      )
+    : [];
+
+  normalizedStatuses.forEach((status) => assertValidBookingRequestStatus(status));
+
+  if (!isFirebaseConfigured || !db) {
+    return 0;
+  }
+
+  const bookingRequestsRef = collection(db, "booking_requests");
+  const constraints = [];
+
+  if (month) {
+    const nextMonth = getNextMonth(month);
+    if (nextMonth) {
+      constraints.push(where("entry_date", ">=", `${month}-01`));
+      constraints.push(where("entry_date", "<", `${nextMonth}-01`));
+    }
+  }
+
+  if (normalizedStatuses.length === 1) {
+    constraints.push(where("status", "==", normalizedStatuses[0]));
+  } else if (normalizedStatuses.length > 1) {
+    constraints.push(where("status", "in", normalizedStatuses));
+  }
+
+  const countQuery = constraints.length
+    ? query(bookingRequestsRef, ...constraints)
+    : bookingRequestsRef;
+  const snapshot = await getCountFromServer(countQuery);
+  return snapshot.data().count;
+}
+
+export async function countEntryUpdateRequests({
+  month = "",
+  status = "",
+} = {}) {
+  const normalizedStatus = String(status || "").trim().toLowerCase();
+  if (normalizedStatus) {
+    assertValidEntryUpdateRequestStatus(normalizedStatus);
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return 0;
+  }
+
+  const requestsRef = collection(db, "entry_update_requests");
+  const constraints = [];
+
+  if (month) {
+    const nextMonth = getNextMonth(month);
+    if (nextMonth) {
+      constraints.push(where("entry_date", ">=", `${month}-01`));
+      constraints.push(where("entry_date", "<", `${nextMonth}-01`));
+    }
+  }
+
+  if (normalizedStatus) {
+    constraints.push(where("status", "==", normalizedStatus));
+  }
+
+  const countQuery = constraints.length
+    ? query(requestsRef, ...constraints)
+    : requestsRef;
+  const snapshot = await getCountFromServer(countQuery);
+  return snapshot.data().count;
+}
+
 export async function createVehicle(payload) {
   if (!isFirebaseConfigured || !db) {
     return { ok: true, vehicle_id: "vehicle-new" };

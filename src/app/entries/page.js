@@ -8,10 +8,10 @@ import NotesPreview from "@/components/NotesPreview";
 import { usePermissions } from "@/lib/usePermissions";
 import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
 import {
-  fetchBookingRequests,
+  countBookingRequests,
+  countEntryUpdateRequests,
   fetchCompanies,
   fetchEntries,
-  fetchEntryUpdateRequests,
   fetchVehicles,
   isFirebaseConfigured,
   deleteEntry,
@@ -204,19 +204,17 @@ export default function EntriesPage() {
       const requests = [];
       if (canEdit) {
         requests.push(
-          fetchBookingRequests({
+          countBookingRequests({
             month,
-            orderByField: "created_at",
-            orderByDirection: "desc",
+            statuses: ["submitted", "accepted"],
           })
         );
       }
       if (isDashboardUser) {
         requests.push(
-          fetchEntryUpdateRequests({
+          countEntryUpdateRequests({
             month,
-            orderByField: "updated_at",
-            orderByDirection: "desc",
+            status: "submitted",
           })
         );
       }
@@ -229,11 +227,9 @@ export default function EntriesPage() {
       if (canEdit) {
         const bookingResult = results[index];
         if (bookingResult?.status === "fulfilled") {
-          const activeBookingCount = bookingResult.value.filter((request) => {
-            const normalizedStatus = String(request?.status || "").trim().toLowerCase();
-            return normalizedStatus === "submitted" || normalizedStatus === "accepted";
-          }).length;
-          setBookingRequestCount(activeBookingCount);
+          setBookingRequestCount(bookingResult.value);
+        } else {
+          setBookingRequestCount(0);
         }
         index += 1;
       }
@@ -241,11 +237,9 @@ export default function EntriesPage() {
       if (isDashboardUser) {
         const updateResult = results[index];
         if (updateResult?.status === "fulfilled") {
-          const submittedUpdateCount = updateResult.value.filter((request) => {
-            const normalizedStatus = String(request?.status || "").trim().toLowerCase();
-            return normalizedStatus === "submitted";
-          }).length;
-          setUpdateRequestCount(submittedUpdateCount);
+          setUpdateRequestCount(updateResult.value);
+        } else {
+          setUpdateRequestCount(0);
         }
       }
     };
