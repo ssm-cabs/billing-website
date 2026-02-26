@@ -271,6 +271,7 @@ export default function RevenuePage() {
       today.getFullYear() === year && today.getMonth() + 1 === monthNumber;
     const daysElapsed = isCurrentMonth ? today.getDate() : totalDays;
     const totals = Array.from({ length: totalDays }, () => 0);
+    const entryCounts = Array.from({ length: totalDays }, () => 0);
 
     entries.forEach((entry) => {
       if (!entry.entry_date) return;
@@ -279,6 +280,7 @@ export default function RevenuePage() {
       const dayIndex = Number(parts[2]) - 1;
       if (Number.isNaN(dayIndex) || dayIndex < 0 || dayIndex >= totalDays) return;
       totals[dayIndex] += getEntryAmount(entry);
+      entryCounts[dayIndex] += 1;
     });
 
     payments.forEach((payment) => {
@@ -313,6 +315,7 @@ export default function RevenuePage() {
         day,
         weekday,
         value,
+        entryCount: entryCounts[index] || 0,
         isWeekend,
         isNegative: value < 0,
         barHeightPercent,
@@ -469,7 +472,13 @@ export default function RevenuePage() {
                   </div>
                   <div className={styles.chartBars}>
                     {dailyRevenue.bars.map((bar) => (
-                      <div key={bar.day} className={styles.barCol}>
+                      <div
+                        key={bar.day}
+                        className={styles.barCol}
+                        tabIndex={0}
+                        role="img"
+                        aria-label={`${bar.weekday}, Day ${bar.day}: ${formatCurrency(bar.value)}, ${bar.entryCount} entries`}
+                      >
                         <div
                           className={`${styles.bar} ${
                             bar.isNegative
@@ -482,8 +491,11 @@ export default function RevenuePage() {
                             height: `${bar.barHeightPercent}%`,
                             top: `${bar.barTopPercent}%`,
                           }}
-                          title={`${bar.weekday}, Day ${bar.day}: ${formatCurrency(bar.value)}`}
+                          title={`${bar.weekday}, Day ${bar.day}: ${formatCurrency(bar.value)} · ${bar.entryCount} entries`}
                         />
+                        <span className={styles.barTooltip}>
+                          {bar.weekday}, Day {bar.day}: {formatCurrency(bar.value)} · {bar.entryCount} entries
+                        </span>
                         <span className={styles.barDay}>{bar.day}</span>
                       </div>
                     ))}

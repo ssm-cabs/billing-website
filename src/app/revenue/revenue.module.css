@@ -259,6 +259,13 @@
   min-height: 2px;
   background: linear-gradient(180deg, #34d399 0%, #16a34a 100%);
   border-radius: 6px 6px 2px 2px;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.barCol:hover .bar,
+.barCol:focus-within .bar {
+  transform: scaleY(1.02);
+  filter: brightness(1.08);
 }
 
 .barWeekend {
@@ -279,6 +286,30 @@
   text-align: center;
   font-size: 10px;
   color: var(--page-muted);
+}
+
+.barTooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translate(-50%, 6px);
+  font-size: 10px;
+  line-height: 1.2;
+  color: #fff;
+  background: rgba(30, 25, 22, 0.92);
+  border-radius: 6px;
+  padding: 4px 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 6;
+}
+
+.barCol:hover .barTooltip,
+.barCol:focus-within .barTooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .chartMeta {
