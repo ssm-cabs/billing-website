@@ -1932,8 +1932,7 @@ export async function generateVehicleInvoice(vehicleId, month) {
   let entriesQuery = query(
     entriesRef,
     where("vehicle_id", "==", vehicleId),
-    where("entry_month", "==", month),
-    where("billed", "==", false)
+    where("entry_month", "==", month)
   );
   const entriesSnapshot = await getDocs(entriesQuery);
 
