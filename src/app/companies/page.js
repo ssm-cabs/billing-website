@@ -624,19 +624,23 @@ export default function CompaniesPage() {
                                 <div className={styles.inlineActions}>
                                   <button
                                     type="button"
-                                    className={styles.secondaryCta}
+                                    className={`${styles.actionBtn} ${styles.saveBtn}`}
                                     onClick={() => handleEditSubmit(company.company_id)}
                                     disabled={editSaving}
+                                    title={editSaving ? "Saving..." : "Save"}
+                                    aria-label={editSaving ? "Saving..." : "Save"}
                                   >
-                                    {editSaving ? "Saving..." : "Save"}
+                                    <span className={styles.actionIcon}>✓</span>
                                   </button>
                                   <button
                                     type="button"
-                                    className={styles.linkButton}
+                                    className={`${styles.actionBtn} ${styles.cancelBtn}`}
                                     onClick={cancelEdit}
                                     disabled={editSaving}
+                                    title="Cancel"
+                                    aria-label="Cancel"
                                   >
-                                    Cancel
+                                    <span className={styles.actionIcon}>✕</span>
                                   </button>
                                 </div>
                               ) : (

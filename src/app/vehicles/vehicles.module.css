@@ -358,6 +358,51 @@
   font-family: inherit;
 }
 
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.actionIcon {
+  display: inline-block;
+  line-height: 1;
+}
+
+.saveBtn {
+  color: #ea5a32;
+}
+
+.saveBtn:hover {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
+}
+
+.cancelBtn {
+  color: #c74624;
+}
+
+.cancelBtn:hover {
+  background: #c74624;
+  color: #fff;
+  border-color: #c74624;
+}
+
+.actionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .editIcon {
   display: inline-block;
   transform: rotate(90deg);
