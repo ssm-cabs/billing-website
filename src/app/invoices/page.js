@@ -22,6 +22,7 @@ import {
 import styles from "./invoice.module.css";
 
 const basePath = "/billing-website";
+const logoWithBasePath = `${basePath}/logo.png`;
 
 const getMonthValue = () => {
   const now = new Date();
@@ -52,6 +53,7 @@ const getVehicleOptions = (vehicles) =>
 
 export default function InvoicePage() {
   const { canEdit, loading: permissionsLoading } = usePermissions("invoices");
+  const [logoSrc, setLogoSrc] = useState(logoWithBasePath);
 
   const [companies, setCompanies] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -448,9 +450,12 @@ export default function InvoicePage() {
                   <div className={styles.invoiceHeader}>
                     <div className={styles.invoiceAside}>
                       <img
-                        src={`${basePath}/logo.png`}
+                        src={logoSrc}
                         alt="Company Logo"
                         className={styles.logo}
+                        onError={() => {
+                          if (logoSrc !== "/logo.png") setLogoSrc("/logo.png");
+                        }}
                       />
                       <div className={styles.ourDetails}>
                         <p>{OUR_COMPANY.name}</p>
