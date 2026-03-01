@@ -330,6 +330,33 @@ function maybeAddEntryMonth(data = {}) {
   return entryMonth ? { ...data, entry_month: entryMonth } : { ...data };
 }
 
+async function resolveCompanySlotPricing(companyId = "", cabType = "", slot = "") {
+  const normalizedCompanyId = String(companyId || "").trim();
+  const normalizedCabType = String(cabType || "").trim().toLowerCase();
+  const normalizedSlot = String(slot || "").trim().toLowerCase();
+
+  if (!normalizedCompanyId || !normalizedCabType || !normalizedSlot) {
+    return { rate: 0, extra_per_hour: 0, extra_per_km: 0 };
+  }
+
+  try {
+    const pricingList = await fetchPricing(normalizedCompanyId);
+    const match = pricingList.find((item) => {
+      const itemCabType = String(item?.cab_type || "").trim().toLowerCase();
+      const itemSlot = String(item?.slot || "").trim().toLowerCase();
+      return itemCabType === normalizedCabType && itemSlot === normalizedSlot;
+    });
+
+    return {
+      rate: Number(match?.rate) || 0,
+      extra_per_hour: Number(match?.extra_per_hour) || 0,
+      extra_per_km: Number(match?.extra_per_km) || 0,
+    };
+  } catch (error) {
+    return { rate: 0, extra_per_hour: 0, extra_per_km: 0 };
+  }
+}
+
 export async function fetchEntries({
   company = "",
   companyId = "",
@@ -789,6 +816,23 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
   let entryId = existingEntryId;
 
   if (!entryId) {
+    const pricing = await resolveCompanySlotPricing(
+      requestData.company_id,
+      requestData.cab_type,
+      requestData.slot
+    );
+    const billing = computeEntryBilling({
+      slot: requestData.slot,
+      rate: pricing.rate,
+      extra_per_hour: pricing.extra_per_hour,
+      extra_per_km: pricing.extra_per_km,
+      tolls: 0,
+      start_time: requestData.start_time || "",
+      end_time: "",
+      odometer_start: null,
+      odometer_end: null,
+    });
+
     const entryResult = await createEntry({
       entry_date: requestData.entry_date || "",
       company_id: requestData.company_id || "",
@@ -805,9 +849,11 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       cab_type: requestData.cab_type || "",
       user_name: reviewerName,
       notes: requestData.notes || "",
-      rate: 0,
+      rate: billing.rate,
+      extra_per_hour: pricing.extra_per_hour,
+      extra_per_km: pricing.extra_per_km,
       tolls: 0,
-      total: 0,
+      total: billing.total,
       billed: false,
       booking_request_id: requestId,
       booking_request_status: "accepted",
