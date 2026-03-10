@@ -15,6 +15,7 @@ import {
   isFirebaseConfigured,
 } from "@/lib/api";
 import { composeEntryNotes, computeEntryBilling } from "@/lib/entryBilling";
+import { SLOT_OPTIONS } from "@/lib/slots";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "../edit.module.css";
 
@@ -41,11 +42,6 @@ const initialState = {
   tolls: "",
   notes: "",
 };
-
-const slotOptions = [
-  { label: "4hr", value: "4hr" },
-  { label: "8hr", value: "8hr" },
-];
 
 const getLoggedInUserName = () => {
   if (typeof window === "undefined") return "";
@@ -475,7 +471,7 @@ export default function ClientEditEntryPage() {
         <label className={styles.field}>
           Slot
           <CustomDropdown
-            options={slotOptions}
+            options={SLOT_OPTIONS}
             value={form.slot}
             onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
             getLabel={(option) => option.label}

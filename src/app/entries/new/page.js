@@ -14,6 +14,7 @@ import {
   isFirebaseConfigured,
 } from "@/lib/api";
 import { composeEntryNotes, computeEntryBilling } from "@/lib/entryBilling";
+import { SLOT_VALUES } from "@/lib/slots";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./new.module.css";
 
@@ -343,7 +344,7 @@ export default function NewEntryPage() {
         <label className={styles.field}>
           Slot
           <CustomDropdown
-            options={["4hr", "8hr"]}
+            options={SLOT_VALUES}
             value={form.slot}
             onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
             getLabel={(slot) => slot}

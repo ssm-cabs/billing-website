@@ -13,6 +13,7 @@ import {
   updateCompany,
   updatePricing,
 } from "@/lib/api";
+import { SLOT_OPTIONS } from "@/lib/slots";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { deleteUser, upsertCompanyUser } from "@/lib/usersApi";
 import { usePermissions } from "@/lib/usePermissions";
@@ -51,11 +52,6 @@ const cabTypeOptions = [
   { label: "Premium Sedan", value: "Premium Sedan" },
   { label: "SUV", value: "SUV" },
   { label: "Premium SUV", value: "Premium SUV" },
-];
-
-const slotOptions = [
-  { label: "4hr", value: "4hr" },
-  { label: "8hr", value: "8hr" },
 ];
 
 export default function CompaniesPage() {
@@ -717,7 +713,7 @@ export default function CompaniesPage() {
                     <label className={styles.field}>
                       Slot
                       <CustomDropdown
-                        options={slotOptions}
+                        options={SLOT_OPTIONS}
                         value={
                           (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
                             .slot
@@ -814,7 +810,7 @@ export default function CompaniesPage() {
                                 buttonClassName={styles.pricingInlineDropdown}
                               />
                               <CustomDropdown
-                                options={slotOptions}
+                                options={SLOT_OPTIONS}
                                 value={edits.slot}
                                 onChange={(value) =>
                                   setEditPricingField(

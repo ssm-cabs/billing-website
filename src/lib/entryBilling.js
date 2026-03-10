@@ -1,7 +1,4 @@
-const SLOT_LIMITS = {
-  "4hr": { hours: 4, kms: 40 },
-  "8hr": { hours: 8, kms: 80 },
-};
+import { SLOT_LIMITS } from "./slots";
 
 const toNumber = (value) => {
   if (value === "" || value === null || value === undefined) return null;

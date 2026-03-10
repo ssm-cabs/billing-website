@@ -12,6 +12,7 @@ import {
   isFirebaseConfigured,
   updateBookingRequest,
 } from "@/lib/api";
+import { SLOT_OPTIONS } from "@/lib/slots";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
@@ -43,11 +44,6 @@ const initialForm = {
   slot: "",
   notes: "",
 };
-
-const slotOptions = [
-  { label: "4hr", value: "4hr" },
-  { label: "8hr", value: "8hr" },
-];
 
 const cabTypeOptions = [
   { label: "Sedan", value: "Sedan" },
@@ -265,7 +261,7 @@ function EditCompanyBookingPageContent() {
           <label className={styles.field}>
             Slot
             <CustomDropdown
-              options={slotOptions}
+              options={SLOT_OPTIONS}
               value={form.slot}
               onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
               getLabel={(option) => option.label}

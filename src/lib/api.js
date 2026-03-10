@@ -18,6 +18,7 @@ import {
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
 import { computeEntryBilling } from "./entryBilling";
+import { SLOT_VALUES } from "./slots";
 
 const mockEntries = [
   {
@@ -172,7 +173,8 @@ const mockPayments = [
   },
 ];
 
-const ALLOWED_SLOTS = new Set(["4hr", "8hr"]);
+const ALLOWED_SLOTS = new Set(SLOT_VALUES);
+const SLOT_LIST_TEXT = SLOT_VALUES.join(", ");
 const BOOKING_REQUEST_STATUS_CATALOG = [
   {
     status: "submitted",
@@ -215,7 +217,7 @@ function assertValidSlot(slot) {
     throw new Error("slot is required");
   }
   if (!ALLOWED_SLOTS.has(slot)) {
-    throw new Error("slot must be either 4hr or 8hr");
+    throw new Error(`slot must be one of ${SLOT_LIST_TEXT}`);
   }
 }
 

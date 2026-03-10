@@ -13,6 +13,7 @@ import {
   updateVehiclePricing,
   updateVehicle,
 } from "@/lib/api";
+import { SLOT_OPTIONS } from "@/lib/slots";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { deleteUser, upsertDriverUser } from "@/lib/usersApi";
 import { usePermissions } from "@/lib/usePermissions";
@@ -45,11 +46,6 @@ const vehicleStatusOptions = [
 const ownershipTypeOptions = [
   { label: "Own Vehicle", value: "own" },
   { label: "Leased Vehicle", value: "leased" },
-];
-
-const slotOptions = [
-  { label: "4hr", value: "4hr" },
-  { label: "8hr", value: "8hr" },
 ];
 
 const initialPricing = {
@@ -713,7 +709,7 @@ export default function VehiclesPage() {
                 <label className={styles.field}>
                   Slot
                   <CustomDropdown
-                    options={slotOptions}
+                    options={SLOT_OPTIONS}
                     value={
                       (pricingFormByVehicle[pricingVehicle.vehicle_id] || initialPricing).slot
                     }
@@ -794,7 +790,7 @@ export default function VehiclesPage() {
                         <>
                           <span>{edits.cab_type}</span>
                           <CustomDropdown
-                            options={slotOptions}
+                            options={SLOT_OPTIONS}
                             value={edits.slot}
                             onChange={(value) =>
                               setEditPricingField(

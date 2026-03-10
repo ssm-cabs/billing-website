@@ -114,7 +114,7 @@ export default function Home() {
               <div className={styles.panelRow}>
                 <div>
                   <p className={styles.panelTitle}>Umbrella</p>
-                  <p className={styles.panelMeta}>Premium SUV · 8hr</p>
+                  <p className={styles.panelMeta}>Premium SUV · 24hr slot</p>
                 </div>
                 <span className={styles.panelValue}>₹ 5,800</span>
               </div>
@@ -191,7 +191,7 @@ export default function Home() {
           <div className={styles.pricingBox}>
             <div>
               <h3>Flexible slots</h3>
-              <p>Support standardized 4hr and 8hr slots per client agreement.</p>
+              <p>Support standardized 4hr, 8hr, and 24hr slots per client agreement.</p>
             </div>
             <div>
               <h3>Cab types</h3>
