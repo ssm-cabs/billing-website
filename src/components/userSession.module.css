@@ -1,3 +1,28 @@
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.installButton {
+  height: 40px;
+  border-radius: 6px;
+  padding: 0 12px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff7ef;
+  color: #1e1916;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.installButton:hover {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
+}
+
 .logoutIcon {
   width: 40px;
   height: 40px;
@@ -32,6 +57,16 @@
 }
 
 @media (max-width: 640px) {
+  .actions {
+    gap: 6px;
+  }
+
+  .installButton {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
   .logoutIcon {
     width: 36px;
     height: 36px;

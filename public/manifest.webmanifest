@@ -1,0 +1,23 @@
+{
+  "name": "SSM Cabs Billing",
+  "short_name": "SSM Billing",
+  "description": "Billing and ride entry system for SSM Cabs corporate transportation.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6eee4",
+  "theme_color": "#ea5a32",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
