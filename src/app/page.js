@@ -2,13 +2,50 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
+import { getHomeRouteForRole } from "@/lib/roleRouting";
 import styles from "./page.module.css";
 
 export default function Home() {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [authCheckDone, setAuthCheckDone] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const redirectAuthenticatedUser = async () => {
+      try {
+        const user = await waitForAuthInit();
+        if (!isMounted) return;
+
+        if (user?.phoneNumber) {
+          const userData = await getUserData(user.phoneNumber);
+          if (!isMounted) return;
+          router.replace(getHomeRouteForRole(userData?.role));
+          return;
+        }
+      } catch (error) {
+        console.error("Home auth redirect failed:", error);
+      }
+
+      if (isMounted) {
+        setAuthCheckDone(true);
+      }
+    };
+
+    redirectAuthenticatedUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
+
+  useEffect(() => {
+    if (!authCheckDone) return;
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 8);
     };
@@ -16,7 +53,16 @@ export default function Home() {
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [authCheckDone]);
+
+  if (!authCheckDone) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.glow} aria-hidden="true" />
+        <div className={styles.grid} aria-hidden="true" />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
