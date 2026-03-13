@@ -1997,7 +1997,7 @@ export async function generateVehicleInvoice(vehicleId, month) {
   const subtotal = Math.round(
     lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   );
-  const taxAmount = 0;
+  const taxAmount = Math.round(subtotal * 0.01);
   const now = new Date();
   const invoiceDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
@@ -2014,7 +2014,7 @@ export async function generateVehicleInvoice(vehicleId, month) {
     line_items: lineItems,
     subtotal,
     tax: taxAmount,
-    total: subtotal + taxAmount,
+    total: subtotal - taxAmount,
     status: "draft",
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
