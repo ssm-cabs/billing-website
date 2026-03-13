@@ -542,7 +542,7 @@ export default function InvoicePage() {
                         <span>₹{invoice.subtotal?.toLocaleString() || 0}</span>
                       </div>
                       <div className={styles.totalRow}>
-                        <span>Tax (18% GST)</span>
+                        <span>Tax (5% GST)</span>
                         <span>₹{invoice.tax?.toLocaleString() || 0}</span>
                       </div>
                       <div className={styles.totalRow + " " + styles.final}>

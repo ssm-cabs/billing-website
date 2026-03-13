@@ -1832,7 +1832,7 @@ export async function generateInvoice(companyId, month) {
     });
 
   // Create invoice
-  const taxAmount = Math.round(subtotalAmount * 0.18);
+  const taxAmount = Math.round(subtotalAmount * 0.05);
   const now = new Date();
   const invoiceDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const invoice = {
