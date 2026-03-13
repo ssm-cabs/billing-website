@@ -165,11 +165,12 @@ export default function Header() {
 - Firestore queries use user's phone number
 
 ### **Session Timeout**
-- No automatic timeout (configured in Firebase Console)
-- Token persists until:
+- Automatic timeout after 7 days (custom app policy)
+- Session expiry timestamp is stored in `localStorage` under `session_expiry_time`
+- Token/session ends when:
+  - 7-day expiry is reached
   - User clicks Logout
-  - Token expires (customizable)
-  - Browser clears storage
+  - Browser storage is cleared
 
 ### **Session Destroyed**
 - User clicks Logout button
