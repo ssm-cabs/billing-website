@@ -202,7 +202,7 @@ export default function LoginPage() {
       const result = await verifyOTP(confirmationResult, otp);
       await syncCustomClaims(result.user);
       
-      // Set token expiry for 24-hour timeout
+      // Set token expiry for 7-day timeout
       setTokenExpiry();
       
       // Fetch and save user data with permissions to localStorage

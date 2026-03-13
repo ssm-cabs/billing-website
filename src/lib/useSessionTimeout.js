@@ -3,10 +3,10 @@ import { useRouter } from "next/navigation";
 import { signOutUser } from "./phoneAuth";
 
 const SESSION_EXPIRY_KEY = "session_expiry_time";
-const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
- * Hook to automatically logout after 24 hours
+ * Hook to automatically logout after 7 days
  * Sets token expiry time when user logs in
  * Checks on mount if token has expired
  */
@@ -24,7 +24,7 @@ export function useSessionTimeout() {
 
         if (currentTime > expiry) {
           // Token expired
-          console.log("Session token expired after 24 hours");
+          console.log("Session token expired after 7 days");
           await signOutUser();
           localStorage.removeItem(SESSION_EXPIRY_KEY);
           router.push("/login");
@@ -47,7 +47,7 @@ export function useSessionTimeout() {
 }
 
 /**
- * Set token expiry time (24 hours from now)
+ * Set token expiry time (7 days from now)
  * Call this after successful login
  */
 export function setTokenExpiry() {

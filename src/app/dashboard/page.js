@@ -144,7 +144,7 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check session timeout - auto logout after 24 hours
+  // Check session timeout - auto logout after 7 days
   useSessionTimeout();
 
   useEffect(() => {
