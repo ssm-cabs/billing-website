@@ -178,6 +178,12 @@
   color: #8a6666;
 }
 
+.table td > div,
+.table td > small {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .actionsCell {
   white-space: nowrap;
 }
@@ -405,9 +411,10 @@
   }
 
   .table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: start;
+    align-items: start;
     gap: 12px;
     padding: 8px 0;
     border: none;
@@ -424,11 +431,65 @@
     flex-shrink: 0;
   }
 
+  .actionsCell {
+    white-space: normal;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .table td small {
+    display: block;
+    line-height: 1.45;
+  }
+
   .payload pre {
     max-width: 100%;
   }
 
   .modal {
     padding: 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding-top: 92px;
+  }
+
+  .topNav {
+    position: static;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+
+  .header {
+    margin-bottom: 18px;
+  }
+
+  .tableWrap {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .table tr {
+    margin-bottom: 12px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .modal {
+    width: calc(100% - 20px);
+    padding: 18px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .modalActions button {
+    max-width: none;
+    width: 100%;
   }
 }
