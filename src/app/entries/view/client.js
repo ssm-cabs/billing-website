@@ -131,78 +131,101 @@ export default function ClientViewEntryPage() {
       </header>
 
       <div className={styles.form}>
-        <label className={styles.field}>
-          Entry date
-          <input type="text" value={entry.entry_date} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Company
-          <input type="text" value={entry.company_name} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Vehicle
-          <input type="text" value={entry.vehicle_number} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Cab type
-          <input type="text" value={entry.cab_type} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Slot
-          <input type="text" value={entry.slot} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Rate
-          <input type="number" value={entry.rate} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Toll Charges
-          <input type="number" value={entry.tolls} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Odometer start
-          <input type="text" value={entry.odometer_start} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Odometer end
-          <input type="text" value={entry.odometer_end} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Start time
-          <input type="text" value={entry.start_time} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          End time
-          <input type="text" value={entry.end_time} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Pickup location
-          <input type="text" value={entry.pickup_location} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Drop location
-          <input type="text" value={entry.drop_location} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Guest name
-          <input type="text" value={entry.guest_name} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Guest number
-          <input type="text" value={entry.guest_number} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          User
-          <input type="text" value={entry.user_name} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Notes
-          <textarea value={entry.notes} rows={7} disabled readOnly />
-        </label>
-        <label className={styles.field}>
-          Total
-          <input type="number" value={totalDisplay} disabled readOnly />
-        </label>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Trip Basics</h2>
+          <div className={styles.sectionGrid}>
+            <label className={styles.field}>
+              Entry date
+              <input type="text" value={entry.entry_date} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Company
+              <input type="text" value={entry.company_name} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Vehicle
+              <input type="text" value={entry.vehicle_number} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Cab type
+              <input type="text" value={entry.cab_type} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Slot
+              <input type="text" value={entry.slot} disabled readOnly />
+            </label>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Billing & Meter</h2>
+          <div className={styles.sectionGrid}>
+            <label className={styles.field}>
+              Rate
+              <input type="number" value={entry.rate} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Toll Charges
+              <input type="number" value={entry.tolls} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Odometer start
+              <input type="text" value={entry.odometer_start} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Odometer end
+              <input type="text" value={entry.odometer_end} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Start time
+              <input type="text" value={entry.start_time} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              End time
+              <input type="text" value={entry.end_time} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Total
+              <input type="number" value={totalDisplay} disabled readOnly />
+            </label>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Ride Details</h2>
+          <div className={styles.sectionGrid}>
+            <label className={styles.field}>
+              Pickup location
+              <input type="text" value={entry.pickup_location} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Drop location
+              <input type="text" value={entry.drop_location} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Guest name
+              <input type="text" value={entry.guest_name} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Guest number
+              <input type="text" value={entry.guest_number} disabled readOnly />
+            </label>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Notes & Audit</h2>
+          <div className={styles.sectionGrid}>
+            <label className={styles.field}>
+              User
+              <input type="text" value={entry.user_name} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Notes
+              <textarea value={entry.notes} rows={7} disabled readOnly />
+            </label>
+          </div>
+        </section>
       </div>
     </div>
   );

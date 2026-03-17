@@ -295,188 +295,193 @@ export default function NewEntryPage() {
       </header>
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        <label className={styles.field}>
-          Entry date
-          <DatePicker
-            value={form.entry_date}
-            onChange={handleDateChange}
-          />
-        </label>
-        <label className={styles.field}>
-          Company
-          <CustomDropdown
-            options={companies}
-            value={form.company_name}
-            onChange={(value) => setForm((prev) => ({ ...prev, company_name: value }))}
-            status={companyStatus}
-            getLabel={(c) => c.name}
-            getValue={(c) => c.name}
-            placeholder="Select company"
-            searchable
-            searchPlaceholder="Search company"
-          />
-        </label>
-        <label className={styles.field}>
-          Vehicle
-          <CustomDropdown
-            options={vehicles}
-            value={form.vehicle_number}
-            onChange={(value) => setForm((prev) => ({ ...prev, vehicle_number: value }))}
-            status={vehicleStatus}
-            getLabel={(v) => `${v.vehicle_number} · ${v.driver_name || "Driver"} · ${v.cab_type}`}
-            getValue={(v) => v.vehicle_number}
-            placeholder="Select vehicle"
-            searchable
-            searchPlaceholder="Search vehicle"
-          />
-        </label>
-        {form.vehicle_number && (
-          <label className={styles.field}>
-            Cab type
-            <input
-              type="text"
-              value={resolvedCabType}
-              disabled
-              readOnly
-            />
-          </label>
-        )}
-        <label className={styles.field}>
-          Slot
-          <CustomDropdown
-            options={SLOT_VALUES}
-            value={form.slot}
-            onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
-            getLabel={(slot) => slot}
-            getValue={(slot) => slot}
-            placeholder="Select slot"
-          />
-          {pricingStatus === "loading" && (
-            <span className={styles.helper}>Loading pricing...</span>
-          )}
-          {pricingStatus === "error" && (
-            <span className={styles.helperError}>Unable to load pricing.</span>
-          )}
-        </label>
-        {form.vehicle_number && form.slot && (
-          <label className={styles.field}>
-            Rate
-            <input
-              type="number"
-              name="rate"
-              value={form.rate === "" || form.rate === null ? resolvedRate : form.rate}
-              onChange={updateField}
-              min="0"
-              placeholder="Auto from company pricing"
-            />
-          </label>
-        )}
-        <label className={styles.field}>
-          Toll Charges
-          <input
-            type="number"
-            name="tolls"
-            value={form.tolls}
-            onChange={updateField}
-            min="0"
-            step="1"
-            placeholder="e.g. 250"
-          />
-        </label>
-        <label className={styles.field}>
-          Odometer start
-          <input
-            type="number"
-            name="odometer_start"
-            value={form.odometer_start}
-            onChange={updateField}
-            min="0"
-            step="1"
-            placeholder="e.g. 125430"
-          />
-        </label>
-        <label className={styles.field}>
-          Odometer end
-          <input
-            type="number"
-            name="odometer_end"
-            value={form.odometer_end}
-            onChange={updateField}
-            min="0"
-            step="1"
-            placeholder="e.g. 125512"
-          />
-        </label>
-        <label className={styles.field}>
-          Start time
-          <TimePicker
-            value={form.start_time}
-            onChange={(value) => setForm((prev) => ({ ...prev, start_time: value }))}
-            placeholder="Select start time"
-          />
-        </label>
-        <label className={styles.field}>
-          End time
-          <TimePicker
-            value={form.end_time}
-            onChange={(value) => setForm((prev) => ({ ...prev, end_time: value }))}
-            placeholder="Select end time"
-          />
-        </label>
-        <label className={styles.field}>
-          Pickup location
-          <input
-            type="text"
-            name="pickup_location"
-            value={form.pickup_location}
-            onChange={updateField}
-          />
-        </label>
-        <label className={styles.field}>
-          Drop location
-          <input
-            type="text"
-            name="drop_location"
-            value={form.drop_location}
-            onChange={updateField}
-          />
-        </label>
-        <label className={styles.field}>
-          Guest name
-          <input
-            type="text"
-            name="guest_name"
-            value={form.guest_name ?? ""}
-            onChange={updateField}
-          />
-        </label>
-        <label className={styles.field}>
-          Guest number
-          <input
-            type="tel"
-            name="guest_number"
-            value={form.guest_number ?? ""}
-            onChange={updateField}
-          />
-        </label>
-        <label className={styles.field}>
-          Notes
-          <textarea
-            name="notes"
-            value={form.notes}
-            onChange={updateField}
-            rows={3}
-          />
-        </label>
-        <label className={styles.field}>
-          Total (Auto Calculated)
-          <input
-            type="number"
-            value={billingPreview.total}
-            disabled
-            readOnly
-          />
-        </label>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Trip Basics</h2>
+          <div className={styles.sectionGrid}>
+            <label className={styles.field}>
+              Entry date
+              <DatePicker value={form.entry_date} onChange={handleDateChange} />
+            </label>
+            <label className={styles.field}>
+              Company
+              <CustomDropdown
+                options={companies}
+                value={form.company_name}
+                onChange={(value) => setForm((prev) => ({ ...prev, company_name: value }))}
+                status={companyStatus}
+                getLabel={(c) => c.name}
+                getValue={(c) => c.name}
+                placeholder="Select company"
+                searchable
+                searchPlaceholder="Search company"
+              />
+            </label>
+            <label className={styles.field}>
+              Vehicle
+              <CustomDropdown
+                options={vehicles}
+                value={form.vehicle_number}
+                onChange={(value) => setForm((prev) => ({ ...prev, vehicle_number: value }))}
+                status={vehicleStatus}
+                getLabel={(v) => `${v.vehicle_number} · ${v.driver_name || "Driver"} · ${v.cab_type}`}
+                getValue={(v) => v.vehicle_number}
+                placeholder="Select vehicle"
+                searchable
+                searchPlaceholder="Search vehicle"
+              />
+            </label>
+            {form.vehicle_number && (
+              <label className={styles.field}>
+                Cab type
+                <input type="text" value={resolvedCabType} disabled readOnly />
+              </label>
+            )}
+            <label className={styles.field}>
+              Slot
+              <CustomDropdown
+                options={SLOT_VALUES}
+                value={form.slot}
+                onChange={(value) => setForm((prev) => ({ ...prev, slot: value }))}
+                getLabel={(slot) => slot}
+                getValue={(slot) => slot}
+                placeholder="Select slot"
+              />
+              {pricingStatus === "loading" && (
+                <span className={styles.helper}>Loading pricing...</span>
+              )}
+              {pricingStatus === "error" && (
+                <span className={styles.helperError}>Unable to load pricing.</span>
+              )}
+            </label>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Billing & Meter</h2>
+          <div className={styles.sectionGrid}>
+            {form.vehicle_number && form.slot && (
+              <label className={styles.field}>
+                Rate
+                <input
+                  type="number"
+                  name="rate"
+                  value={form.rate === "" || form.rate === null ? resolvedRate : form.rate}
+                  onChange={updateField}
+                  min="0"
+                  placeholder="Auto from company pricing"
+                />
+              </label>
+            )}
+            <label className={styles.field}>
+              Toll Charges
+              <input
+                type="number"
+                name="tolls"
+                value={form.tolls}
+                onChange={updateField}
+                min="0"
+                step="1"
+                placeholder="e.g. 250"
+              />
+            </label>
+            <label className={styles.field}>
+              Odometer start
+              <input
+                type="number"
+                name="odometer_start"
+                value={form.odometer_start}
+                onChange={updateField}
+                min="0"
+                step="1"
+                placeholder="e.g. 125430"
+              />
+            </label>
+            <label className={styles.field}>
+              Odometer end
+              <input
+                type="number"
+                name="odometer_end"
+                value={form.odometer_end}
+                onChange={updateField}
+                min="0"
+                step="1"
+                placeholder="e.g. 125512"
+              />
+            </label>
+            <label className={styles.field}>
+              Start time
+              <TimePicker
+                value={form.start_time}
+                onChange={(value) => setForm((prev) => ({ ...prev, start_time: value }))}
+                placeholder="Select start time"
+              />
+            </label>
+            <label className={styles.field}>
+              End time
+              <TimePicker
+                value={form.end_time}
+                onChange={(value) => setForm((prev) => ({ ...prev, end_time: value }))}
+                placeholder="Select end time"
+              />
+            </label>
+            <label className={styles.field}>
+              Total (Auto Calculated)
+              <input type="number" value={billingPreview.total} disabled readOnly />
+            </label>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Ride Details</h2>
+          <div className={styles.sectionGrid}>
+            <label className={styles.field}>
+              Pickup location
+              <input
+                type="text"
+                name="pickup_location"
+                value={form.pickup_location}
+                onChange={updateField}
+              />
+            </label>
+            <label className={styles.field}>
+              Drop location
+              <input
+                type="text"
+                name="drop_location"
+                value={form.drop_location}
+                onChange={updateField}
+              />
+            </label>
+            <label className={styles.field}>
+              Guest name
+              <input
+                type="text"
+                name="guest_name"
+                value={form.guest_name ?? ""}
+                onChange={updateField}
+              />
+            </label>
+            <label className={styles.field}>
+              Guest number
+              <input
+                type="tel"
+                name="guest_number"
+                value={form.guest_number ?? ""}
+                onChange={updateField}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Notes</h2>
+          <div className={styles.sectionGrid}>
+            <label className={styles.field}>
+              Notes
+              <textarea name="notes" value={form.notes} onChange={updateField} rows={3} />
+            </label>
+          </div>
+        </section>
 
         <div className={styles.actions}>
           <button className={styles.primaryCta} type="submit" disabled={status === "loading"}>
