@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import CustomDropdown from "../entries/CustomDropdown";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import { useAuth } from "@/lib/useAuth";
@@ -53,12 +54,18 @@ export default function DeletesPage() {
     loadDeletedRecords();
   }, [authLoading, isAuthenticated]);
 
-  const sourceTypes = useMemo(() => {
-    const types = Array.from(
-      new Set(records.map((record) => record.source_type).filter(Boolean))
-    );
-    return ["all", ...types];
-  }, [records]);
+  const sourceTypeOptions = useMemo(
+    () =>
+      Array.from(new Set(records.map((record) => record.source_type).filter(Boolean))).map(
+        (type) => ({
+          value: type,
+          label: String(type)
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (char) => char.toUpperCase()),
+        })
+      ),
+    [records]
+  );
 
   const filteredRecords = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -114,30 +121,39 @@ export default function DeletesPage() {
             Audit trail of deleted documents, including who deleted them and when.
           </p>
         </div>
+        <div className={styles.headerStat}>
+          <span className={styles.headerStatLabel}>Records</span>
+          <strong>{filteredRecords.length}</strong>
+        </div>
       </header>
 
-      <section className={styles.filters}>
-        <label>
-          Source Type
-          <select
-            value={sourceTypeFilter}
-            onChange={(e) => setSourceTypeFilter(e.target.value)}
-          >
-            {sourceTypes.map((type) => (
-              <option key={type} value={type}>
-                {type === "all" ? "All" : type}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className={styles.notice}>
+        Admin-only view. Entries here are immutable archives created before delete actions.
+      </div>
 
-        <label>
+      <section className={styles.filters}>
+        <label className={styles.field}>
+          Source Type
+          <CustomDropdown
+            options={sourceTypeOptions}
+            value={sourceTypeFilter}
+            onChange={setSourceTypeFilter}
+            getLabel={(option) => option.label}
+            getValue={(option) => option.value}
+            placeholder="Select source type"
+            defaultOption={{ label: "All Types", value: "all" }}
+            searchable
+            searchPlaceholder="Search source type"
+          />
+        </label>
+        <label className={styles.field}>
           Search
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by source, id, or deleted by"
+            className={styles.searchInput}
           />
         </label>
       </section>
@@ -164,19 +180,19 @@ export default function DeletesPage() {
               <tbody>
                 {filteredRecords.map((record) => (
                   <tr key={record.delete_id}>
-                    <td>{formatDateTime(record.deleted_at)}</td>
-                    <td>{record.source_type || "-"}</td>
-                    <td>
+                    <td data-label="Deleted At">{formatDateTime(record.deleted_at)}</td>
+                    <td data-label="Type">{record.source_type || "-"}</td>
+                    <td data-label="Source">
                       <div>{record.source_path || "-"}</div>
                       <small>ID: {record.source_doc_id || "-"}</small>
                     </td>
-                    <td>
+                    <td data-label="Deleted By">
                       <div>{record.deleted_by?.name || "-"}</div>
                       <small>
                         {record.deleted_by?.phone || "-"} | {record.deleted_by?.role || "-"}
                       </small>
                     </td>
-                    <td>
+                    <td data-label="Payload">
                       <details className={styles.payload}>
                         <summary>View</summary>
                         <pre>{JSON.stringify(record.payload || {}, null, 2)}</pre>
