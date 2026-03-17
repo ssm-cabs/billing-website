@@ -27,6 +27,7 @@ const QUICK_ACTION_ICON_META = {
   vehicles: { accent: "#8f5a3c", bg: "#f8eee6" },
   payments: { accent: "#00707a", bg: "#e8f7f8" },
   invoices: { accent: "#6a4d9b", bg: "#f1ecfb" },
+  deletes: { accent: "#b23d3d", bg: "#fff1f1" },
   users: { accent: "#9a4a6f", bg: "#fbeef5" },
 };
 
@@ -103,6 +104,16 @@ function QuickActionIcon({ moduleId }) {
           <path d="M16 3.128a4 4 0 0 1 0 7.744" {...sharedProps} />
           <path d="M22 21v-2a4 4 0 0 0-3-3.87" {...sharedProps} />
           <circle cx="9" cy="7" r="4" {...sharedProps} />
+        </svg>
+      );
+    case "deletes":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18" {...sharedProps} />
+          <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" {...sharedProps} />
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" {...sharedProps} />
+          <path d="M10 11v6" {...sharedProps} />
+          <path d="M14 11v6" {...sharedProps} />
         </svg>
       );
     default:
@@ -342,7 +353,7 @@ export default function DashboardPage() {
           <div className={styles.actions}>
             {MODULES.filter((module) => canViewCollection(module.id))
               .sort((a, b) => {
-                const order = ["entries", "revenue", "companies", "vehicles", "payments", "invoices", "users"];
+                const order = ["entries", "revenue", "companies", "vehicles", "payments", "invoices", "users", "deletes"];
                 return order.indexOf(a.id) - order.indexOf(b.id);
               })
               .map((module) => {

@@ -2,7 +2,6 @@ import {
   collection,
   setDoc,
   updateDoc,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -15,6 +14,7 @@ import { db } from "./firebase";
 import { getDefaultPermissions } from "@/config/modules";
 import { normalizePhoneNumber } from "./phone";
 import { isRole, normalizeRole } from "./roleRouting";
+import { archiveAndDeleteRef } from "./deletesApi";
 
 const normalizePermissions = (permissions) => {
   const defaults = getDefaultPermissions();
@@ -115,11 +115,23 @@ export async function deleteUser(userId) {
   try {
     const userRef = doc(db, "users", userId);
     const userSnapshot = await getDoc(userRef);
+    if (!userSnapshot.exists()) {
+      return;
+    }
+
+    const userData = userSnapshot.data() || {};
     const role = userSnapshot.exists()
-      ? normalizeRole(userSnapshot.data()?.role)
+      ? normalizeRole(userData?.role)
       : "";
 
-    await deleteDoc(userRef);
+    await archiveAndDeleteRef({
+      sourceRef: userRef,
+      sourceCollection: "users",
+      sourcePath: `users/${userId}`,
+      sourceDocId: userId,
+      sourceType: "user",
+      payload: userData,
+    });
 
     if (isRole(role, "driver")) {
       const vehiclesRef = collection(db, "vehicles");

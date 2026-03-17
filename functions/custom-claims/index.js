@@ -5,8 +5,9 @@ admin.initializeApp();
 
 function normalizeRole(value) {
   const role = String(value || "").trim().toLowerCase();
-  if (role === "admin") return "user";
-  if (role === "user" || role === "driver" || role === "company") return role;
+  if (role === "admin" || role === "user" || role === "driver" || role === "company") {
+    return role;
+  }
   return "";
 }
 

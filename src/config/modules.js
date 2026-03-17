@@ -46,6 +46,12 @@ export const MODULES = [
     description: "Manage system users",
     path: "/users",
   },
+  {
+    id: "deletes",
+    name: "Deletes",
+    description: "View deleted document archives",
+    path: "/deletes",
+  },
 ];
 
 /**

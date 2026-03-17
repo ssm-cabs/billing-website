@@ -8,13 +8,21 @@ service cloud.firestore {
     }
 
     // Custom-claims role helpers.
-    // Expected claim: request.auth.token.role in ["user", "driver", "company"].
+    // Expected claim: request.auth.token.role in ["admin", "user", "driver", "company"].
     function hasRole(role) {
       return isSignedIn() && request.auth.token.role == role;
     }
 
     function isUser() {
       return hasRole("user");
+    }
+
+    function isAdmin() {
+      return hasRole("admin");
+    }
+
+    function isBackoffice() {
+      return isUser() || isAdmin();
     }
 
     function isDriver() {
@@ -31,66 +39,76 @@ service cloud.firestore {
     // Write access is restricted to backoffice users.
     match /users/{userId} {
       allow read: if true;
-      allow create, update, delete: if isUser();
+      allow create, update, delete: if isBackoffice();
     }
 
     // ENTRIES
     // Backoffice users can manage entries; drivers can read entries collection.
     match /entries/{entryId} {
-      allow read: if isUser() || isDriver();
-      allow create, update, delete: if isUser();
+      allow read: if isBackoffice() || isDriver();
+      allow create, update, delete: if isBackoffice();
     }
 
     // BOOKING REQUESTS
     // Companies can manage booking requests; backoffice can also access.
     match /booking_requests/{requestId} {
-      allow read: if isUser() || isCompany();
-      allow create, update, delete: if isUser() || isCompany();
+      allow read: if isBackoffice() || isCompany();
+      allow create, update, delete: if isBackoffice() || isCompany();
     }
 
     // ENTRY UPDATE REQUESTS
     // Drivers can manage entry update requests; backoffice can also access.
     match /entry_update_requests/{requestId} {
-      allow read: if isUser() || isDriver();
-      allow create, update, delete: if isUser() || isDriver();
+      allow read: if isBackoffice() || isDriver();
+      allow create, update, delete: if isBackoffice() || isDriver();
     }
 
     // COMPANIES
     // Client master data is managed by backoffice users.
     match /companies/{companyId} {
-      allow read: if isUser() || isCompany();
-      allow write: if isUser();
+      allow read: if isBackoffice() || isCompany();
+      allow write: if isBackoffice();
 
       // PRICING SUBCOLLECTION
       // Per-company pricing is sensitive business data.
       match /pricing/{pricingId} {
-        allow read, write: if isUser();
+        allow read, write: if isBackoffice();
       }
     }
 
     // VEHICLES
     // Fleet and vehicle pricing are managed by backoffice users.
     match /vehicles/{vehicleId} {
-      allow read: if isUser() || isDriver();
-      allow write: if isUser();
+      allow read: if isBackoffice() || isDriver();
+      allow write: if isBackoffice();
 
       // PRICING SUBCOLLECTION
       // Leased-vehicle slot pricing is internal operational data.
       match /pricing/{pricingId} {
-        allow read, write: if isUser();
+        allow read, write: if isBackoffice();
       }
     }
 
     // INVOICES
     // Billing records are managed by backoffice users.
     match /invoices/{invoiceId} {
-      allow read, write: if isUser();
+      allow read, write: if isBackoffice();
     }
 
     // PAYMENTS
     // Payments are managed by backoffice users.
     match /payments/{paymentId} {
-      allow read, write: if isUser();
+      allow read, write: if isBackoffice();
+    }
+
+    // DELETES ARCHIVE
+    // Backoffice users can write archive records as part of delete actions.
+    // Only admin users can read this audit trail.
+    match /deletes/{deleteId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     // Explicit default deny for any collection not listed above.
