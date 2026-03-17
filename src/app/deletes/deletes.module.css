@@ -182,6 +182,12 @@
   white-space: nowrap;
 }
 
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .viewBtn {
   width: 32px;
   height: 32px;
@@ -215,6 +221,31 @@
 
 .noAction {
   color: #9d7474;
+}
+
+.deleteBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(130, 46, 46, 0.2);
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #b23d3d;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: #b23d3d;
+  color: #fff;
+  border-color: #b23d3d;
+}
+
+.deleteBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .payload summary {

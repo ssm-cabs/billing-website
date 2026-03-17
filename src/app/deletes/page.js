@@ -6,7 +6,7 @@ import CustomDropdown from "../entries/CustomDropdown";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import { useAuth } from "@/lib/useAuth";
-import { fetchDeletedDocuments } from "@/lib/deletesApi";
+import { deleteArchivedDocument, fetchDeletedDocuments } from "@/lib/deletesApi";
 import styles from "./deletes.module.css";
 
 function formatDateTime(value) {
@@ -31,6 +31,7 @@ export default function DeletesPage() {
   const [error, setError] = useState("");
   const [sourceTypeFilter, setSourceTypeFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   useSessionTimeout();
 
@@ -103,6 +104,25 @@ export default function DeletesPage() {
   if (!isAuthenticated) {
     return null;
   }
+
+  const handleDeleteArchivedRecord = async (deleteId) => {
+    if (!deleteId || deletingId) return;
+    const confirmed = window.confirm(
+      "Delete this archived record from Deletes? This cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(deleteId);
+      await deleteArchivedDocument(deleteId);
+      setRecords((prev) => prev.filter((record) => record.delete_id !== deleteId));
+    } catch (err) {
+      console.error("Error deleting archived record:", err);
+      window.alert(err?.message || "Failed to delete archived record");
+    } finally {
+      setDeletingId("");
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -194,19 +214,43 @@ export default function DeletesPage() {
                     </td>
                     <td data-label="Actions" className={styles.actionsCell}>
                       {record.source_collection === "entries" && record.source_doc_id ? (
-                        <Link
-                          href={`/deletes/entries/view?id=${encodeURIComponent(record.source_doc_id)}`}
-                          className={styles.viewBtn}
-                          title="View archived entry"
-                          aria-label="View archived entry"
-                        >
-                          <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </svg>
-                        </Link>
+                        <div className={styles.actions}>
+                          <Link
+                            href={`/deletes/entries/view?id=${encodeURIComponent(record.source_doc_id)}`}
+                            className={styles.viewBtn}
+                            title="View archived entry"
+                            aria-label="View archived entry"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </Link>
+                          <button
+                            type="button"
+                            className={styles.deleteBtn}
+                            title="Delete archived record"
+                            aria-label="Delete archived record"
+                            onClick={() => handleDeleteArchivedRecord(record.delete_id)}
+                            disabled={deletingId === record.delete_id}
+                          >
+                            ✕
+                          </button>
+                        </div>
                       ) : (
-                        <span className={styles.noAction}>-</span>
+                        <div className={styles.actions}>
+                          <span className={styles.noAction}>-</span>
+                          <button
+                            type="button"
+                            className={styles.deleteBtn}
+                            title="Delete archived record"
+                            aria-label="Delete archived record"
+                            onClick={() => handleDeleteArchivedRecord(record.delete_id)}
+                            disabled={deletingId === record.delete_id}
+                          >
+                            ✕
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

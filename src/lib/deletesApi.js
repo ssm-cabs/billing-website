@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   limit,
@@ -104,6 +105,20 @@ export async function fetchDeletedDocuments(limitCount = 200) {
   return snapshot.docs.map((docSnap) =>
     normalizeDeleteDoc(docSnap.data(), docSnap.id)
   );
+}
+
+export async function deleteArchivedDocument(deleteId) {
+  const normalizedDeleteId = String(deleteId || "").trim();
+  if (!normalizedDeleteId) {
+    throw new Error("deleteId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    return { ok: true, delete_id: normalizedDeleteId };
+  }
+
+  await deleteDoc(doc(db, "deletes", normalizedDeleteId));
+  return { ok: true, delete_id: normalizedDeleteId };
 }
 
 export async function fetchDeletedEntrySnapshotByDocId(docId) {
