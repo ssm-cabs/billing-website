@@ -174,7 +174,7 @@ export default function DeletesPage() {
                   <th>Type</th>
                   <th>Source</th>
                   <th>Deleted By</th>
-                  <th>Payload</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -192,11 +192,22 @@ export default function DeletesPage() {
                         {record.deleted_by?.phone || "-"} | {record.deleted_by?.role || "-"}
                       </small>
                     </td>
-                    <td data-label="Payload">
-                      <details className={styles.payload}>
-                        <summary>View</summary>
-                        <pre>{JSON.stringify(record.payload || {}, null, 2)}</pre>
-                      </details>
+                    <td data-label="Actions" className={styles.actionsCell}>
+                      {record.source_collection === "entries" && record.source_doc_id ? (
+                        <Link
+                          href={`/deletes/entries/view?id=${encodeURIComponent(record.source_doc_id)}`}
+                          className={styles.viewBtn}
+                          title="View archived entry"
+                          aria-label="View archived entry"
+                        >
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        </Link>
+                      ) : (
+                        <span className={styles.noAction}>-</span>
+                      )}
                     </td>
                   </tr>
                 ))}

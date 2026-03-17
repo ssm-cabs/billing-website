@@ -6,6 +6,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  where,
   writeBatch,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
@@ -103,4 +104,31 @@ export async function fetchDeletedDocuments(limitCount = 200) {
   return snapshot.docs.map((docSnap) =>
     normalizeDeleteDoc(docSnap.data(), docSnap.id)
   );
+}
+
+export async function fetchDeletedEntrySnapshotByDocId(docId) {
+  const normalizedDocId = String(docId || "").trim();
+  if (!normalizedDocId) {
+    throw new Error("docId is required");
+  }
+
+  if (!isFirebaseConfigured || !db) {
+    throw new Error("Deleted entry snapshot not available in demo mode");
+  }
+
+  const deletesRef = collection(db, "deletes");
+  const q = query(
+    deletesRef,
+    where("source_collection", "==", "entries"),
+    where("source_doc_id", "==", normalizedDocId),
+    orderBy("deleted_at", "desc"),
+    limit(1)
+  );
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    throw new Error("Deleted entry archive not found");
+  }
+
+  const latest = snapshot.docs[0];
+  return normalizeDeleteDoc(latest.data(), latest.id);
 }
