@@ -14,7 +14,13 @@ const months = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-export default function DatePicker({ value, onChange, minDate = "" }) {
+export default function DatePicker({
+  value,
+  onChange,
+  minDate = "",
+  allowClear = false,
+  clearLabel = "Clear",
+}) {
   const [showPicker, setShowPicker] = useState(false);
   const containerRef = useRef(null);
 
@@ -76,6 +82,11 @@ export default function DatePicker({ value, onChange, minDate = "" }) {
       return;
     }
     onChange(selectedDate);
+    setShowPicker(false);
+  };
+
+  const handleClearDate = () => {
+    onChange("");
     setShowPicker(false);
   };
 
@@ -170,16 +181,32 @@ export default function DatePicker({ value, onChange, minDate = "" }) {
 
           <div className={styles.calendar}>{renderCalendar()}</div>
 
-          <button
-            type="button"
-            className={styles.closeButton}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              setShowPicker(false);
-            }}
-          >
-            Close
-          </button>
+          <div className={styles.footerActions}>
+            {allowClear && (
+              <button
+                type="button"
+                className={styles.clearButton}
+                disabled={!value}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  if (!value) return;
+                  handleClearDate();
+                }}
+              >
+                {clearLabel}
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles.closeButton}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                setShowPicker(false);
+              }}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>

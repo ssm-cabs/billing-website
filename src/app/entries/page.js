@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MonthPicker from "./MonthPicker";
 import CustomDropdown from "./CustomDropdown";
+import DatePicker from "./DatePicker";
 import NotesPreview from "@/components/NotesPreview";
 import { usePermissions } from "@/lib/usePermissions";
 import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
@@ -96,6 +97,9 @@ export default function EntriesPage() {
   const [entries, setEntries] = useState([]);
   const [companyId, setCompanyId] = useState("all");
   const [vehicleId, setVehicleId] = useState("all");
+  const [entryDateFilter, setEntryDateFilter] = useState("");
+  const [slotFilter, setSlotFilter] = useState("all");
+  const [userFilter, setUserFilter] = useState("all");
   const [month, setMonth] = useState(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -136,6 +140,26 @@ export default function EntriesPage() {
     () => vehicles.find((vehicle) => vehicle.vehicle_id === vehicleId) || null,
     [vehicles, vehicleId]
   );
+  const slotOptions = useMemo(() => {
+    const uniqueSlots = new Set(
+      entries.map((entry) => String(entry?.slot || "").trim()).filter(Boolean)
+    );
+    return Array.from(uniqueSlots).sort((a, b) => a.localeCompare(b));
+  }, [entries]);
+  const userOptions = useMemo(() => {
+    const uniqueUsers = new Set(
+      entries.map((entry) => String(entry?.user_name || "").trim()).filter(Boolean)
+    );
+    return Array.from(uniqueUsers).sort((a, b) => a.localeCompare(b));
+  }, [entries]);
+  const filteredEntries = useMemo(() => {
+    return entries.filter((entry) => {
+      const matchesDate = !entryDateFilter || String(entry?.entry_date || "").trim() === entryDateFilter;
+      const matchesSlot = slotFilter === "all" || String(entry?.slot || "").trim() === slotFilter;
+      const matchesUser = userFilter === "all" || String(entry?.user_name || "").trim() === userFilter;
+      return matchesDate && matchesSlot && matchesUser;
+    });
+  }, [entries, entryDateFilter, slotFilter, userFilter]);
 
   useEffect(() => {
     const load = async () => {
@@ -390,6 +414,15 @@ export default function EntriesPage() {
           />
         </label>
         <label className={styles.field}>
+          Date
+          <DatePicker
+            value={entryDateFilter}
+            onChange={setEntryDateFilter}
+            allowClear
+            clearLabel="Clear date"
+          />
+        </label>
+        <label className={styles.field}>
           Company
           <CustomDropdown
             options={companies}
@@ -415,17 +448,41 @@ export default function EntriesPage() {
             defaultOption={{ label: "All Vehicles", value: "all" }}
           />
         </label>
+        <label className={styles.field}>
+          Slot
+          <CustomDropdown
+            options={slotOptions}
+            value={slotFilter}
+            onChange={setSlotFilter}
+            getLabel={(slot) => slot}
+            getValue={(slot) => slot}
+            placeholder="Select slot"
+            defaultOption={{ label: "All Slots", value: "all" }}
+          />
+        </label>
+        <label className={styles.field}>
+          User
+          <CustomDropdown
+            options={userOptions}
+            value={userFilter}
+            onChange={setUserFilter}
+            getLabel={(userName) => userName}
+            getValue={(userName) => userName}
+            placeholder="Select user"
+            defaultOption={{ label: "All Users", value: "all" }}
+          />
+        </label>
       </section>
 
       <section className={styles.tableWrap}>
         {status === "loading" && <p>Loading entries...</p>}
         {status === "error" && <p className={styles.error}>{error}</p>}
-        {status === "success" && entries.length === 0 && (
+        {status === "success" && filteredEntries.length === 0 && (
           <p>
             No entries found for selected filters.
           </p>
         )}
-        {entries.length > 0 && (
+        {filteredEntries.length > 0 && (
           <table className={styles.table}>
             <thead>
               <tr>
@@ -443,7 +500,7 @@ export default function EntriesPage() {
               </tr>
             </thead>
             <tbody>
-              {entries.map((entry) => (
+              {filteredEntries.map((entry) => (
                 <tr key={entry.entry_id}>
                   <td data-label="Date">{entry.entry_date}</td>
                   <td data-label="Company" className={styles.companyColumn}>

@@ -11,6 +11,7 @@
   color: var(--page-ink);
   cursor: pointer;
   font-size: 14px;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -57,6 +58,7 @@
   border-radius: 8px;
   border: 1px solid rgba(30, 25, 22, 0.16);
   font-size: 13px;
+  font-family: inherit;
   margin-bottom: 8px;
 }
 
@@ -79,6 +81,7 @@
   color: var(--page-ink);
   cursor: pointer;
   font-size: 14px;
+  font-family: inherit;
   text-align: left;
   transition: background 0.15s;
   border-radius: 6px;

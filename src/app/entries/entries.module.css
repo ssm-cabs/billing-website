@@ -173,7 +173,7 @@
 
 .filters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -353,6 +353,10 @@
 @media (max-width: 900px) {
   .header {
     flex-direction: column;
+  }
+
+  .filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
