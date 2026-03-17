@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
 import { UserSession } from "@/components/UserSession";
 import { useAuth } from "@/lib/useAuth";
@@ -21,7 +21,6 @@ function formatDateTime(value) {
 }
 
 export default function DeletesPage() {
-  const router = useRouter();
   const { loading: authLoading, isAuthenticated } = useAuth({
     requireAdmin: true,
     redirectTo: "/dashboard",
@@ -106,19 +105,15 @@ export default function DeletesPage() {
 
       <header className={styles.header}>
         <div>
+          <Link className={styles.backLink} href="/dashboard">
+            ← Back
+          </Link>
           <p className={styles.eyebrow}>Admin</p>
           <h1>Deletes</h1>
           <p className={styles.lead}>
             Audit trail of deleted documents, including who deleted them and when.
           </p>
         </div>
-        <button
-          type="button"
-          className={styles.backButton}
-          onClick={() => router.push("/dashboard")}
-        >
-          Back to Dashboard
-        </button>
       </header>
 
       <section className={styles.filters}>

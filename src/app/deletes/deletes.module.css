@@ -12,10 +12,21 @@
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   align-items: flex-start;
   margin-bottom: 16px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748b;
+  margin-bottom: 12px;
 }
 
 .eyebrow {
@@ -33,16 +44,6 @@
 .lead {
   margin: 0;
   color: #4d5968;
-}
-
-.backButton {
-  border: 1px solid #ced6e0;
-  background: #fff;
-  color: #1e2630;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .filters {
