@@ -1,6 +1,5 @@
 import {
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -19,6 +18,7 @@ import {
 import { db, isFirebaseConfigured } from "./firebase";
 import { computeEntryBilling } from "./entryBilling";
 import { SLOT_VALUES } from "./slots";
+import { archiveAndDeleteRef } from "./deletesApi";
 
 const mockEntries = [
   {
@@ -572,7 +572,19 @@ export async function deleteEntry(entryId) {
   }
 
   const entryRef = doc(db, "entries", entryId);
-  await deleteDoc(entryRef);
+  const entrySnap = await getDoc(entryRef);
+  if (!entrySnap.exists()) {
+    return { entry_id: entryId };
+  }
+
+  await archiveAndDeleteRef({
+    sourceRef: entryRef,
+    sourceCollection: "entries",
+    sourcePath: `entries/${entryId}`,
+    sourceDocId: entryId,
+    sourceType: "entry",
+    payload: entrySnap.data(),
+  });
   return { entry_id: entryId };
 }
 
@@ -784,7 +796,19 @@ export async function deleteBookingRequest(requestId) {
   }
 
   const bookingRequestRef = doc(db, "booking_requests", requestId);
-  await deleteDoc(bookingRequestRef);
+  const bookingRequestSnap = await getDoc(bookingRequestRef);
+  if (!bookingRequestSnap.exists()) {
+    return { booking_id: requestId };
+  }
+
+  await archiveAndDeleteRef({
+    sourceRef: bookingRequestRef,
+    sourceCollection: "booking_requests",
+    sourcePath: `booking_requests/${requestId}`,
+    sourceDocId: requestId,
+    sourceType: "booking_request",
+    payload: bookingRequestSnap.data(),
+  });
   return { booking_id: requestId };
 }
 
@@ -1153,7 +1177,19 @@ export async function deleteEntryUpdateRequest(entryUpdateId) {
   }
 
   const requestRef = doc(db, "entry_update_requests", entryUpdateId);
-  await deleteDoc(requestRef);
+  const requestSnap = await getDoc(requestRef);
+  if (!requestSnap.exists()) {
+    return { entry_update_id: entryUpdateId };
+  }
+
+  await archiveAndDeleteRef({
+    sourceRef: requestRef,
+    sourceCollection: "entry_update_requests",
+    sourcePath: `entry_update_requests/${entryUpdateId}`,
+    sourceDocId: entryUpdateId,
+    sourceType: "entry_update_request",
+    payload: requestSnap.data(),
+  });
   return { entry_update_id: entryUpdateId };
 }
 
@@ -1291,7 +1327,19 @@ export async function deletePricing(companyId, pricingId) {
   }
 
   const docRef = doc(collection(db, "companies", companyId, "pricing"), pricingId);
-  await deleteDoc(docRef);
+  const pricingSnap = await getDoc(docRef);
+  if (!pricingSnap.exists()) {
+    return { pricing_id: pricingId };
+  }
+
+  await archiveAndDeleteRef({
+    sourceRef: docRef,
+    sourceCollection: "pricing",
+    sourcePath: `companies/${companyId}/pricing/${pricingId}`,
+    sourceDocId: pricingId,
+    sourceType: "company_pricing",
+    payload: pricingSnap.data(),
+  });
   return { pricing_id: pricingId };
 }
 
@@ -1391,7 +1439,19 @@ export async function deleteVehiclePricing(vehicleId, pricingId) {
   }
 
   const docRef = doc(collection(db, "vehicles", vehicleId, "pricing"), pricingId);
-  await deleteDoc(docRef);
+  const pricingSnap = await getDoc(docRef);
+  if (!pricingSnap.exists()) {
+    return { pricing_id: pricingId };
+  }
+
+  await archiveAndDeleteRef({
+    sourceRef: docRef,
+    sourceCollection: "pricing",
+    sourcePath: `vehicles/${vehicleId}/pricing/${pricingId}`,
+    sourceDocId: pricingId,
+    sourceType: "vehicle_pricing",
+    payload: pricingSnap.data(),
+  });
   return { pricing_id: pricingId };
 }
 
@@ -1712,7 +1772,19 @@ export async function deletePayment(paymentId) {
   }
 
   const paymentRef = doc(db, "payments", paymentId);
-  await deleteDoc(paymentRef);
+  const paymentSnap = await getDoc(paymentRef);
+  if (!paymentSnap.exists()) {
+    return { payment_id: paymentId };
+  }
+
+  await archiveAndDeleteRef({
+    sourceRef: paymentRef,
+    sourceCollection: "payments",
+    sourcePath: `payments/${paymentId}`,
+    sourceDocId: paymentId,
+    sourceType: "payment",
+    payload: paymentSnap.data(),
+  });
   return { payment_id: paymentId };
 }
 

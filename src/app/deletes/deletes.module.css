@@ -1,0 +1,153 @@
+.page {
+  min-height: 100vh;
+  background: #f6f8fb;
+  padding: 20px;
+}
+
+.topNav {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  color: #5f6b7a;
+}
+
+.header h1 {
+  margin: 0 0 6px;
+}
+
+.lead {
+  margin: 0;
+  color: #4d5968;
+}
+
+.backButton {
+  border: 1px solid #ced6e0;
+  background: #fff;
+  color: #1e2630;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filters {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(220px, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.filters select,
+.filters input {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 9px 10px;
+  font: inherit;
+}
+
+.content {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.loading,
+.error,
+.empty {
+  margin: 0;
+  padding: 8px 4px;
+}
+
+.error {
+  color: #b42318;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 8px;
+  font-size: 0.92rem;
+}
+
+.table th {
+  color: #475569;
+  font-weight: 700;
+  background: #f8fafc;
+}
+
+.table small {
+  color: #64748b;
+}
+
+.payload summary {
+  cursor: pointer;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.payload pre {
+  margin-top: 8px;
+  max-width: 420px;
+  max-height: 260px;
+  overflow: auto;
+  background: #0b1220;
+  color: #d9e6ff;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 14px;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}

@@ -49,7 +49,7 @@ const normalizePermissions = (permissions = {}) =>
     ])
   );
 
-const HIDDEN_PERMISSION_MODULES = new Set();
+const HIDDEN_PERMISSION_MODULES = new Set(["deletes"]);
 export default function UsersPage() {
   const router = useRouter();
   const { canEdit } = usePermissions("users");

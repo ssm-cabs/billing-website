@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PERMISSION_LEVELS, getDefaultPermissions } from "@/config/modules";
-import { getHomeRouteForRole } from "./roleRouting";
+import { getHomeRouteForRole, isRole } from "./roleRouting";
 
 /**
  * Hook to check permissions for a collection
@@ -27,6 +27,18 @@ export function usePermissions(collection) {
 
         const userData = JSON.parse(userDataStr);
         const homeRoute = getHomeRouteForRole(userData?.role);
+        if (collection === "deletes") {
+          if (isRole(userData?.role, "admin")) {
+            setCanView(true);
+            setCanEdit(false);
+          } else {
+            router.push(homeRoute);
+            setCanView(false);
+            setCanEdit(false);
+          }
+          return;
+        }
+
         const permissions = userData.permissions || {};
         const permission = permissions[collection] || PERMISSION_LEVELS.NONE;
         const isRoleHomeModule = homeRoute === `/${collection}`;
@@ -101,6 +113,16 @@ export function getUserPermissions() {
  * @returns {boolean}
  */
 export function canViewCollection(collection) {
+  try {
+    const userDataStr = localStorage.getItem("user_data");
+    const userData = userDataStr ? JSON.parse(userDataStr) : null;
+    if (collection === "deletes") {
+      return isRole(userData?.role, "admin");
+    }
+  } catch {
+    return false;
+  }
+
   const permissions = getUserPermissions();
   if (!permissions) return false;
   
@@ -114,6 +136,10 @@ export function canViewCollection(collection) {
  * @returns {boolean}
  */
 export function canEditCollection(collection) {
+  if (collection === "deletes") {
+    return false;
+  }
+
   const permissions = getUserPermissions();
   if (!permissions) return false;
   
