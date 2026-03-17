@@ -32,6 +32,8 @@ export default function DeletesPage() {
   const [sourceTypeFilter, setSourceTypeFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState("");
 
   useSessionTimeout();
 
@@ -105,17 +107,22 @@ export default function DeletesPage() {
     return null;
   }
 
-  const handleDeleteArchivedRecord = async (deleteId) => {
+  const handleDeleteClick = (deleteId) => {
     if (!deleteId || deletingId) return;
-    const confirmed = window.confirm(
-      "Delete this archived record from Deletes? This cannot be undone."
-    );
-    if (!confirmed) return;
+    setDeleteTargetId(deleteId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteArchivedRecord = async () => {
+    const deleteId = deleteTargetId;
+    if (!deleteId || deletingId) return;
 
     try {
       setDeletingId(deleteId);
       await deleteArchivedDocument(deleteId);
       setRecords((prev) => prev.filter((record) => record.delete_id !== deleteId));
+      setShowDeleteConfirm(false);
+      setDeleteTargetId("");
     } catch (err) {
       console.error("Error deleting archived record:", err);
       window.alert(err?.message || "Failed to delete archived record");
@@ -231,7 +238,7 @@ export default function DeletesPage() {
                             className={styles.deleteBtn}
                             title="Delete archived record"
                             aria-label="Delete archived record"
-                            onClick={() => handleDeleteArchivedRecord(record.delete_id)}
+                            onClick={() => handleDeleteClick(record.delete_id)}
                             disabled={deletingId === record.delete_id}
                           >
                             ✕
@@ -245,7 +252,7 @@ export default function DeletesPage() {
                             className={styles.deleteBtn}
                             title="Delete archived record"
                             aria-label="Delete archived record"
-                            onClick={() => handleDeleteArchivedRecord(record.delete_id)}
+                            onClick={() => handleDeleteClick(record.delete_id)}
                             disabled={deletingId === record.delete_id}
                           >
                             ✕
@@ -260,6 +267,45 @@ export default function DeletesPage() {
           </div>
         )}
       </section>
+
+      {showDeleteConfirm && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => {
+            if (deletingId) return;
+            setShowDeleteConfirm(false);
+            setDeleteTargetId("");
+          }}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Delete Archived Record</h3>
+            <p className={styles.modalSubtitle}>
+              Are you sure you want to delete this archived record from Deletes? This action
+              cannot be undone.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => {
+                  if (deletingId) return;
+                  setShowDeleteConfirm(false);
+                  setDeleteTargetId("");
+                }}
+                disabled={Boolean(deletingId)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                onClick={confirmDeleteArchivedRecord}
+                disabled={Boolean(deletingId)}
+              >
+                {deletingId ? "Deleting..." : "Delete Record"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -266,6 +266,95 @@
   font-size: 0.78rem;
 }
 
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(19, 7, 7, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 24px 64px rgba(31, 8, 8, 0.2);
+  border: 1px solid rgba(130, 46, 46, 0.18);
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #3a1616;
+  margin: 0 0 8px;
+}
+
+.modalSubtitle {
+  font-size: 14px;
+  color: #7d5a5a;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modalActions button {
+  flex: 1;
+  max-width: 180px;
+}
+
+.primaryButton {
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: #b23d3d;
+  color: #fff;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #9f2d2d;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: #f7f1f1;
+  color: #3a1616;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: 1px solid rgba(130, 46, 46, 0.18);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: #f2e8e8;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
   .header {
     flex-direction: column;
@@ -337,5 +426,9 @@
 
   .payload pre {
     max-width: 100%;
+  }
+
+  .modal {
+    padding: 22px;
   }
 }
