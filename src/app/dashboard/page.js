@@ -27,7 +27,7 @@ const QUICK_ACTION_ICON_META = {
   vehicles: { accent: "#8f5a3c", bg: "#f8eee6" },
   payments: { accent: "#00707a", bg: "#e8f7f8" },
   invoices: { accent: "#6a4d9b", bg: "#f1ecfb" },
-  deletes: { accent: "#9b4b2a", bg: "#fdf1ea" },
+  deletes: { accent: "#b23d3d", bg: "#fff1f1" },
   users: { accent: "#9a4a6f", bg: "#fbeef5" },
 };
 
@@ -353,7 +353,7 @@ export default function DashboardPage() {
           <div className={styles.actions}>
             {MODULES.filter((module) => canViewCollection(module.id))
               .sort((a, b) => {
-                const order = ["entries", "revenue", "companies", "vehicles", "payments", "invoices", "deletes", "users"];
+                const order = ["entries", "revenue", "companies", "vehicles", "payments", "invoices", "users", "deletes"];
                 return order.indexOf(a.id) - order.indexOf(b.id);
               })
               .map((module) => {
