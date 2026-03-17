@@ -447,6 +447,8 @@ export default function ClientEditEntryPage() {
             }
             getValue={(vehicle) => vehicle.vehicle_number}
             placeholder="Select vehicle"
+            searchable
+            searchPlaceholder="Search vehicle"
           />
           {vehicleStatus === "loading" && (
             <span className={styles.helper}>Loading vehicles...</span>
