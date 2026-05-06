@@ -12,8 +12,7 @@ import {
   fetchVehicles,
   generateInvoice,
   generateVehicleInvoice,
-  fetchInvoices,
-  fetchVehicleInvoices,
+  fetchInvoicesByPeriod,
   invoiceExists,
   vehicleInvoiceExists,
   updateInvoiceStatus,
@@ -59,13 +58,7 @@ export default function InvoicePage() {
   const [vehicles, setVehicles] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
-  const [selectedCompanyMonth, setSelectedCompanyMonth] = useState(getMonthValue());
-  const [selectedVehicleMonth, setSelectedVehicleMonth] = useState(getMonthValue());
-
-  const [companyInvoices, setCompanyInvoices] = useState([]);
-  const [vehicleInvoices, setVehicleInvoices] = useState([]);
-  const [companyInvoicesStatus, setCompanyInvoicesStatus] = useState("idle");
-  const [vehicleInvoicesStatus, setVehicleInvoicesStatus] = useState("idle");
+  const [month, setMonth] = useState(getMonthValue());
 
   const [companyInvoiceAlreadyExists, setCompanyInvoiceAlreadyExists] = useState(false);
   const [vehicleInvoiceAlreadyExists, setVehicleInvoiceAlreadyExists] = useState(false);
@@ -77,54 +70,41 @@ export default function InvoicePage() {
   const [paymentNote, setPaymentNote] = useState("");
   const [showGenerateConfirmType, setShowGenerateConfirmType] = useState(null);
   const [generatingType, setGeneratingType] = useState("");
-  const [activeInvoiceTile, setActiveInvoiceTile] = useState("company");
+  const [activeInvoiceTile, setActiveInvoiceTile] = useState("all");
+  const [allInvoices, setAllInvoices] = useState([]);
+  const [allInvoicesStatus, setAllInvoicesStatus] = useState("idle");
 
-  const selectedCompanyInvoice = useMemo(
-    () =>
-      companyInvoices.find((invoice) => invoice.period === selectedCompanyMonth) || null,
-    [companyInvoices, selectedCompanyMonth]
-  );
-  const selectedVehicleInvoice = useMemo(
-    () =>
-      vehicleInvoices.find((invoice) => invoice.period === selectedVehicleMonth) || null,
-    [vehicleInvoices, selectedVehicleMonth]
-  );
-  const isSelectedCompanyInvoiceDraft =
-    String(selectedCompanyInvoice?.status || "").toLowerCase() === "draft";
-  const isSelectedVehicleInvoiceDraft =
-    String(selectedVehicleInvoice?.status || "").toLowerCase() === "draft";
-
-  const loadCompanyInvoices = async (companyId) => {
-    if (!companyId) {
-      setCompanyInvoices([]);
-      return;
+  const visibleInvoices = useMemo(() => {
+    if (activeInvoiceTile === "all") {
+      return allInvoices;
     }
 
-    setCompanyInvoicesStatus("loading");
+    return allInvoices.filter((invoice) =>
+      activeInvoiceTile === "vehicle"
+        ? invoice.invoice_type === "vehicle"
+        : invoice.invoice_type !== "vehicle"
+    );
+  }, [activeInvoiceTile, allInvoices]);
+
+  const generateModalTargetLabel =
+    showGenerateConfirmType === "vehicle" ? "Leased Vehicle" : "Company";
+  const generateModalTargetName =
+    showGenerateConfirmType === "vehicle"
+      ? vehicles.find((vehicle) => vehicle.vehicle_id === selectedVehicle)?.vehicle_number || ""
+      : companies.find((company) => company.company_id === selectedCompany)?.name || "";
+  const generateModalHasExistingInvoice =
+    showGenerateConfirmType === "vehicle"
+      ? vehicleInvoiceAlreadyExists
+      : companyInvoiceAlreadyExists;
+
+  const loadAllInvoices = async () => {
+    setAllInvoicesStatus("loading");
     try {
-      const data = await fetchInvoices(companyId);
-      setCompanyInvoices(data);
-      setCompanyInvoicesStatus("success");
+      const data = await fetchInvoicesByPeriod(month);
+      setAllInvoices(data);
+      setAllInvoicesStatus("success");
     } catch (_) {
-      setError("Failed to load company invoices");
-      setCompanyInvoicesStatus("error");
-    }
-  };
-
-  const loadVehicleInvoices = async (vehicleId) => {
-    if (!vehicleId) {
-      setVehicleInvoices([]);
-      return;
-    }
-
-    setVehicleInvoicesStatus("loading");
-    try {
-      const data = await fetchVehicleInvoices(vehicleId);
-      setVehicleInvoices(data);
-      setVehicleInvoicesStatus("success");
-    } catch (_) {
-      setError("Failed to load vehicle invoices");
-      setVehicleInvoicesStatus("error");
+      setAllInvoicesStatus("error");
     }
   };
 
@@ -166,22 +146,18 @@ export default function InvoicePage() {
   }, []);
 
   useEffect(() => {
-    loadCompanyInvoices(selectedCompany);
-  }, [selectedCompany]);
-
-  useEffect(() => {
-    loadVehicleInvoices(selectedVehicle);
-  }, [selectedVehicle]);
+    loadAllInvoices();
+  }, [month]);
 
   useEffect(() => {
     const checkCompanyInvoiceExists = async () => {
-      if (!selectedCompany || !selectedCompanyMonth) {
+      if (!selectedCompany || !month) {
         setCompanyInvoiceAlreadyExists(false);
         return;
       }
 
       try {
-        const exists = await invoiceExists(selectedCompany, selectedCompanyMonth);
+        const exists = await invoiceExists(selectedCompany, month);
         setCompanyInvoiceAlreadyExists(exists);
       } catch (_) {
         setCompanyInvoiceAlreadyExists(false);
@@ -189,17 +165,17 @@ export default function InvoicePage() {
     };
 
     checkCompanyInvoiceExists();
-  }, [selectedCompany, selectedCompanyMonth]);
+  }, [selectedCompany, month]);
 
   useEffect(() => {
     const checkVehicleInvoiceExists = async () => {
-      if (!selectedVehicle || !selectedVehicleMonth) {
+      if (!selectedVehicle || !month) {
         setVehicleInvoiceAlreadyExists(false);
         return;
       }
 
       try {
-        const exists = await vehicleInvoiceExists(selectedVehicle, selectedVehicleMonth);
+        const exists = await vehicleInvoiceExists(selectedVehicle, month);
         setVehicleInvoiceAlreadyExists(exists);
       } catch (_) {
         setVehicleInvoiceAlreadyExists(false);
@@ -207,14 +183,14 @@ export default function InvoicePage() {
     };
 
     checkVehicleInvoiceExists();
-  }, [selectedVehicle, selectedVehicleMonth]);
+  }, [selectedVehicle, month]);
 
   const handleGenerateInvoice = async (type) => {
     if (!canEdit) return;
 
     const isCompany = type === "company";
     const selectedTarget = isCompany ? selectedCompany : selectedVehicle;
-    const selectedMonth = isCompany ? selectedCompanyMonth : selectedVehicleMonth;
+    const selectedMonth = month;
 
     if (!selectedTarget || !selectedMonth) {
       setError(
@@ -231,16 +207,16 @@ export default function InvoicePage() {
 
     try {
       if (isCompany) {
-        await generateInvoice(selectedCompany, selectedCompanyMonth);
-        await loadCompanyInvoices(selectedCompany);
-        const exists = await invoiceExists(selectedCompany, selectedCompanyMonth);
+        await generateInvoice(selectedCompany, month);
+        const exists = await invoiceExists(selectedCompany, month);
         setCompanyInvoiceAlreadyExists(exists);
       } else {
-        await generateVehicleInvoice(selectedVehicle, selectedVehicleMonth);
-        await loadVehicleInvoices(selectedVehicle);
-        const exists = await vehicleInvoiceExists(selectedVehicle, selectedVehicleMonth);
+        await generateVehicleInvoice(selectedVehicle, month);
+        const exists = await vehicleInvoiceExists(selectedVehicle, month);
         setVehicleInvoiceAlreadyExists(exists);
       }
+
+      await loadAllInvoices();
 
       setMessage(
         isCompany
@@ -265,30 +241,10 @@ export default function InvoicePage() {
       setPaymentNoteModal(null);
       setPaymentNote("");
 
-      if (invoiceType === "vehicle") {
-        await loadVehicleInvoices(selectedVehicle);
-      } else {
-        await loadCompanyInvoices(selectedCompany);
-      }
+      await loadAllInvoices();
     } catch (_) {
       setError("Failed to update invoice");
     }
-  };
-
-  const handleViewInvoice = (type) => {
-    const isCompany = type === "company";
-    const invoiceId = isCompany
-      ? `${selectedCompany}-${selectedCompanyMonth}`
-      : `${selectedVehicle}-${selectedVehicleMonth}`;
-
-    setExpandedInvoice(invoiceId);
-
-    setTimeout(() => {
-      const invoiceElement = document.querySelector(`[data-invoice-id="${invoiceId}"]`);
-      if (invoiceElement) {
-        invoiceElement.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 100);
   };
 
   const handleExportPDF = async (invoice) => {
@@ -690,6 +646,16 @@ export default function InvoicePage() {
             Generate invoices, track billing, and manage payment status.
           </p>
         </div>
+        {canEdit && (
+          <div className={styles.headerActions}>
+            <button
+              className={styles.primaryCta}
+              onClick={() => setShowGenerateConfirmType("company")}
+            >
+              Generate Invoice
+            </button>
+          </div>
+        )}
       </header>
 
       {!isFirebaseConfigured && (
@@ -703,158 +669,43 @@ export default function InvoicePage() {
       {error && <div className={styles.error}>{error}</div>}
       {message && <div className={styles.success}>{message}</div>}
 
-      <section className={styles.grid}>
-        <div className={styles.invoiceTypeTiles}>
-          <button
-            type="button"
-            className={`${styles.invoiceTypeTile} ${
-              activeInvoiceTile === "company" ? styles.invoiceTypeTileActive : ""
-            }`}
-            onClick={() => setActiveInvoiceTile("company")}
-          >
-            Company Invoices
-          </button>
-          <button
-            type="button"
-            className={`${styles.invoiceTypeTile} ${
-              activeInvoiceTile === "vehicle" ? styles.invoiceTypeTileActive : ""
-            }`}
-            onClick={() => setActiveInvoiceTile("vehicle")}
-          >
-            Vehicle Invoices
-          </button>
-        </div>
+      <section className={styles.filters}>
+        <label className={styles.field}>
+          Month
+          <MonthPicker value={month} onChange={setMonth} />
+        </label>
+        <label className={styles.field}>
+          Invoice Type
+          <CustomDropdown
+            options={[
+              { label: "All Invoices", value: "all" },
+              { label: "Company Invoices", value: "company" },
+              { label: "Vehicle Invoices", value: "vehicle" },
+            ]}
+            value={activeInvoiceTile}
+            onChange={setActiveInvoiceTile}
+            getLabel={(o) => o.label}
+            getValue={(o) => o.value}
+            placeholder="Select type"
+          />
+        </label>
+      </section>
 
-        <div className={styles.controlsStack}>
-          {activeInvoiceTile === "company" ? (
-            <div className={styles.controls}>
-              <h2>Generate Company Invoice</h2>
-              <label className={styles.field}>
-                Company
-                <CustomDropdown
-                  options={getCompanyOptions(companies)}
-                  value={selectedCompany}
-                  onChange={setSelectedCompany}
-                  getLabel={(option) => option.label}
-                  getValue={(option) => option.value}
-                  placeholder="Select a company"
-                  searchable
-                  searchPlaceholder="Search company"
-                />
-              </label>
-
-              <label className={styles.field}>
-                Month
-                <MonthPicker value={selectedCompanyMonth} onChange={setSelectedCompanyMonth} />
-              </label>
-
-              {canEdit ? (
-                <button
-                  className={styles.primaryButton}
-                  onClick={
-                    companyInvoiceAlreadyExists
-                      ? () => handleViewInvoice("company")
-                      : () => setShowGenerateConfirmType("company")
-                  }
-                  disabled={generatingType === "company"}
-                >
-                  {generatingType === "company"
-                    ? "Generating..."
-                    : isSelectedCompanyInvoiceDraft
-                    ? "Regenerate Invoice"
-                    : companyInvoiceAlreadyExists
-                    ? "View Invoice"
-                    : "Generate Invoice"}
-                </button>
-              ) : (
-                <button
-                  className={styles.primaryButton}
-                  onClick={() => handleViewInvoice("company")}
-                  disabled={!companyInvoiceAlreadyExists}
-                >
-                  View Invoice
-                </button>
-              )}
-            </div>
+      <section className={styles.invoicesList}>
+        <div className={styles.historySection}>
+          <h2>
+            {activeInvoiceTile === "all"
+              ? `All Invoices — ${month}`
+              : activeInvoiceTile === "company"
+              ? `Company Invoices — ${month}`
+              : `Vehicle Invoices — ${month}`}
+          </h2>
+          {allInvoicesStatus === "loading" ? (
+            <p className={styles.empty}>Loading invoices...</p>
+          ) : allInvoicesStatus === "error" ? (
+            <p className={styles.empty}>Failed to load invoices.</p>
           ) : (
-            <div className={styles.controls}>
-              <h2>Generate Vehicle Invoice</h2>
-              <label className={styles.field}>
-                Leased Vehicle
-                <CustomDropdown
-                  options={getVehicleOptions(vehicles)}
-                  value={selectedVehicle}
-                  onChange={setSelectedVehicle}
-                  getLabel={(option) => option.label}
-                  getValue={(option) => option.value}
-                  placeholder="Select a leased vehicle"
-                  searchable
-                  searchPlaceholder="Search vehicle"
-                />
-              </label>
-
-              <label className={styles.field}>
-                Month
-                <MonthPicker value={selectedVehicleMonth} onChange={setSelectedVehicleMonth} />
-              </label>
-
-              {vehicles.length === 0 && (
-                <div className={styles.warning}>
-                  No active leased vehicles found. Add or activate a leased vehicle to generate
-                  vehicle invoices.
-                </div>
-              )}
-
-              {canEdit ? (
-                <button
-                  className={styles.primaryButton}
-                  onClick={
-                    vehicleInvoiceAlreadyExists
-                      ? () => handleViewInvoice("vehicle")
-                      : () => setShowGenerateConfirmType("vehicle")
-                  }
-                  disabled={generatingType === "vehicle" || vehicles.length === 0}
-                >
-                  {generatingType === "vehicle"
-                    ? "Generating..."
-                    : isSelectedVehicleInvoiceDraft
-                    ? "Regenerate Invoice"
-                    : vehicleInvoiceAlreadyExists
-                    ? "View Invoice"
-                    : "Generate Invoice"}
-                </button>
-              ) : (
-                <button
-                  className={styles.primaryButton}
-                  onClick={() => handleViewInvoice("vehicle")}
-                  disabled={!vehicleInvoiceAlreadyExists || vehicles.length === 0}
-                >
-                  View Invoice
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className={styles.invoicesList}>
-          {activeInvoiceTile === "company" ? (
-            <div className={styles.historySection}>
-              <h2>Company Invoice History</h2>
-              {companyInvoicesStatus === "loading" ? (
-                <p className={styles.empty}>Loading invoices...</p>
-              ) : (
-                renderInvoiceCards(companyInvoices)
-              )}
-            </div>
-          ) : (
-            <div className={styles.historySection}>
-              <h2>Vehicle Invoice History</h2>
-              {vehicleInvoicesStatus === "loading" ? (
-                <p className={styles.empty}>Loading invoices...</p>
-              ) : (
-                renderInvoiceCards(vehicleInvoices)
-              )}
-            </div>
+            renderInvoiceCards(visibleInvoices)
           )}
         </div>
       </section>
@@ -915,32 +766,87 @@ export default function InvoicePage() {
           onClick={() => setShowGenerateConfirmType(null)}
         >
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>Generate Invoice</h3>
-            <p className={styles.modalSubtitle}>
-              {showGenerateConfirmType === "company" ? (
-                <>
-                  Are you sure you want to generate an invoice for{" "}
-                  <strong>
-                    {companies.find((c) => c.company_id === selectedCompany)?.name ||
-                      "this company"}
-                  </strong>{" "}
-                  for {selectedCompanyMonth}?
-                </>
-              ) : (
-                <>
-                  Are you sure you want to generate an invoice for{" "}
-                  <strong>
-                    {vehicles.find((v) => v.vehicle_id === selectedVehicle)?.vehicle_number ||
-                      "this vehicle"}
-                  </strong>{" "}
-                  for {selectedVehicleMonth}?
-                </>
-              )}
+            <h3 className={styles.modalTitle}>
+              {generateModalHasExistingInvoice ? "Regenerate Invoice" : "Generate Invoice"}
+            </h3>
+            <div className={styles.generateToggle} role="group" aria-label="Invoice type to generate">
+              <button
+                type="button"
+                className={`${styles.generateToggleButton} ${
+                  showGenerateConfirmType === "company" ? styles.generateToggleButtonActive : ""
+                }`}
+                onClick={() => setShowGenerateConfirmType("company")}
+              >
+                Company
+              </button>
+              <button
+                type="button"
+                className={`${styles.generateToggleButton} ${
+                  showGenerateConfirmType === "vehicle" ? styles.generateToggleButtonActive : ""
+                }`}
+                onClick={() => setShowGenerateConfirmType("vehicle")}
+              >
+                Vehicle
+              </button>
+            </div>
+            <p className={`${styles.modalSubtitle} ${styles.modalLead}`}>
+              Select invoice target for {month}. Existing draft invoices for the same target and
+              month can be regenerated from here.
             </p>
+            <label className={styles.field}>
+              Invoice Target
+              <CustomDropdown
+                options={
+                  showGenerateConfirmType === "vehicle"
+                    ? getVehicleOptions(vehicles)
+                    : getCompanyOptions(companies)
+                }
+                value={showGenerateConfirmType === "vehicle" ? selectedVehicle : selectedCompany}
+                onChange={
+                  showGenerateConfirmType === "vehicle"
+                    ? setSelectedVehicle
+                    : setSelectedCompany
+                }
+                getLabel={(option) => option.label}
+                getValue={(option) => option.value}
+                placeholder={
+                  showGenerateConfirmType === "vehicle"
+                    ? "Select a leased vehicle"
+                    : "Select a company"
+                }
+                searchable
+                searchPlaceholder={
+                  showGenerateConfirmType === "vehicle"
+                    ? "Search vehicle"
+                    : "Search company"
+                }
+              />
+            </label>
+            <p className={styles.modalTypeHint}>
+              {showGenerateConfirmType === "vehicle" ? "Vehicle invoice target" : "Company invoice target"}
+            </p>
+            <div className={styles.modalStateBlock}>
+              {showGenerateConfirmType === "vehicle" && vehicles.length === 0 && (
+                <div className={styles.warning}>
+                  No active leased vehicles found. Add or activate a leased vehicle to generate
+                  vehicle invoices.
+                </div>
+              )}
+              {generateModalTargetName ? (
+                <p className={`${styles.modalSubtitle} ${styles.modalStateText}`}>
+                  {generateModalHasExistingInvoice
+                    ? `A draft invoice already exists for ${generateModalTargetName} in ${month}. Regenerating will update that invoice.`
+                    : `A new invoice will be created for ${generateModalTargetName} in ${month}.`}
+                </p>
+              ) : (
+                <p className={`${styles.modalSubtitle} ${styles.modalStateText}`} aria-hidden="true">
+                  &nbsp;
+                </p>
+              )}
+            </div>
             <p className={styles.modalWarning}>
-              {showGenerateConfirmType === "company"
-                ? "⚠️ Once generated, all entries used in this invoice will be marked as billed and cannot be edited."
-                : "⚠️ Once generated, this vehicle invoice will use leased vehicle pricing for matching ride entries in the selected month."}
+              Once generated, matching entries for the selected target and month will be locked for
+              billing and used to build the invoice totals.
             </p>
 
             <div className={styles.modalActions}>
@@ -953,10 +859,17 @@ export default function InvoicePage() {
               <button
                 className={styles.primaryButton}
                 onClick={() => handleGenerateInvoice(showGenerateConfirmType)}
-                disabled={generatingType === showGenerateConfirmType}
+                disabled={
+                  generatingType === showGenerateConfirmType ||
+                  (showGenerateConfirmType === "vehicle"
+                    ? !selectedVehicle || vehicles.length === 0
+                    : !selectedCompany)
+                }
               >
                 {generatingType === showGenerateConfirmType
                   ? "Generating..."
+                  : generateModalHasExistingInvoice
+                  ? "Regenerate Invoice"
                   : "Generate Invoice"}
               </button>
             </div>
