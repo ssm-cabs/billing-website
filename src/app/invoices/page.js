@@ -541,13 +541,27 @@ export default function InvoicePage() {
                         <span>Subtotal</span>
                         <span>₹{invoice.subtotal?.toLocaleString() || 0}</span>
                       </div>
-                      <div className={styles.totalRow}>
-                        <span>{isVehicleInvoice ? "TDS (1%)" : "Tax (5% GST)"}</span>
-                        <span>
-                          {isVehicleInvoice ? "-" : ""}
-                          ₹{invoice.tax?.toLocaleString() || 0}
-                        </span>
-                      </div>
+                      {isVehicleInvoice ? (
+                        <>
+                          <div className={styles.totalRow}>
+                            <span>TDS (1%)</span>
+                            <span>-₹{(invoice.tds ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className={styles.totalRow}>
+                            <span>Commission (1%)</span>
+                            <span>-₹{(invoice.commission ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className={styles.totalRow}>
+                            <span>Documentation (1%)</span>
+                            <span>-₹{(invoice.documentation ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className={styles.totalRow}>
+                          <span>Tax (5% GST)</span>
+                          <span>₹{invoice.tax?.toLocaleString() || 0}</span>
+                        </div>
+                      )}
                       <div className={styles.totalRow + " " + styles.final}>
                         <span>Total</span>
                         <span>₹{invoice.total?.toLocaleString() || 0}</span>
@@ -724,6 +738,8 @@ export default function InvoicePage() {
                   getLabel={(option) => option.label}
                   getValue={(option) => option.value}
                   placeholder="Select a company"
+                  searchable
+                  searchPlaceholder="Search company"
                 />
               </label>
 
@@ -772,6 +788,8 @@ export default function InvoicePage() {
                   getLabel={(option) => option.label}
                   getValue={(option) => option.value}
                   placeholder="Select a leased vehicle"
+                  searchable
+                  searchPlaceholder="Search vehicle"
                 />
               </label>
 
