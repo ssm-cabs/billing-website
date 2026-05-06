@@ -17,6 +17,7 @@ const initialState = {
   drop_location: "",
   guest_name: "",
   guest_number: "",
+  agent_name: "",
   vehicle_number: "",
   cab_type: "",
   user_name: "",
@@ -60,6 +61,7 @@ export default function ClientDeletedEntryPage() {
           drop_location: data.drop_location || "",
           guest_name: data.guest_name || "",
           guest_number: data.guest_number || "",
+          agent_name: data.agent_name || "",
           vehicle_number: data.vehicle_number || "",
           cab_type: data.cab_type || "",
           user_name: data.user_name || "",
@@ -225,6 +227,10 @@ export default function ClientDeletedEntryPage() {
             <label className={styles.field}>
               Guest number
               <input type="text" value={entry.guest_number} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Agent name
+              <input type="text" value={entry.agent_name} disabled readOnly />
             </label>
           </div>
         </section>

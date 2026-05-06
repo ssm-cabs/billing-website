@@ -39,6 +39,7 @@ const initialRequestForm = {
   drop_location: "",
   guest_name: "",
   guest_number: "",
+  agent_name: "",
   cab_type: "",
   slot: "",
   notes: "",
@@ -159,6 +160,7 @@ export default function NewCompanyBookingPage() {
         drop_location: requestForm.drop_location,
         guest_name: requestForm.guest_name,
         guest_number: requestForm.guest_number,
+        agent_name: requestForm.agent_name,
         cab_type: requestForm.cab_type,
         slot: requestForm.slot,
         notes: requestForm.notes,
@@ -321,6 +323,17 @@ export default function NewCompanyBookingPage() {
             value={requestForm.guest_number ?? ""}
             onChange={handleRequestFieldChange}
             placeholder="Guest contact number"
+          />
+        </label>
+
+        <label className={styles.field}>
+          Agent name
+          <input
+            type="text"
+            name="agent_name"
+            value={requestForm.agent_name ?? ""}
+            onChange={handleRequestFieldChange}
+            placeholder="Agent name"
           />
         </label>
 

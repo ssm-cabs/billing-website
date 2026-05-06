@@ -197,6 +197,7 @@ export default function BookingRequestsPage() {
                 <th>Company</th>
                 <th>Route</th>
                 <th>Guest</th>
+                <th>Agent</th>
                 <th>Cab / Slot</th>
                 <th>Requested By</th>
                 <th>Notes</th>
@@ -218,6 +219,7 @@ export default function BookingRequestsPage() {
                   <td data-label="Guest">
                     {request.guest_name || "-"} / {request.guest_number || "-"}
                   </td>
+                  <td data-label="Agent">{request.agent_name || "-"}</td>
                   <td data-label="Cab / Slot">
                     {request.cab_type || "-"} / {request.slot || "-"}
                   </td>
