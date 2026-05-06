@@ -13,8 +13,6 @@ import {
   generateInvoice,
   generateVehicleInvoice,
   fetchInvoicesByPeriod,
-  invoiceExists,
-  vehicleInvoiceExists,
   updateInvoiceStatus,
   isFirebaseConfigured,
 } from "@/lib/api";
@@ -60,9 +58,6 @@ export default function InvoicePage() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
   const [month, setMonth] = useState(getMonthValue());
 
-  const [companyInvoiceAlreadyExists, setCompanyInvoiceAlreadyExists] = useState(false);
-  const [vehicleInvoiceAlreadyExists, setVehicleInvoiceAlreadyExists] = useState(false);
-
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [expandedInvoice, setExpandedInvoice] = useState(null);
@@ -92,10 +87,41 @@ export default function InvoicePage() {
     showGenerateConfirmType === "vehicle"
       ? vehicles.find((vehicle) => vehicle.vehicle_id === selectedVehicle)?.vehicle_number || ""
       : companies.find((company) => company.company_id === selectedCompany)?.name || "";
-  const generateModalHasExistingInvoice =
-    showGenerateConfirmType === "vehicle"
-      ? vehicleInvoiceAlreadyExists
-      : companyInvoiceAlreadyExists;
+  const generateModalHasExistingInvoice = useMemo(() => {
+    if (!showGenerateConfirmType) return false;
+    if (showGenerateConfirmType === "vehicle") {
+      if (!selectedVehicle) return false;
+      return allInvoices.some(
+        (invoice) =>
+          invoice.invoice_type === "vehicle" &&
+          invoice.vehicle_id === selectedVehicle &&
+          String(invoice.status || "draft").toLowerCase() === "draft"
+      );
+    }
+    if (!selectedCompany) return false;
+    return allInvoices.some(
+      (invoice) =>
+        invoice.invoice_type !== "vehicle" &&
+        invoice.company_id === selectedCompany &&
+        String(invoice.status || "draft").toLowerCase() === "draft"
+    );
+  }, [allInvoices, selectedCompany, selectedVehicle, showGenerateConfirmType]);
+  const generateModalBlockedStatus = useMemo(() => {
+    if (!showGenerateConfirmType) return "";
+    const match =
+      showGenerateConfirmType === "vehicle"
+        ? allInvoices.find(
+            (invoice) =>
+              invoice.invoice_type === "vehicle" && invoice.vehicle_id === selectedVehicle
+          )
+        : allInvoices.find(
+            (invoice) =>
+              invoice.invoice_type !== "vehicle" && invoice.company_id === selectedCompany
+          );
+    if (!match) return "";
+    const status = String(match.status || "draft").toLowerCase();
+    return status === "draft" ? "" : status;
+  }, [allInvoices, selectedCompany, selectedVehicle, showGenerateConfirmType]);
 
   const loadAllInvoices = async () => {
     setAllInvoicesStatus("loading");
@@ -149,42 +175,6 @@ export default function InvoicePage() {
     loadAllInvoices();
   }, [month]);
 
-  useEffect(() => {
-    const checkCompanyInvoiceExists = async () => {
-      if (!selectedCompany || !month) {
-        setCompanyInvoiceAlreadyExists(false);
-        return;
-      }
-
-      try {
-        const exists = await invoiceExists(selectedCompany, month);
-        setCompanyInvoiceAlreadyExists(exists);
-      } catch (_) {
-        setCompanyInvoiceAlreadyExists(false);
-      }
-    };
-
-    checkCompanyInvoiceExists();
-  }, [selectedCompany, month]);
-
-  useEffect(() => {
-    const checkVehicleInvoiceExists = async () => {
-      if (!selectedVehicle || !month) {
-        setVehicleInvoiceAlreadyExists(false);
-        return;
-      }
-
-      try {
-        const exists = await vehicleInvoiceExists(selectedVehicle, month);
-        setVehicleInvoiceAlreadyExists(exists);
-      } catch (_) {
-        setVehicleInvoiceAlreadyExists(false);
-      }
-    };
-
-    checkVehicleInvoiceExists();
-  }, [selectedVehicle, month]);
-
   const handleGenerateInvoice = async (type) => {
     if (!canEdit) return;
 
@@ -208,12 +198,8 @@ export default function InvoicePage() {
     try {
       if (isCompany) {
         await generateInvoice(selectedCompany, month);
-        const exists = await invoiceExists(selectedCompany, month);
-        setCompanyInvoiceAlreadyExists(exists);
       } else {
         await generateVehicleInvoice(selectedVehicle, month);
-        const exists = await vehicleInvoiceExists(selectedVehicle, month);
-        setVehicleInvoiceAlreadyExists(exists);
       }
 
       await loadAllInvoices();
@@ -900,7 +886,13 @@ export default function InvoicePage() {
                   vehicle invoices.
                 </div>
               )}
-              {generateModalTargetName ? (
+              {generateModalBlockedStatus ? (
+                <p className={`${styles.modalSubtitle} ${styles.modalStateText}`}>
+                  Invoice already exists with status <strong>{generateModalBlockedStatus}</strong>.
+                  Regeneration is not allowed for this status.
+                </p>
+              ) : null}
+              {generateModalTargetName && !generateModalBlockedStatus ? (
                 <p className={`${styles.modalSubtitle} ${styles.modalStateText}`}>
                   {generateModalHasExistingInvoice
                     ? `A draft invoice already exists for ${generateModalTargetName} in ${month}. Regenerating will update that invoice.`
@@ -928,6 +920,7 @@ export default function InvoicePage() {
                 className={styles.primaryButton}
                 onClick={() => handleGenerateInvoice(showGenerateConfirmType)}
                 disabled={
+                  Boolean(generateModalBlockedStatus) ||
                   generatingType === showGenerateConfirmType ||
                   (showGenerateConfirmType === "vehicle"
                     ? !selectedVehicle || vehicles.length === 0
