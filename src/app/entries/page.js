@@ -433,6 +433,8 @@ export default function EntriesPage() {
             getValue={(c) => c.company_id}
             placeholder="Select company"
             defaultOption={{ label: "All Companies", value: "all" }}
+            searchable
+            searchPlaceholder="Search company"
           />
         </label>
         <label className={styles.field}>
@@ -446,6 +448,8 @@ export default function EntriesPage() {
             getValue={(v) => v.vehicle_id}
             placeholder="Select vehicle"
             defaultOption={{ label: "All Vehicles", value: "all" }}
+            searchable
+            searchPlaceholder="Search vehicle"
           />
         </label>
         <label className={styles.field}>
