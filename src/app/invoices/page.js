@@ -332,6 +332,21 @@ export default function InvoicePage() {
     }
   };
 
+  const handleDownloadInvoice = async (invoice) => {
+    const contentId = `invoice-content-${invoice.invoice_id}`;
+    const existing = document.getElementById(contentId);
+    if (existing) {
+      await handleExportPDF(invoice);
+      return;
+    }
+
+    setExpandedInvoice(invoice.invoice_id);
+
+    setTimeout(async () => {
+      await handleExportPDF(invoice);
+    }, 60);
+  };
+
   const handleOpenRegenerate = (invoice) => {
     const type = invoice.invoice_type === "vehicle" ? "vehicle" : "company";
     if (type === "vehicle") {
@@ -431,7 +446,7 @@ export default function InvoicePage() {
                     <button
                       type="button"
                       className={styles.editBtn}
-                      onClick={() => handleExportPDF(invoice)}
+                      onClick={() => handleDownloadInvoice(invoice)}
                       title="Download"
                       aria-label="Download"
                     >
