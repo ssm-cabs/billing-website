@@ -30,6 +30,7 @@ const initialState = {
   drop_location: "",
   guest_name: "",
   guest_number: "",
+  agent_name: "",
   vehicle_id: "",
   vehicle_number: "",
   cab_type: "",
@@ -97,6 +98,7 @@ export default function ClientEditEntryPage() {
           drop_location: entry.drop_location || "",
           guest_name: entry.guest_name || "",
           guest_number: entry.guest_number || "",
+          agent_name: entry.agent_name || "",
           vehicle_id: entry.vehicle_id || "",
           vehicle_number: entry.vehicle_number || "",
           cab_type: entry.cab_type || "",
@@ -588,6 +590,15 @@ export default function ClientEditEntryPage() {
                   type="tel"
                   name="guest_number"
                   value={form.guest_number ?? ""}
+                  onChange={updateField}
+                />
+              </label>
+              <label className={styles.field}>
+                Agent name
+                <input
+                  type="text"
+                  name="agent_name"
+                  value={form.agent_name ?? ""}
                   onChange={updateField}
                 />
               </label>

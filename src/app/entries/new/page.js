@@ -48,6 +48,7 @@ const initialState = {
   drop_location: "",
   guest_name: "",
   guest_number: "",
+  agent_name: "",
   odometer_start: "",
   odometer_end: "",
   vehicle_number: "",
@@ -467,6 +468,15 @@ export default function NewEntryPage() {
                 type="tel"
                 name="guest_number"
                 value={form.guest_number ?? ""}
+                onChange={updateField}
+              />
+            </label>
+            <label className={styles.field}>
+              Agent name
+              <input
+                type="text"
+                name="agent_name"
+                value={form.agent_name ?? ""}
                 onChange={updateField}
               />
             </label>
