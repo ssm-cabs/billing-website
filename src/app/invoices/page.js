@@ -346,14 +346,40 @@ export default function InvoicePage() {
     }
   };
 
-  const renderInvoiceCards = (invoiceList) => {
+  const handleOpenRegenerate = (invoice) => {
+    const type = invoice.invoice_type === "vehicle" ? "vehicle" : "company";
+    if (type === "vehicle") {
+      if (invoice.vehicle_id) {
+        setSelectedVehicle(invoice.vehicle_id);
+      }
+    } else if (invoice.company_id) {
+      setSelectedCompany(invoice.company_id);
+    }
+    setShowGenerateConfirmType(type);
+  };
+
+  const renderInvoiceTable = (invoiceList) => {
     if (invoiceList.length === 0) {
       return <p className={styles.empty}>No invoices yet</p>;
     }
 
     return (
-      <div className={styles.invoices}>
-        {invoiceList.map((invoice) => {
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Invoice ID</th>
+              <th>Type</th>
+              <th>Target</th>
+              <th>Period</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoiceList.map((invoice) => {
           const isVehicleInvoice = invoice.invoice_type === "vehicle";
           const companyDetails =
             companies.find((company) => company.company_id === invoice.company_id) || {};
@@ -379,240 +405,282 @@ export default function InvoicePage() {
             (invoice.created_at?.toDate
               ? invoice.created_at.toDate().toISOString().slice(0, 10)
               : "");
+          const targetName = isVehicleInvoice
+            ? invoice.vehicle_number || vehicleDetails.vehicle_number || "Vehicle"
+            : invoice.company_name || companyDetails.name || "Company";
 
-          return (
-            <div
-              key={invoice.invoice_id}
-              data-invoice-id={invoice.invoice_id}
-              className={styles.invoiceCard}
-            >
-              <div className={styles.invoiceHeader}>
-                <div>
-                  <p className={styles.invoiceId}>{invoice.invoice_id}</p>
-                  <p className={styles.invoicePeriod}>{invoice.period}</p>
-                </div>
-                <div className={styles.invoiceAmount}>
-                  <p className={styles.totalAmount}>₹{invoice.total?.toLocaleString() || 0}</p>
+          return [
+            <tr key={`${invoice.invoice_id}-row`} data-invoice-id={invoice.invoice_id}>
+                <td data-label="Invoice ID">{invoice.invoice_id}</td>
+                <td data-label="Type">{isVehicleInvoice ? "Vehicle" : "Company"}</td>
+                <td data-label="Target">{targetName}</td>
+                <td data-label="Period">{invoice.period || "-"}</td>
+                <td data-label="Date">{invoiceDate || "-"}</td>
+                <td data-label="Amount">₹{invoice.total?.toLocaleString() || 0}</td>
+                <td data-label="Status">
                   <span
                     className={`${styles.badge} ${styles[`badge-${invoice.status || "draft"}`]}`}
                   >
                     {invoice.status || "draft"}
                   </span>
-                </div>
-              </div>
-
-              {expandedInvoice === invoice.invoice_id && (
-                <div id={`invoice-content-${invoice.invoice_id}`} className={styles.invoiceDetails}>
-                  <div className={styles.invoiceHeader}>
-                    <div className={styles.invoiceAside}>
-                      <img
-                        src={logoSrc}
-                        alt="Company Logo"
-                        className={styles.logo}
-                        onError={() => {
-                          if (logoSrc !== "/logo.png") setLogoSrc("/logo.png");
-                        }}
-                      />
-                      <div className={styles.ourDetails}>
-                        <p>{OUR_COMPANY.name}</p>
-                        <p>{OUR_COMPANY.address1}</p>
-                        <p>{OUR_COMPANY.address2}</p>
-                        <p>{OUR_COMPANY.phone}</p>
-                        <p>{OUR_COMPANY.email}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className={styles.period}>
-                        {isVehicleInvoice ? "Vehicle Invoice" : "Invoice"} for {invoice.period}
-                      </p>
-                    </div>
+                </td>
+                <td data-label="Actions" className={styles.actionsCell}>
+                  <div className={styles.rowActions}>
+                    <button
+                      type="button"
+                      className={styles.viewBtn}
+                      onClick={() =>
+                        setExpandedInvoice(
+                          expandedInvoice === invoice.invoice_id ? null : invoice.invoice_id
+                        )
+                      }
+                      title={expandedInvoice === invoice.invoice_id ? "Hide" : "View"}
+                      aria-label={expandedInvoice === invoice.invoice_id ? "Hide" : "View"}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.editBtn}
+                      onClick={() => handleExportPDF(invoice)}
+                      title="Download"
+                      aria-label="Download"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3v12" />
+                        <path d="m7 11 5 5 5-5" />
+                        <path d="M5 20h14" />
+                      </svg>
+                    </button>
+                    {canEdit && invoice.status === "draft" ? (
+                      <button
+                        type="button"
+                        className={styles.regenerateBtn}
+                        onClick={() => handleOpenRegenerate(invoice)}
+                        title="Regenerate"
+                        aria-label="Regenerate"
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+                          <path d="M21 3v6h-6" />
+                        </svg>
+                      </button>
+                    ) : null}
                   </div>
+                </td>
+              </tr>,
 
-                  <div className={styles.billedTo}>
-                    <p className={styles.billedLabel}>Billed To</p>
-                    <h3>{invoiceToName}</h3>
-                    {invoiceToAddress && <p className={styles.companyDetails}>{invoiceToAddress}</p>}
-                    {(invoiceToContact || invoiceToPhone || invoiceToEmail) && (
-                      <p className={styles.companyDetails}>
-                        {[invoiceToContact, invoiceToPhone, invoiceToEmail]
-                          .filter(Boolean)
-                          .join(" | ")}
-                      </p>
-                    )}
-                    <div className={styles.invoiceMetaInline}>
-                      <p className={styles.invoiceNumber}>Invoice #: {invoice.invoice_id}</p>
-                      {invoiceDate && (
-                        <p className={styles.invoiceDate}>Invoice Date: {invoiceDate}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className={styles.detailsSection}>
-                    <h4>Breakdown</h4>
-                    <div className={styles.lineItems}>
-                      {invoice.line_items?.length === 0 ? (
-                        <p className={styles.empty}>No entries for this period</p>
-                      ) : (
-                        <>
-                          <div className={`${styles.lineItem} ${styles.lineItemHeader}`}>
-                            <span className={styles.column}>Date</span>
-                            {isVehicleInvoice && (
-                              <span className={styles.column}>Company</span>
-                            )}
-                            <span className={styles.column}>Slot</span>
-                            {!isVehicleInvoice && (
-                              <span className={styles.column}>Cab</span>
-                            )}
-                            {!isVehicleInvoice && (
-                              <span className={styles.column}>Vehicle</span>
-                            )}
-                            <span className={styles.column}>Extras (K/H/T)</span>
-                            <span className={styles.column}>Amount</span>
+              expandedInvoice === invoice.invoice_id ? (
+                <tr key={`${invoice.invoice_id}-details`} className={styles.detailsRow}>
+                  <td colSpan={8} className={styles.detailsCell}>
+                    <div id={`invoice-content-${invoice.invoice_id}`} className={styles.invoiceDetails}>
+                      <div className={styles.invoiceHeader}>
+                        <div className={styles.invoiceAside}>
+                          <img
+                            src={logoSrc}
+                            alt="Company Logo"
+                            className={styles.logo}
+                            onError={() => {
+                              if (logoSrc !== "/logo.png") setLogoSrc("/logo.png");
+                            }}
+                          />
+                          <div className={styles.ourDetails}>
+                            <p>{OUR_COMPANY.name}</p>
+                            <p>{OUR_COMPANY.address1}</p>
+                            <p>{OUR_COMPANY.address2}</p>
+                            <p>{OUR_COMPANY.phone}</p>
+                            <p>{OUR_COMPANY.email}</p>
                           </div>
-                          {invoice.line_items?.map((item, idx) => (
-                            <div key={idx} className={styles.lineItem}>
-                              <span className={styles.column}>{item.date}</span>
-                              {isVehicleInvoice && (
-                                <span className={styles.column}>{item.company_name || "-"}</span>
-                              )}
-                              <span className={styles.column}>{item.slot}</span>
-                              {!isVehicleInvoice && (
-                                <span className={styles.column}>{item.cab_type}</span>
-                              )}
-                              {!isVehicleInvoice && (
-                                <span className={styles.column}>{item.vehicle_number}</span>
-                              )}
-                              <span className={styles.column}>
-                                {`${Number(item.extra_kms) || 0}/${Number(item.extra_hours) || 0}/${Number(item.tolls) || 0}`}
-                              </span>
-                              <span className={styles.column}>₹{item.amount ?? item.rate ?? 0}</span>
+                        </div>
+                        <div>
+                          <p className={styles.period}>
+                            {isVehicleInvoice ? "Vehicle Invoice" : "Invoice"} for {invoice.period}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className={styles.billedTo}>
+                        <p className={styles.billedLabel}>Billed To</p>
+                        <h3>{invoiceToName}</h3>
+                        {invoiceToAddress && <p className={styles.companyDetails}>{invoiceToAddress}</p>}
+                        {(invoiceToContact || invoiceToPhone || invoiceToEmail) && (
+                          <p className={styles.companyDetails}>
+                            {[invoiceToContact, invoiceToPhone, invoiceToEmail]
+                              .filter(Boolean)
+                              .join(" | ")}
+                          </p>
+                        )}
+                        <div className={styles.invoiceMetaInline}>
+                          <p className={styles.invoiceNumber}>Invoice #: {invoice.invoice_id}</p>
+                          {invoiceDate && (
+                            <p className={styles.invoiceDate}>Invoice Date: {invoiceDate}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className={styles.detailsSection}>
+                        <h4>Breakdown</h4>
+                        <div className={styles.lineItems}>
+                          {invoice.line_items?.length === 0 ? (
+                            <p className={styles.empty}>No entries for this period</p>
+                          ) : (
+                            <>
+                              <div className={`${styles.lineItem} ${styles.lineItemHeader}`}>
+                                <span className={styles.column}>Date</span>
+                                {isVehicleInvoice && (
+                                  <span className={styles.column}>Company</span>
+                                )}
+                                <span className={styles.column}>Slot</span>
+                                {!isVehicleInvoice && (
+                                  <span className={styles.column}>Cab</span>
+                                )}
+                                {!isVehicleInvoice && (
+                                  <span className={styles.column}>Vehicle</span>
+                                )}
+                                <span className={styles.column}>Extras (K/H/T)</span>
+                                <span className={styles.column}>Amount</span>
+                              </div>
+                              {invoice.line_items?.map((item, idx) => (
+                                <div key={idx} className={styles.lineItem}>
+                                  <span className={styles.column}>{item.date}</span>
+                                  {isVehicleInvoice && (
+                                    <span className={styles.column}>{item.company_name || "-"}</span>
+                                  )}
+                                  <span className={styles.column}>{item.slot}</span>
+                                  {!isVehicleInvoice && (
+                                    <span className={styles.column}>{item.cab_type}</span>
+                                  )}
+                                  {!isVehicleInvoice && (
+                                    <span className={styles.column}>{item.vehicle_number}</span>
+                                  )}
+                                  <span className={styles.column}>
+                                    {`${Number(item.extra_kms) || 0}/${Number(item.extra_hours) || 0}/${Number(item.tolls) || 0}`}
+                                  </span>
+                                  <span className={styles.column}>₹{item.amount ?? item.rate ?? 0}</span>
+                                </div>
+                              ))}
+                            </>
+                          )}
+                        </div>
+
+                        <div className={styles.totals}>
+                          <div className={styles.totalRow}>
+                            <span>Subtotal</span>
+                            <span>₹{invoice.subtotal?.toLocaleString() || 0}</span>
+                          </div>
+                          {isVehicleInvoice ? (
+                            <>
+                              <div className={styles.totalRow}>
+                                <span>TDS (1%)</span>
+                                <span>-₹{(invoice.tds ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
+                              </div>
+                              <div className={styles.totalRow}>
+                                <span>Commission (1%)</span>
+                                <span>-₹{(invoice.commission ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
+                              </div>
+                              <div className={styles.totalRow}>
+                                <span>Documentation (1%)</span>
+                                <span>-₹{(invoice.documentation ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className={styles.totalRow}>
+                              <span>Tax (5% GST)</span>
+                              <span>₹{invoice.tax?.toLocaleString() || 0}</span>
                             </div>
-                          ))}
-                        </>
-                      )}
-                    </div>
-
-                    <div className={styles.totals}>
-                      <div className={styles.totalRow}>
-                        <span>Subtotal</span>
-                        <span>₹{invoice.subtotal?.toLocaleString() || 0}</span>
+                          )}
+                          <div className={styles.totalRow + " " + styles.final}>
+                            <span>Total</span>
+                            <span>₹{invoice.total?.toLocaleString() || 0}</span>
+                          </div>
+                        </div>
                       </div>
-                      {isVehicleInvoice ? (
-                        <>
-                          <div className={styles.totalRow}>
-                            <span>TDS (1%)</span>
-                            <span>-₹{(invoice.tds ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className={styles.totalRow}>
-                            <span>Commission (1%)</span>
-                            <span>-₹{(invoice.commission ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className={styles.totalRow}>
-                            <span>Documentation (1%)</span>
-                            <span>-₹{(invoice.documentation ?? Math.round((invoice.subtotal || 0) * 0.01))?.toLocaleString() || 0}</span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className={styles.totalRow}>
-                          <span>Tax (5% GST)</span>
-                          <span>₹{invoice.tax?.toLocaleString() || 0}</span>
+
+                      <div className={styles.footer}>
+                        <div className={styles.footerSection}>
+                          <p className={styles.footerLabel}>Our Details</p>
+                          <p>{OUR_COMPANY.name}</p>
+                          <p>{OUR_COMPANY.address1}</p>
+                          <p>{OUR_COMPANY.address2}</p>
+                          <p>{OUR_COMPANY.phone}</p>
+                          <p>{OUR_COMPANY.email}</p>
+                        </div>
+                      </div>
+
+                      {invoice.payment_note && (
+                        <div className={styles.paymentNoteSection}>
+                          <p className={styles.paymentNoteLabel}>Payment Note</p>
+                          <p className={styles.paymentNoteText}>{invoice.payment_note}</p>
                         </div>
                       )}
-                      <div className={styles.totalRow + " " + styles.final}>
-                        <span>Total</span>
-                        <span>₹{invoice.total?.toLocaleString() || 0}</span>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className={styles.footer}>
-                    <div className={styles.footerSection}>
-                      <p className={styles.footerLabel}>Our Details</p>
-                      <p>{OUR_COMPANY.name}</p>
-                      <p>{OUR_COMPANY.address1}</p>
-                      <p>{OUR_COMPANY.address2}</p>
-                      <p>{OUR_COMPANY.phone}</p>
-                      <p>{OUR_COMPANY.email}</p>
-                    </div>
-                  </div>
+                      {invoice.status === "draft" && (
+                        <div className={styles.actions} data-html2canvas-ignore="true">
+                          <button
+                            className={styles.primaryButton}
+                            onClick={() =>
+                              handleUpdateStatus(
+                                invoice.invoice_id,
+                                "issued",
+                                "",
+                                invoice.invoice_type || "company"
+                              )
+                            }
+                          >
+                            Mark as Issued
+                          </button>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => handleExportPDF(invoice)}
+                          >
+                            Download PDF
+                          </button>
+                        </div>
+                      )}
 
-                  {invoice.payment_note && (
-                    <div className={styles.paymentNoteSection}>
-                      <p className={styles.paymentNoteLabel}>Payment Note</p>
-                      <p className={styles.paymentNoteText}>{invoice.payment_note}</p>
-                    </div>
-                  )}
+                      {invoice.status === "issued" && (
+                        <div className={styles.actions} data-html2canvas-ignore="true">
+                          <button
+                            className={styles.primaryButton}
+                            onClick={() =>
+                              setPaymentNoteModal({
+                                invoiceId: invoice.invoice_id,
+                                invoiceType: invoice.invoice_type || "company",
+                              })
+                            }
+                          >
+                            Mark as Paid
+                          </button>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => handleExportPDF(invoice)}
+                          >
+                            Download PDF
+                          </button>
+                        </div>
+                      )}
 
-                  {invoice.status === "draft" && (
-                    <div className={styles.actions} data-html2canvas-ignore="true">
-                      <button
-                        className={styles.primaryButton}
-                        onClick={() =>
-                          handleUpdateStatus(
-                            invoice.invoice_id,
-                            "issued",
-                            "",
-                            invoice.invoice_type || "company"
-                          )
-                        }
-                      >
-                        Mark as Issued
-                      </button>
-                      <button
-                        className={styles.secondaryButton}
-                        onClick={() => handleExportPDF(invoice)}
-                      >
-                        Download PDF
-                      </button>
+                      {invoice.status === "paid" && (
+                        <div className={styles.actions} data-html2canvas-ignore="true">
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => handleExportPDF(invoice)}
+                          >
+                            Download PDF
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-
-                  {invoice.status === "issued" && (
-                    <div className={styles.actions} data-html2canvas-ignore="true">
-                      <button
-                        className={styles.primaryButton}
-                        onClick={() =>
-                          setPaymentNoteModal({
-                            invoiceId: invoice.invoice_id,
-                            invoiceType: invoice.invoice_type || "company",
-                          })
-                        }
-                      >
-                        Mark as Paid
-                      </button>
-                      <button
-                        className={styles.secondaryButton}
-                        onClick={() => handleExportPDF(invoice)}
-                      >
-                        Download PDF
-                      </button>
-                    </div>
-                  )}
-
-                  {invoice.status === "paid" && (
-                    <div className={styles.actions} data-html2canvas-ignore="true">
-                      <button
-                        className={styles.secondaryButton}
-                        onClick={() => handleExportPDF(invoice)}
-                      >
-                        Download PDF
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <button
-                className={styles.expandButton}
-                onClick={() =>
-                  setExpandedInvoice(expandedInvoice === invoice.invoice_id ? null : invoice.invoice_id)
-                }
-              >
-                {expandedInvoice === invoice.invoice_id ? "Hide Details" : "View Details"}
-              </button>
-            </div>
-          );
-        })}
+                  </td>
+                </tr>
+              ) : null,
+          ];
+            })}
+          </tbody>
+        </table>
       </div>
     );
   };
@@ -705,7 +773,7 @@ export default function InvoicePage() {
           ) : allInvoicesStatus === "error" ? (
             <p className={styles.empty}>Failed to load invoices.</p>
           ) : (
-            renderInvoiceCards(visibleInvoices)
+            renderInvoiceTable(visibleInvoices)
           )}
         </div>
       </section>

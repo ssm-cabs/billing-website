@@ -289,6 +289,111 @@
   gap: 16px;
 }
 
+.tableWrap {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid rgba(30, 25, 22, 0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--page-muted);
+}
+
+.actionsCell {
+  white-space: nowrap;
+}
+
+.rowActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.viewBtn,
+.editBtn,
+.regenerateBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.viewBtn {
+  color: #ea5a32;
+}
+
+.viewBtn svg,
+.editBtn svg,
+.regenerateBtn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.viewBtn:hover {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
+}
+
+.editBtn {
+  color: #2b5f9e;
+}
+
+.editBtn:hover {
+  background: #2b5f9e;
+  color: #fff;
+  border-color: #2b5f9e;
+}
+
+.regenerateBtn {
+  color: #6c4ca3;
+}
+
+.regenerateBtn:hover {
+  background: #6c4ca3;
+  color: #fff;
+  border-color: #6c4ca3;
+}
+
+.detailsRow td {
+  padding: 0;
+  border-bottom: 1px solid rgba(30, 25, 22, 0.08);
+}
+
+.detailsCell {
+  background: #fcfbf9;
+}
+
 .historySection {
   display: flex;
   flex-direction: column;
@@ -300,19 +405,6 @@
   font-weight: 600;
   color: var(--page-ink);
   margin: 0;
-}
-
-.invoices {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.invoiceCard {
-  background: #fff;
-  border: 1px solid rgba(30, 25, 22, 0.08);
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .invoiceHeader {
@@ -604,24 +696,6 @@
   flex: 1;
 }
 
-.expandButton {
-  width: 100%;
-  padding: 12px;
-  background: none;
-  border: none;
-  border-top: 1px solid rgba(30, 25, 22, 0.06);
-  color: var(--page-muted);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.expandButton:hover {
-  background: rgba(30, 25, 22, 0.02);
-}
-
 .empty {
   color: var(--page-muted);
   font-size: 14px;
@@ -780,6 +854,80 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .tableWrap {
+    padding: 12px;
+  }
+
+  .table {
+    width: 100%;
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid rgba(30, 25, 22, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+    background: #fafaf8;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border: none;
+    font-size: 13px;
+    gap: 12px;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--page-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  .actionsCell {
+    align-items: flex-start;
+  }
+
+  .rowActions {
+    justify-content: flex-end;
+  }
+
+  .detailsRow td {
+    padding-top: 0;
+  }
+
+  .detailsCell {
+    width: 100%;
+    display: block;
+  }
+
+  .detailsCell::before {
+    content: none;
+  }
+
+  .table tr.detailsRow {
+    padding: 0;
+    margin-top: -10px;
+    border: none;
+    background: transparent;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
@@ -821,6 +969,19 @@
 
   .filters {
     grid-template-columns: 1fr;
+  }
+
+  .table td {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table td::before {
+    margin-bottom: 4px;
+  }
+
+  .rowActions {
+    justify-content: flex-start;
   }
 
   .modalOverlay {
