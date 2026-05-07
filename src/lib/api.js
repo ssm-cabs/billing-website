@@ -338,7 +338,7 @@ async function resolveCompanySlotPricing(companyId = "", cabType = "", slot = ""
   const normalizedSlot = String(slot || "").trim().toLowerCase();
 
   if (!normalizedCompanyId || !normalizedCabType || !normalizedSlot) {
-    return { rate: 0, extra_per_hour: 0, extra_per_km: 0 };
+    return { rate: 0, extra_per_hour: 0, extra_per_km: 0, buffer_time: 0, buffer_kms: 0 };
   }
 
   try {
@@ -353,9 +353,11 @@ async function resolveCompanySlotPricing(companyId = "", cabType = "", slot = ""
       rate: Number(match?.rate) || 0,
       extra_per_hour: Number(match?.extra_per_hour) || 0,
       extra_per_km: Number(match?.extra_per_km) || 0,
+      buffer_time: Number(match?.buffer_time) || 0,
+      buffer_kms: Number(match?.buffer_kms) || 0,
     };
   } catch (error) {
-    return { rate: 0, extra_per_hour: 0, extra_per_km: 0 };
+    return { rate: 0, extra_per_hour: 0, extra_per_km: 0, buffer_time: 0, buffer_kms: 0 };
   }
 }
 
@@ -852,6 +854,8 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       rate: pricing.rate,
       extra_per_hour: pricing.extra_per_hour,
       extra_per_km: pricing.extra_per_km,
+      buffer_time: pricing.buffer_time,
+      buffer_kms: pricing.buffer_kms,
       tolls: 0,
       start_time: requestData.start_time || "",
       end_time: "",
@@ -878,6 +882,8 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       rate: billing.rate,
       extra_per_hour: pricing.extra_per_hour,
       extra_per_km: pricing.extra_per_km,
+      buffer_time: pricing.buffer_time,
+      buffer_kms: pricing.buffer_kms,
       tolls: 0,
       total: billing.total,
       billed: false,
@@ -1281,6 +1287,8 @@ export async function createPricing(companyId, payload) {
     rate: Number(payload.rate) || 0,
     extra_per_hour: Number(payload.extra_per_hour) || 0,
     extra_per_km: Number(payload.extra_per_km) || 0,
+    buffer_time: Number(payload.buffer_time) || 0,
+    buffer_kms: Number(payload.buffer_kms) || 0,
     pricing_id: pricingId,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
@@ -1309,6 +1317,8 @@ export async function updatePricing(companyId, pricingId, payload) {
     rate: Number(payload.rate) || 0,
     extra_per_hour: Number(payload.extra_per_hour) || 0,
     extra_per_km: Number(payload.extra_per_km) || 0,
+    buffer_time: Number(payload.buffer_time) || 0,
+    buffer_kms: Number(payload.buffer_kms) || 0,
     pricing_id: pricingId,
     updated_at: serverTimestamp(),
   };

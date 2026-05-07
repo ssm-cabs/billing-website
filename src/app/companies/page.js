@@ -35,6 +35,8 @@ const initialPricing = {
   rate: "",
   extra_per_hour: "",
   extra_per_km: "",
+  buffer_time: "",
+  buffer_kms: "",
 };
 
 const billingCycleOptions = [
@@ -152,6 +154,8 @@ export default function CompaniesPage() {
     const rateValue = payload.rate ? Number(payload.rate) : 0;
     const extraPerHourValue = payload.extra_per_hour ? Number(payload.extra_per_hour) : 0;
     const extraPerKmValue = payload.extra_per_km ? Number(payload.extra_per_km) : 0;
+    const bufferTimeValue = payload.buffer_time ? Number(payload.buffer_time) : 0;
+    const bufferKmsValue = payload.buffer_kms ? Number(payload.buffer_kms) : 0;
 
     try {
       await createPricing(companyId, {
@@ -159,6 +163,8 @@ export default function CompaniesPage() {
         rate: rateValue,
         extra_per_hour: extraPerHourValue,
         extra_per_km: extraPerKmValue,
+        buffer_time: bufferTimeValue,
+        buffer_kms: bufferKmsValue,
       });
       const data = await fetchPricing(companyId);
       setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
@@ -183,6 +189,8 @@ export default function CompaniesPage() {
           rate: pricing.rate ?? "",
           extra_per_hour: pricing.extra_per_hour ?? "",
           extra_per_km: pricing.extra_per_km ?? "",
+          buffer_time: pricing.buffer_time ?? "",
+          buffer_kms: pricing.buffer_kms ?? "",
         },
       },
     }));
@@ -221,6 +229,8 @@ export default function CompaniesPage() {
     const rateValue = payload.rate ? Number(payload.rate) : 0;
     const extraPerHourValue = payload.extra_per_hour ? Number(payload.extra_per_hour) : 0;
     const extraPerKmValue = payload.extra_per_km ? Number(payload.extra_per_km) : 0;
+    const bufferTimeValue = payload.buffer_time ? Number(payload.buffer_time) : 0;
+    const bufferKmsValue = payload.buffer_kms ? Number(payload.buffer_kms) : 0;
 
     try {
       await updatePricing(companyId, pricingId, {
@@ -228,6 +238,8 @@ export default function CompaniesPage() {
         rate: rateValue,
         extra_per_hour: extraPerHourValue,
         extra_per_km: extraPerKmValue,
+        buffer_time: bufferTimeValue,
+        buffer_kms: bufferKmsValue,
       });
       const data = await fetchPricing(companyId);
       setPricingByCompany((prev) => ({ ...prev, [companyId]: data }));
@@ -771,6 +783,36 @@ export default function CompaniesPage() {
                         min="0"
                       />
                     </label>
+                    <label className={styles.field}>
+                      Buffer time
+                      <input
+                        type="number"
+                        name="buffer_time"
+                        value={
+                          (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
+                            .buffer_time
+                        }
+                        onChange={(event) =>
+                          updatePricingField(pricingCompany.company_id, event)
+                        }
+                        min="0"
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      Buffer kms
+                      <input
+                        type="number"
+                        name="buffer_kms"
+                        value={
+                          (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
+                            .buffer_kms
+                        }
+                        onChange={(event) =>
+                          updatePricingField(pricingCompany.company_id, event)
+                        }
+                        min="0"
+                      />
+                    </label>
                     <button className={styles.secondaryButton} type="submit">
                       Add rate
                     </button>
@@ -783,6 +825,8 @@ export default function CompaniesPage() {
                       <span>Rate</span>
                       <span>Extra / hour</span>
                       <span>Extra / km</span>
+                      <span>Buffer time</span>
+                      <span>Buffer kms</span>
                       <span className={styles.pricingHeaderActionSpacer}>Actions</span>
                     </div>
                     {(pricingByCompany[pricingCompany.company_id] || []).map((pricing) => {
@@ -866,6 +910,32 @@ export default function CompaniesPage() {
                                 }
                                 min="0"
                               />
+                              <input
+                                type="number"
+                                name="buffer_time"
+                                value={edits.buffer_time}
+                                onChange={(event) =>
+                                  updateEditPricingField(
+                                    pricingCompany.company_id,
+                                    pricing.pricing_id,
+                                    event
+                                  )
+                                }
+                                min="0"
+                              />
+                              <input
+                                type="number"
+                                name="buffer_kms"
+                                value={edits.buffer_kms}
+                                onChange={(event) =>
+                                  updateEditPricingField(
+                                    pricingCompany.company_id,
+                                    pricing.pricing_id,
+                                    event
+                                  )
+                                }
+                                min="0"
+                              />
                             </>
                           ) : (
                             <>
@@ -874,6 +944,8 @@ export default function CompaniesPage() {
                               <span>₹ {pricing.rate}</span>
                               <span>₹ {Number(pricing.extra_per_hour) || 0}</span>
                               <span>₹ {Number(pricing.extra_per_km) || 0}</span>
+                              <span>{Number(pricing.buffer_time) || 0}</span>
+                              <span>{Number(pricing.buffer_kms) || 0}</span>
                             </>
                           )}
                           <div className={styles.pricingActions}>

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   deleteEntryUpdateRequest,
   fetchEntryById,
+  fetchPricing,
   fetchEntryUpdateRequestById,
   updateEntry,
 } from "@/lib/api";
@@ -124,11 +125,34 @@ function EntryUpdateDifferencesPageContent() {
           ...(entry || {}),
           ...(request.requested_updates || {}),
         };
+        let resolvedBufferTime = Number(mergedEntry.buffer_time) || 0;
+        let resolvedBufferKms = Number(mergedEntry.buffer_kms) || 0;
+        if (
+          mergedEntry.company_id &&
+          mergedEntry.cab_type &&
+          mergedEntry.slot &&
+          (resolvedBufferTime === 0 || resolvedBufferKms === 0)
+        ) {
+          try {
+            const pricingList = await fetchPricing(mergedEntry.company_id);
+            const match = pricingList.find(
+              (p) => p.cab_type === mergedEntry.cab_type && p.slot === mergedEntry.slot
+            );
+            if (match) {
+              resolvedBufferTime = Number(match.buffer_time) || 0;
+              resolvedBufferKms = Number(match.buffer_kms) || 0;
+            }
+          } catch (_) {
+            // Keep default zero buffers when pricing cannot be fetched.
+          }
+        }
         const billing = computeEntryBilling({
           slot: mergedEntry.slot,
           rate: mergedEntry.rate,
           extra_per_hour: mergedEntry.extra_per_hour,
           extra_per_km: mergedEntry.extra_per_km,
+          buffer_time: resolvedBufferTime,
+          buffer_kms: resolvedBufferKms,
           tolls: mergedEntry.tolls,
           start_time: mergedEntry.start_time,
           end_time: mergedEntry.end_time,
