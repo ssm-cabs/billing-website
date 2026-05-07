@@ -718,7 +718,7 @@ export default function VehiclesPage() {
                     }
                     getLabel={(option) => option.label}
                     getValue={(option) => option.value}
-                    placeholder="Select slot"
+                    placeholder=""
                   />
                 </label>
                 <label className={styles.field}>
@@ -777,6 +777,7 @@ export default function VehiclesPage() {
                   <span>Rate</span>
                   <span>Extra / hour</span>
                   <span>Extra / km</span>
+                  <span className={styles.pricingHeaderActionSpacer}>Actions</span>
                 </div>
                 {(pricingByVehicle[pricingVehicle.vehicle_id] || []).map((pricing) => {
                   const edits =
@@ -802,7 +803,7 @@ export default function VehiclesPage() {
                             }
                             getLabel={(option) => option.label}
                             getValue={(option) => option.value}
-                            placeholder="Select slot"
+                            placeholder=""
                             disabled
                             buttonClassName={styles.pricingInlineDropdown}
                           />
@@ -873,24 +874,28 @@ export default function VehiclesPage() {
                           <>
                             <button
                               type="button"
-                              className={styles.textButton}
+                              className={styles.editBtn}
                               onClick={() =>
                                 startEditPricing(pricingVehicle.vehicle_id, pricing)
                               }
+                              title="Update pricing"
+                              aria-label="Update pricing"
                             >
-                              Update
+                              <span className={styles.editIcon} aria-hidden="true">✎</span>
                             </button>
                             <button
                               type="button"
-                              className={styles.deleteButton}
+                              className={`${styles.actionBtn} ${styles.cancelBtn}`}
                               onClick={() =>
                                 handleDeletePricing(
                                   pricingVehicle.vehicle_id,
                                   pricing.pricing_id
                                 )
                               }
+                              title="Delete pricing"
+                              aria-label="Delete pricing"
                             >
-                              Delete
+                              <span className={styles.actionIcon} aria-hidden="true">✕</span>
                             </button>
                           </>
                         )}

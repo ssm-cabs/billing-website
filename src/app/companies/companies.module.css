@@ -428,7 +428,7 @@
 
 .pricingForm {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr)) 96px;
   gap: 12px;
   align-items: end;
 }
@@ -441,9 +441,10 @@
 .pricingHeader,
 .pricingRow {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) 96px;
+  gap: 12px;
   font-size: 13px;
+  align-items: center;
 }
 
 .pricingHeader {
@@ -451,6 +452,10 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--page-muted);
+}
+
+.pricingHeaderActionSpacer {
+  visibility: hidden;
 }
 
 .pricingRow {
@@ -559,7 +564,21 @@
   }
 
   .pricingForm {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pricingForm .secondaryButton {
+    grid-column: 1 / -1;
+  }
+
+  .pricingList {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .pricingHeader,
+  .pricingRow {
+    min-width: 760px;
   }
 }
 
@@ -618,5 +637,13 @@
   .rowActions {
     min-width: 0;
     justify-content: flex-start;
+  }
+
+  .pricingForm {
+    grid-template-columns: 1fr;
+  }
+
+  .pricingForm .secondaryButton {
+    grid-column: auto;
   }
 }

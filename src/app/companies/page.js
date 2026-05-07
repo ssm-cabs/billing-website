@@ -707,7 +707,7 @@ export default function CompaniesPage() {
                         }
                         getLabel={(option) => option.label}
                         getValue={(option) => option.value}
-                        placeholder="Select cab type"
+                        placeholder=""
                       />
                     </label>
                     <label className={styles.field}>
@@ -723,7 +723,7 @@ export default function CompaniesPage() {
                         }
                         getLabel={(option) => option.label}
                         getValue={(option) => option.value}
-                        placeholder="Select slot"
+                        placeholder=""
                       />
                     </label>
                     <label className={styles.field}>
@@ -783,6 +783,7 @@ export default function CompaniesPage() {
                       <span>Rate</span>
                       <span>Extra / hour</span>
                       <span>Extra / km</span>
+                      <span className={styles.pricingHeaderActionSpacer}>Actions</span>
                     </div>
                     {(pricingByCompany[pricingCompany.company_id] || []).map((pricing) => {
                       const edits =
@@ -805,7 +806,7 @@ export default function CompaniesPage() {
                                 }
                                 getLabel={(option) => option.label}
                                 getValue={(option) => option.value}
-                                placeholder="Select cab type"
+                                placeholder=""
                                 disabled
                                 buttonClassName={styles.pricingInlineDropdown}
                               />
@@ -822,7 +823,7 @@ export default function CompaniesPage() {
                                 }
                                 getLabel={(option) => option.label}
                                 getValue={(option) => option.value}
-                                placeholder="Select slot"
+                                placeholder=""
                                 disabled
                                 buttonClassName={styles.pricingInlineDropdown}
                               />
@@ -890,24 +891,28 @@ export default function CompaniesPage() {
                               <>
                                 <button
                                   type="button"
-                                  className={styles.textButton}
+                                  className={styles.editBtn}
                                   onClick={() =>
                                     startEditPricing(pricingCompany.company_id, pricing)
                                   }
+                                  title="Update pricing"
+                                  aria-label="Update pricing"
                                 >
-                                  Update
+                                  <span className={styles.editIcon} aria-hidden="true">✎</span>
                                 </button>
                                 <button
                                   type="button"
-                                  className={styles.deleteButton}
+                                  className={`${styles.actionBtn} ${styles.cancelBtn}`}
                                   onClick={() =>
                                     handleDeletePricing(
                                       pricingCompany.company_id,
                                       pricing.pricing_id
                                     )
                                   }
+                                  title="Delete pricing"
+                                  aria-label="Delete pricing"
                                 >
-                                  Delete
+                                  <span className={styles.actionIcon} aria-hidden="true">✕</span>
                                 </button>
                               </>
                             )}
