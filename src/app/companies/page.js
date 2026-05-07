@@ -13,6 +13,8 @@ import {
   updateCompany,
   updatePricing,
 } from "@/lib/api";
+import { ACTIVE_STATUS_OPTIONS, BILLING_CYCLE_OPTIONS } from "@/config/options";
+import { CAB_TYPE_OPTIONS } from "@/lib/cabTypes";
 import { SLOT_OPTIONS } from "@/lib/slots";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { deleteUser, upsertCompanyUser } from "@/lib/usersApi";
@@ -36,23 +38,6 @@ const initialPricing = {
   extra_per_hour: "",
   extra_per_km: "",
 };
-
-const billingCycleOptions = [
-  { label: "Monthly", value: "monthly" },
-  { label: "Daily", value: "daily" },
-];
-
-const companyStatusOptions = [
-  { label: "Active", value: true },
-  { label: "Inactive", value: false },
-];
-
-const cabTypeOptions = [
-  { label: "Sedan", value: "Sedan" },
-  { label: "Premium Sedan", value: "Premium Sedan" },
-  { label: "SUV", value: "SUV" },
-  { label: "Premium SUV", value: "Premium SUV" },
-];
 
 export default function CompaniesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("companies");
@@ -591,7 +576,7 @@ export default function CompaniesPage() {
                             {isEditing ? (
                               <div className={styles.inlineDropdown}>
                                 <CustomDropdown
-                                  options={companyStatusOptions}
+                                  options={ACTIVE_STATUS_OPTIONS}
                                   value={editForm.active}
                                   onChange={(value) =>
                                     setEditForm((prev) => ({
@@ -697,7 +682,7 @@ export default function CompaniesPage() {
                     <label className={styles.field}>
                       Cab type
                       <CustomDropdown
-                        options={cabTypeOptions}
+                        options={CAB_TYPE_OPTIONS}
                         value={
                           (pricingFormByCompany[pricingCompany.company_id] || initialPricing)
                             .cab_type
@@ -794,7 +779,7 @@ export default function CompaniesPage() {
                           {isEditing ? (
                             <>
                               <CustomDropdown
-                                options={cabTypeOptions}
+                                options={CAB_TYPE_OPTIONS}
                                 value={edits.cab_type}
                                 onChange={(value) =>
                                   setEditPricingField(
@@ -964,7 +949,7 @@ export default function CompaniesPage() {
                   <label className={styles.field}>
                     Billing cycle
                     <CustomDropdown
-                      options={billingCycleOptions}
+                      options={BILLING_CYCLE_OPTIONS}
                       value={form.billing_cycle}
                       onChange={(value) =>
                         setForm((prev) => ({ ...prev, billing_cycle: value }))
@@ -1026,7 +1011,7 @@ export default function CompaniesPage() {
                   <label className={styles.field}>
                     Status
                     <CustomDropdown
-                      options={companyStatusOptions}
+                      options={ACTIVE_STATUS_OPTIONS}
                       value={form.active}
                       onChange={(value) => setForm((prev) => ({ ...prev, active: value }))}
                       getLabel={(option) => option.label}

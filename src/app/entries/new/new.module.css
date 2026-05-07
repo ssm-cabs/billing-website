@@ -159,6 +159,28 @@
   color: #c23d2b;
 }
 
+.toggleRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modeToggle {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(30, 25, 22, 0.16);
+  background: #fff;
+  color: var(--page-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.modeToggleActive {
+  border-color: rgba(30, 25, 22, 0.45);
+  color: var(--page-ink);
+  background: #f5f3f0;
+}
+
 @media (max-width: 900px) {
   .header {
     flex-direction: column;

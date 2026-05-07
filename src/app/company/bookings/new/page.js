@@ -11,6 +11,7 @@ import {
   fetchCompanies,
   isFirebaseConfigured,
 } from "@/lib/api";
+import { CAB_TYPE_OPTIONS } from "@/lib/cabTypes";
 import { SLOT_OPTIONS } from "@/lib/slots";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
@@ -44,13 +45,6 @@ const initialRequestForm = {
   slot: "",
   notes: "",
 };
-
-const cabTypeOptions = [
-  { label: "Sedan", value: "Sedan" },
-  { label: "Premium Sedan", value: "Premium Sedan" },
-  { label: "SUV", value: "SUV" },
-  { label: "Premium SUV", value: "Premium SUV" },
-];
 
 export default function NewCompanyBookingPage() {
   const router = useRouter();
@@ -270,7 +264,7 @@ export default function NewCompanyBookingPage() {
         <label className={styles.field}>
           Cab type
           <CustomDropdown
-            options={cabTypeOptions}
+            options={CAB_TYPE_OPTIONS}
             value={requestForm.cab_type}
             onChange={(value) =>
               setRequestForm((prev) => ({ ...prev, cab_type: value }))

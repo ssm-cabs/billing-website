@@ -13,6 +13,8 @@ import {
   updateVehiclePricing,
   updateVehicle,
 } from "@/lib/api";
+import { ACTIVE_STATUS_OPTIONS, OWNERSHIP_TYPE_OPTIONS } from "@/config/options";
+import { CAB_TYPE_OPTIONS } from "@/lib/cabTypes";
 import { SLOT_OPTIONS } from "@/lib/slots";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { deleteUser, upsertDriverUser } from "@/lib/usersApi";
@@ -30,23 +32,6 @@ const initialState = {
   driver_dashboard_access: false,
   notes: "",
 };
-
-const cabTypeOptions = [
-  { label: "Sedan", value: "Sedan" },
-  { label: "Premium Sedan", value: "Premium Sedan" },
-  { label: "SUV", value: "SUV" },
-  { label: "Premium SUV", value: "Premium SUV" },
-];
-
-const vehicleStatusOptions = [
-  { label: "Active", value: true },
-  { label: "Inactive", value: false },
-];
-
-const ownershipTypeOptions = [
-  { label: "Own Vehicle", value: "own" },
-  { label: "Leased Vehicle", value: "leased" },
-];
 
 const initialPricing = {
   cab_type: "",
@@ -600,7 +585,7 @@ export default function VehiclesPage() {
                             {isEditing ? (
                               <div className={styles.inlineDropdown}>
                                 <CustomDropdown
-                                  options={vehicleStatusOptions}
+                                  options={ACTIVE_STATUS_OPTIONS}
                                   value={editForm.active}
                                   onChange={(value) =>
                                     setEditForm((prev) => ({
@@ -947,7 +932,7 @@ export default function VehiclesPage() {
               <label className={styles.field}>
                 Cab type
                 <CustomDropdown
-                  options={cabTypeOptions}
+                  options={CAB_TYPE_OPTIONS}
                   value={form.cab_type}
                   onChange={(value) =>
                     setForm((prev) => ({ ...prev, cab_type: value }))
@@ -971,7 +956,7 @@ export default function VehiclesPage() {
               <label className={styles.field}>
                 Status
                 <CustomDropdown
-                  options={vehicleStatusOptions}
+                  options={ACTIVE_STATUS_OPTIONS}
                   value={form.active}
                   onChange={(value) => setForm((prev) => ({ ...prev, active: value }))}
                   getLabel={(option) => option.label}
@@ -982,7 +967,7 @@ export default function VehiclesPage() {
               <label className={styles.field}>
                 Vehicle type
                 <CustomDropdown
-                  options={ownershipTypeOptions}
+                  options={OWNERSHIP_TYPE_OPTIONS}
                   value={form.ownership_type}
                   onChange={(value) =>
                     setForm((prev) => ({ ...prev, ownership_type: value }))

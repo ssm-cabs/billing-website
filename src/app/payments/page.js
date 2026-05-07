@@ -12,6 +12,11 @@ import {
   fetchVehicles,
   isFirebaseConfigured,
 } from "@/lib/api";
+import {
+  PAYMENT_MODE_OPTIONS,
+  PAYMENT_STATUS_OPTIONS,
+  TRANSACTION_TYPE_OPTIONS,
+} from "@/config/options";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "./payments.module.css";
 
@@ -29,23 +34,6 @@ const getToday = () => {
   const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
-
-const paymentModeOptions = [
-  { label: "Bank Transfer", value: "bank_transfer" },
-  { label: "Cash", value: "cash" },
-  { label: "UPI", value: "upi" },
-];
-
-const paymentStatusOptions = [
-  { label: "Pending", value: "pending" },
-  { label: "Paid", value: "paid" },
-  { label: "Cancelled", value: "cancelled" },
-];
-
-const transactionTypeFilterOptions = [
-  { label: "Driver Payments", value: "driver_payment" },
-  { label: "Fueling", value: "fueling" },
-];
 
 const initialState = {
   transaction_type: "driver_payment",
@@ -351,7 +339,7 @@ export default function PaymentsPage() {
             <label className={styles.field}>
               Type
               <CustomDropdown
-                options={transactionTypeFilterOptions}
+                options={TRANSACTION_TYPE_OPTIONS}
                 value={typeFilter}
                 onChange={setTypeFilter}
                 getLabel={(option) => option.label}
@@ -537,7 +525,7 @@ export default function PaymentsPage() {
                   <label className={styles.field}>
                     Payment mode
                     <CustomDropdown
-                      options={paymentModeOptions}
+                      options={PAYMENT_MODE_OPTIONS}
                       value={form.payment_mode}
                       onChange={(value) =>
                         setForm((prev) => ({ ...prev, payment_mode: value }))
@@ -550,7 +538,7 @@ export default function PaymentsPage() {
                   <label className={styles.field}>
                     Status
                     <CustomDropdown
-                      options={paymentStatusOptions}
+                      options={PAYMENT_STATUS_OPTIONS}
                       value={form.status}
                       onChange={(value) => setForm((prev) => ({ ...prev, status: value }))}
                       getLabel={(option) => option.label}

@@ -5,21 +5,13 @@ import Link from "next/link";
 import MonthPicker from "../MonthPicker";
 import CustomDropdown from "../CustomDropdown";
 import { usePermissions } from "@/lib/usePermissions";
+import { BOOKING_REQUEST_STATUS_FILTER_OPTIONS } from "@/config/options";
 import {
   acceptBookingRequest,
   fetchBookingRequests,
   rejectBookingRequest,
 } from "@/lib/api";
 import styles from "./page.module.css";
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "All statuses" },
-  { value: "submitted", label: "Submitted" },
-  { value: "accepted", label: "Accepted" },
-  { value: "rejected", label: "Rejected" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "allotted", label: "Allotted" },
-];
 
 function getReviewerName() {
   if (typeof window === "undefined") return "";
@@ -163,7 +155,7 @@ export default function BookingRequestsPage() {
         <label className={styles.field}>
           Status
           <CustomDropdown
-            options={STATUS_OPTIONS}
+            options={BOOKING_REQUEST_STATUS_FILTER_OPTIONS}
             value={statusFilter}
             onChange={setStatusFilter}
             getLabel={(option) => option.label}

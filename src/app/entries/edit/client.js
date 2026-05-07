@@ -15,6 +15,7 @@ import {
   isFirebaseConfigured,
 } from "@/lib/api";
 import { composeEntryNotes, computeEntryBilling } from "@/lib/entryBilling";
+import { CAB_TYPE_OPTIONS } from "@/lib/cabTypes";
 import { SLOT_OPTIONS } from "@/lib/slots";
 import { usePermissions } from "@/lib/usePermissions";
 import styles from "../edit.module.css";
@@ -73,6 +74,7 @@ export default function ClientEditEntryPage() {
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isBilled, setIsBilled] = useState(false);
+  const [useCustomVehicle, setUseCustomVehicle] = useState(false);
 
   // Load entry data
   useEffect(() => {
@@ -208,10 +210,26 @@ export default function ClientEditEntryPage() {
     });
   }, [vehicles]);
 
-  const selectedVehicle = vehicles.find(
+  useEffect(() => {
+    if (loadingEntry) return;
+    if (!form.vehicle_number) {
+      setUseCustomVehicle(false);
+      return;
+    }
+    const matchedVehicle = vehicles.find(
+      (vehicle) => vehicle.vehicle_number === form.vehicle_number
+    );
+    setUseCustomVehicle(!matchedVehicle);
+  }, [loadingEntry, form.vehicle_number, vehicles]);
+
+  const selectedVehicle = useCustomVehicle
+    ? null
+    : vehicles.find(
     (vehicle) => vehicle.vehicle_number === form.vehicle_number
   );
-  const resolvedCabType = selectedVehicle?.cab_type || form.cab_type || "";
+  const resolvedCabType = useCustomVehicle
+    ? String(form.cab_type || "").trim()
+    : selectedVehicle?.cab_type || form.cab_type || "";
   const matchingPrice = pricing.find(
     (p) => p.cab_type === resolvedCabType && p.slot === form.slot
   );
@@ -258,6 +276,16 @@ export default function ClientEditEntryPage() {
     setMessage("");
 
     try {
+      if (!String(form.vehicle_number || "").trim()) {
+        throw new Error("Please select or enter a vehicle number.");
+      }
+      if (!useCustomVehicle && !selectedVehicle) {
+        throw new Error("Please select a valid vehicle from the vehicle list.");
+      }
+      if (!resolvedCabType) {
+        throw new Error("Please select a cab type.");
+      }
+
       const odometerStartRaw = String(form.odometer_start).trim();
       const odometerEndRaw = String(form.odometer_end).trim();
       const odometerStart = odometerStartRaw === "" ? null : Number(odometerStartRaw);
@@ -287,6 +315,8 @@ export default function ClientEditEntryPage() {
       });
       await updateEntry(id, {
         ...form,
+        vehicle_id: useCustomVehicle ? "" : selectedVehicle?.vehicle_id || form.vehicle_id || "",
+        vehicle_number: String(form.vehicle_number || "").trim(),
         start_time: String(form.start_time || "").trim(),
         end_time: String(form.end_time || "").trim(),
         odometer_start: odometerStart,
@@ -426,30 +456,66 @@ export default function ClientEditEntryPage() {
               </label>
               <label className={styles.field}>
                 Vehicle
-                <CustomDropdown
-                  options={vehicles}
-                  value={form.vehicle_number}
-                  onChange={(value) =>
-                    setForm((prev) => {
-                      const selectedVehicle = vehicles.find(
-                        (vehicle) => vehicle.vehicle_number === value
-                      );
-                      return {
+                <div className={styles.toggleRow}>
+                  <button
+                    type="button"
+                    className={`${styles.modeToggle} ${!useCustomVehicle ? styles.modeToggleActive : ""}`.trim()}
+                    onClick={() => {
+                      setUseCustomVehicle(false);
+                      setForm((prev) => ({
                         ...prev,
-                        vehicle_number: value,
-                        vehicle_id: selectedVehicle?.vehicle_id || prev.vehicle_id || "",
-                        cab_type: selectedVehicle?.cab_type || prev.cab_type || "",
-                      };
-                    })
-                  }
-                  getLabel={(vehicle) =>
-                    `${vehicle.vehicle_number} · ${vehicle.driver_name || "Driver"} · ${vehicle.cab_type}`
-                  }
-                  getValue={(vehicle) => vehicle.vehicle_number}
-                  placeholder="Select vehicle"
-                  searchable
-                  searchPlaceholder="Search vehicle"
-                />
+                        vehicle_id: "",
+                        vehicle_number: "",
+                        cab_type: "",
+                      }));
+                    }}
+                  >
+                    From vehicle list
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.modeToggle} ${useCustomVehicle ? styles.modeToggleActive : ""}`.trim()}
+                    onClick={() =>
+                      setUseCustomVehicle(true)
+                    }
+                  >
+                    Temporary vehicle
+                  </button>
+                </div>
+                {useCustomVehicle ? (
+                  <input
+                    type="text"
+                    name="vehicle_number"
+                    value={form.vehicle_number}
+                    onChange={updateField}
+                    placeholder="Enter vehicle number"
+                  />
+                ) : (
+                  <CustomDropdown
+                    options={vehicles}
+                    value={form.vehicle_number}
+                    onChange={(value) =>
+                      setForm((prev) => {
+                        const selectedVehicle = vehicles.find(
+                          (vehicle) => vehicle.vehicle_number === value
+                        );
+                        return {
+                          ...prev,
+                          vehicle_number: value,
+                          vehicle_id: selectedVehicle?.vehicle_id || "",
+                          cab_type: selectedVehicle?.cab_type || "",
+                        };
+                      })
+                    }
+                    getLabel={(vehicle) =>
+                      `${vehicle.vehicle_number} · ${vehicle.driver_name || "Driver"} · ${vehicle.cab_type}`
+                    }
+                    getValue={(vehicle) => vehicle.vehicle_number}
+                    placeholder="Select vehicle"
+                    searchable
+                    searchPlaceholder="Search vehicle"
+                  />
+                )}
                 {vehicleStatus === "loading" && (
                   <span className={styles.helper}>Loading vehicles...</span>
                 )}
@@ -460,7 +526,18 @@ export default function ClientEditEntryPage() {
               {form.vehicle_number && (
                 <label className={styles.field}>
                   Cab type
-                  <input type="text" value={resolvedCabType} disabled readOnly />
+                  {useCustomVehicle ? (
+                    <CustomDropdown
+                      options={CAB_TYPE_OPTIONS}
+                      value={form.cab_type}
+                      onChange={(value) => setForm((prev) => ({ ...prev, cab_type: value }))}
+                      getLabel={(option) => option.label}
+                      getValue={(option) => option.value}
+                      placeholder="Select cab type"
+                    />
+                  ) : (
+                    <input type="text" value={resolvedCabType} disabled readOnly />
+                  )}
                 </label>
               )}
               <label className={styles.field}>

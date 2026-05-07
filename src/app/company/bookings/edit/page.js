@@ -12,6 +12,7 @@ import {
   isFirebaseConfigured,
   updateBookingRequest,
 } from "@/lib/api";
+import { CAB_TYPE_OPTIONS } from "@/lib/cabTypes";
 import { SLOT_OPTIONS } from "@/lib/slots";
 import { getUserData, waitForAuthInit } from "@/lib/phoneAuth";
 import { useSessionTimeout } from "@/lib/useSessionTimeout";
@@ -45,13 +46,6 @@ const initialForm = {
   slot: "",
   notes: "",
 };
-
-const cabTypeOptions = [
-  { label: "Sedan", value: "Sedan" },
-  { label: "Premium Sedan", value: "Premium Sedan" },
-  { label: "SUV", value: "SUV" },
-  { label: "Premium SUV", value: "Premium SUV" },
-];
 
 function EditCompanyBookingPageContent() {
   const router = useRouter();
@@ -277,7 +271,7 @@ function EditCompanyBookingPageContent() {
           <label className={styles.field}>
             Cab type
             <CustomDropdown
-              options={cabTypeOptions}
+              options={CAB_TYPE_OPTIONS}
               value={form.cab_type}
               onChange={(value) => setForm((prev) => ({ ...prev, cab_type: value }))}
               getLabel={(option) => option.label}
