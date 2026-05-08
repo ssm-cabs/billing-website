@@ -253,6 +253,13 @@ function getBookingRequestStatusDetail(status) {
   return match?.detail || "";
 }
 
+function normalizeVehicleNumber(value = "") {
+  return String(value || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .trim();
+}
+
 function normalizeBookingRequest(data = {}, requestId = "") {
   const status = String(data.status || "").trim();
   const normalizedEntryDate = String(data.entry_date || "").trim();
@@ -297,6 +304,7 @@ function normalizeVehicle(vehicle = {}, vehicleId = "") {
   return {
     ...vehicle,
     vehicle_id: vehicle.vehicle_id || vehicleId,
+    vehicle_number: normalizeVehicleNumber(vehicle.vehicle_number || ""),
     ownership_type: vehicle.ownership_type || "own",
     active: isActive,
     status: isActive ? "active" : "inactive",
@@ -466,7 +474,10 @@ export async function createEntry(payload) {
   }
 
   const docRef = doc(collection(db, "entries"));
-  const normalizedPayload = maybeAddEntryMonth(payload);
+  const normalizedPayload = maybeAddEntryMonth({
+    ...payload,
+    vehicle_number: normalizeVehicleNumber(payload?.vehicle_number || ""),
+  });
   const entry = {
     ...normalizedPayload,
     entry_id: docRef.id,
@@ -492,11 +503,18 @@ export async function updateEntry(entryId, payload) {
     assertValidSlot(payload.slot);
   }
 
+  const sanitizedPayload = {
+    ...payload,
+    ...(Object.prototype.hasOwnProperty.call(payload || {}, "vehicle_number")
+      ? { vehicle_number: normalizeVehicleNumber(payload?.vehicle_number || "") }
+      : {}),
+  };
+
   const entryRef = doc(db, "entries", entryId);
   const existingEntrySnap = await getDoc(entryRef);
   const existingEntry = existingEntrySnap.exists() ? existingEntrySnap.data() : {};
   await updateDoc(entryRef, {
-    ...maybeAddEntryMonth(payload),
+    ...maybeAddEntryMonth(sanitizedPayload),
     updated_at: serverTimestamp(),
   });
 
@@ -516,9 +534,10 @@ export async function updateEntry(entryId, payload) {
   );
   let resolvedVehicleNumber = String(
     hasVehicleNumberInPayload
-      ? payload?.vehicle_number || ""
+      ? sanitizedPayload?.vehicle_number || ""
       : existingEntry?.vehicle_number || ""
   ).trim();
+  resolvedVehicleNumber = normalizeVehicleNumber(resolvedVehicleNumber);
   let resolvedDriverName = String(
     payload?.driver_name || existingEntry?.driver_name || ""
   ).trim();
@@ -1070,7 +1089,7 @@ export async function createEntryUpdateRequest(payload = {}) {
     entry_id: String(payload.entry_id || "").trim(),
     entry_date: String(payload.entry_date || "").trim(),
     vehicle_id: String(payload.vehicle_id || "").trim(),
-    vehicle_number: String(payload.vehicle_number || "").trim(),
+    vehicle_number: normalizeVehicleNumber(payload.vehicle_number || ""),
     requested_by: String(payload.requested_by || "").trim(),
     user_name: String(payload.user_name || "").trim(),
     requested_updates:
@@ -1128,7 +1147,7 @@ export async function updateEntryUpdateRequest(entryUpdateId, payload = {}) {
       ? { vehicle_id: String(payload.vehicle_id || "").trim() }
       : {}),
     ...(Object.prototype.hasOwnProperty.call(payload, "vehicle_number")
-      ? { vehicle_number: String(payload.vehicle_number || "").trim() }
+      ? { vehicle_number: normalizeVehicleNumber(payload.vehicle_number || "") }
       : {}),
     ...(Object.prototype.hasOwnProperty.call(payload, "requested_by")
       ? { requested_by: String(payload.requested_by || "").trim() }
