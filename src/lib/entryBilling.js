@@ -202,9 +202,15 @@ export function composeEntryNotes({
   const autoLines = [
     AUTO_MARKER,
     `slot: ${slot || "-"}${limits ? ` (limit ${limits.hours}h / ${limits.kms}km)` : ""}`,
-    `base_rate: ${roundCurrency(billing?.rate)} | tolls: ${roundCurrency(billing?.tolls)} | bata: ${roundCurrency(billing?.bata)}`,
     `time: ${start} -> ${end} (${formatDurationMinutes(billing?.travelledMinutes)}) | extra_hours: ${billing?.extraHours ?? 0} (buffer ${billing?.bufferHours ?? 0}) | extra_time_cost: ${roundCurrency(billing?.extra_time_cost)}`,
     `kms: ${odoStart} -> ${odoEnd} (${billing?.travelledKms ?? "N/A"}) | extra_kms: ${billing?.extraKms ?? 0} (buffer ${billing?.bufferKms ?? 0}) | extra_kms_cost: ${roundCurrency(billing?.extra_kms_cost)}`,
+    `rate: ${roundCurrency(billing?.rate)}`,
+    `extra_per_hour: ${roundCurrency(billing?.extra_per_hour)}`,
+    `extra_per_km: ${roundCurrency(billing?.extra_per_km)}`,
+    `tolls: ${roundCurrency(billing?.tolls)}`,
+    `bata: ${roundCurrency(billing?.bata)}`,
+    "calc: total = rate + (extra_hours * extra_per_hour) + (extra_kms * extra_per_km) + tolls + bata",
+    `resolved: total = ${roundCurrency(billing?.rate)} + (${billing?.extraHours ?? 0} * ${roundCurrency(billing?.extra_per_hour)}) + (${billing?.extraKms ?? 0} * ${roundCurrency(billing?.extra_per_km)}) + ${roundCurrency(billing?.tolls)} + ${roundCurrency(billing?.bata)}`,
     `total: ${roundCurrency(billing?.total)}`,
     AUTO_MARKER,
   ];
