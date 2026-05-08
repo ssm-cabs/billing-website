@@ -1,6 +1,7 @@
 export const ENTRIES_CSV_COLUMNS = [
   { key: "entry_id", header: "Entry ID" },
   { key: "entry_date", header: "Entry Date" },
+  { key: "company_name", header: "Company Name" },
   { key: "guest_name", header: "Guest Name" },
   { key: "agent_name", header: "Company Agent" },
   { key: "vehicle_number", header: "Vehicle Number" },
