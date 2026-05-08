@@ -133,6 +133,7 @@ export default function DriverDashboardPage() {
     odometer_start: "",
     odometer_end: "",
     tolls: "",
+    bata: "",
     reason: "",
   });
 
@@ -335,6 +336,7 @@ export default function DriverDashboardPage() {
         existingUpdates.odometer_end ?? entry?.odometer_end ?? ""
       ).trim(),
       tolls: String(existingUpdates.tolls ?? entry?.tolls ?? "").trim(),
+      bata: String(existingUpdates.bata ?? entry?.bata ?? "").trim(),
       reason: String(existingRequest?.reason || "").trim(),
     });
   };
@@ -350,13 +352,19 @@ export default function DriverDashboardPage() {
       odometer_start: requestForm.odometer_start,
       odometer_end: requestForm.odometer_end,
       tolls: requestForm.tolls,
+      bata: requestForm.bata,
     };
 
     const requestedUpdates = Object.entries(rawUpdates).reduce((acc, [key, value]) => {
       const currentValue = toComparableValue(pendingEntry?.[key]);
       const nextValue = toComparableValue(value);
       if (nextValue !== currentValue) {
-        if (key === "odometer_start" || key === "odometer_end" || key === "tolls") {
+        if (
+          key === "odometer_start" ||
+          key === "odometer_end" ||
+          key === "tolls" ||
+          key === "bata"
+        ) {
           acc[key] = nextValue === "" ? "" : Number(nextValue);
         } else {
           acc[key] = nextValue;
@@ -658,6 +666,20 @@ export default function DriverDashboardPage() {
                     setRequestForm((prev) => ({
                       ...prev,
                       tolls: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                Bata
+                <input
+                  type="number"
+                  min="0"
+                  value={requestForm.bata}
+                  onChange={(event) =>
+                    setRequestForm((prev) => ({
+                      ...prev,
+                      bata: event.target.value,
                     }))
                   }
                 />

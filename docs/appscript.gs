@@ -57,6 +57,7 @@ function createEntry(payload) {
     cab_type: payload.cab_type,
     slot: payload.slot,
     rate: payload.rate || "",
+    bata: payload.bata || "",
     amount: payload.amount || "",
     pickup_location: payload.pickup_location,
     drop_location: payload.drop_location,

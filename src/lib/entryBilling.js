@@ -116,6 +116,7 @@ export function computeEntryBilling({
   extra_per_hour = 0,
   extra_per_km = 0,
   tolls = 0,
+  bata = 0,
   start_time = "",
   end_time = "",
   odometer_start = null,
@@ -137,10 +138,11 @@ export function computeEntryBilling({
   const extraPerHour = Math.max(0, toNumber(extra_per_hour) ?? 0);
   const extraPerKm = Math.max(0, toNumber(extra_per_km) ?? 0);
   const tollCharge = Math.max(0, toNumber(tolls) ?? 0);
+  const bataCharge = Math.max(0, toNumber(bata) ?? 0);
 
   const extraTimeCost = roundCurrency(usage.extraHours * extraPerHour);
   const extraKmsCost = roundCurrency(usage.extraKms * extraPerKm);
-  const total = roundCurrency(baseRate + extraTimeCost + extraKmsCost + tollCharge);
+  const total = roundCurrency(baseRate + extraTimeCost + extraKmsCost + tollCharge + bataCharge);
 
   return {
     ...usage,
@@ -148,6 +150,7 @@ export function computeEntryBilling({
     extra_per_hour: roundCurrency(extraPerHour),
     extra_per_km: roundCurrency(extraPerKm),
     tolls: roundCurrency(tollCharge),
+    bata: roundCurrency(bataCharge),
     extra_time_cost: extraTimeCost,
     extra_kms_cost: extraKmsCost,
     total,
@@ -201,7 +204,7 @@ export function composeEntryNotes({
   const autoLines = [
     AUTO_MARKER,
     `slot: ${slot || "-"}${limits ? ` (limit ${limits.hours}h / ${limits.kms}km)` : ""}`,
-    `base_rate: ${roundCurrency(billing?.rate)} | tolls: ${roundCurrency(billing?.tolls)}`,
+    `base_rate: ${roundCurrency(billing?.rate)} | tolls: ${roundCurrency(billing?.tolls)} | bata: ${roundCurrency(billing?.bata)}`,
     `time: ${start} -> ${end} (${formatDurationMinutes(billing?.travelledMinutes)}) | extra_hours: ${billing?.extraHours ?? 0} (buffer ${billing?.bufferHours ?? 0}) | extra_time_cost: ${roundCurrency(billing?.extra_time_cost)}`,
     `kms: ${odoStart} -> ${odoEnd} (${billing?.travelledKms ?? "N/A"}) | extra_kms: ${billing?.extraKms ?? 0} (buffer ${billing?.bufferKms ?? 0}) | extra_kms_cost: ${roundCurrency(billing?.extra_kms_cost)}`,
     `total: ${roundCurrency(billing?.total)}`,

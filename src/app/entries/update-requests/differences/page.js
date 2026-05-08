@@ -154,6 +154,7 @@ function EntryUpdateDifferencesPageContent() {
           buffer_time: resolvedBufferTime,
           buffer_kms: resolvedBufferKms,
           tolls: mergedEntry.tolls,
+          bata: mergedEntry.bata,
           start_time: mergedEntry.start_time,
           end_time: mergedEntry.end_time,
           odometer_start: mergedEntry.odometer_start,
@@ -178,6 +179,7 @@ function EntryUpdateDifferencesPageContent() {
           extra_time_cost: billing.extra_time_cost,
           extra_kms_cost: billing.extra_kms_cost,
           tolls: billing.tolls,
+          bata: billing.bata,
           total: billing.total,
           notes: computedNotes,
         });

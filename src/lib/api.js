@@ -857,6 +857,7 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       buffer_time: pricing.buffer_time,
       buffer_kms: pricing.buffer_kms,
       tolls: 0,
+      bata: 0,
       start_time: requestData.start_time || "",
       end_time: "",
       odometer_start: null,
@@ -885,6 +886,7 @@ export async function acceptBookingRequest(requestId, reviewedBy = "") {
       buffer_time: pricing.buffer_time,
       buffer_kms: pricing.buffer_kms,
       tolls: 0,
+      bata: 0,
       total: billing.total,
       billed: false,
       booking_request_id: requestId,
@@ -1897,6 +1899,7 @@ export async function generateInvoice(companyId, month) {
       const extraHours = Number(entry.hours) || 0;
       const extraKms = Number(entry.kms) || 0;
       const tolls = Number(entry.tolls) || 0;
+      const bata = Number(entry.bata) || 0;
       const amount = Number(entry.total) || rate;
       subtotalAmount += amount;
       return {
@@ -1907,6 +1910,7 @@ export async function generateInvoice(companyId, month) {
         extra_hours: extraHours,
         extra_kms: extraKms,
         tolls,
+        bata,
         amount,
         date: entry.entry_date || "",
         vehicle_number: entry.vehicle_number || "",
@@ -2041,6 +2045,7 @@ export async function generateVehicleInvoice(vehicleId, month) {
       extra_per_hour: Number(priceConfig.extra_per_hour) || 0,
       extra_per_km: Number(priceConfig.extra_per_km) || 0,
       tolls: Number(entry.tolls) || 0,
+      bata: Number(entry.bata) || 0,
       start_time: entry.start_time,
       end_time: entry.end_time,
       odometer_start: entry.odometer_start,
@@ -2058,6 +2063,7 @@ export async function generateVehicleInvoice(vehicleId, month) {
       extra_hours: billing.extraHours,
       extra_kms: billing.extraKms,
       tolls: billing.tolls,
+      bata: billing.bata,
       amount: billing.total,
     };
   });

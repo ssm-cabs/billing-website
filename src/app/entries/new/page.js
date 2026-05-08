@@ -57,6 +57,7 @@ const initialState = {
   user_name: "",
   rate: "",
   tolls: "",
+  bata: "",
   notes: "",
 };
 
@@ -156,6 +157,7 @@ export default function NewEntryPage() {
         buffer_time: resolvedBufferTime,
         buffer_kms: resolvedBufferKms,
         tolls: form.tolls,
+        bata: form.bata,
         start_time: form.start_time,
         end_time: form.end_time,
         odometer_start: form.odometer_start,
@@ -169,6 +171,7 @@ export default function NewEntryPage() {
       form.slot,
       form.start_time,
       form.tolls,
+      form.bata,
       resolvedExtraPerHour,
       resolvedExtraPerKm,
       resolvedBufferTime,
@@ -248,6 +251,7 @@ export default function NewEntryPage() {
         extra_time_cost: billingPreview.extra_time_cost,
         extra_kms_cost: billingPreview.extra_kms_cost,
         tolls: billingPreview.tolls,
+        bata: billingPreview.bata,
         total: billingPreview.total,
         notes: computedNotes,
         user_name: loggedInName || form.user_name,
@@ -489,6 +493,18 @@ export default function NewEntryPage() {
                 value={form.end_time}
                 onChange={(value) => setForm((prev) => ({ ...prev, end_time: value }))}
                 placeholder="Select end time"
+              />
+            </label>
+            <label className={styles.field}>
+              Bata
+              <input
+                type="number"
+                name="bata"
+                value={form.bata}
+                onChange={updateField}
+                min="0"
+                step="1"
+                placeholder="e.g. 300"
               />
             </label>
             <label className={styles.field}>

@@ -25,6 +25,7 @@ const initialState = {
   odometer_start: "",
   odometer_end: "",
   tolls: "",
+  bata: "",
   notes: "",
   total: 0,
 };
@@ -69,6 +70,7 @@ export default function ClientDeletedEntryPage() {
           odometer_start: data.odometer_start ?? "",
           odometer_end: data.odometer_end ?? "",
           tolls: data.tolls ?? "",
+          bata: data.bata ?? "",
           notes: data.notes || "",
           total: Number(data.total) || Number(data.rate) || 0,
         });
@@ -201,6 +203,10 @@ export default function ClientDeletedEntryPage() {
             <label className={styles.field}>
               End time
               <input type="text" value={entry.end_time} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Bata
+              <input type="number" value={entry.bata} disabled readOnly />
             </label>
             <label className={styles.field}>
               Total

@@ -335,6 +335,7 @@ export default function EntriesPage() {
       "extra_kms_cost",
       "rate",
       "tolls",
+      "bata",
       "total",
     ];
 

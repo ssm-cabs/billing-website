@@ -42,6 +42,7 @@ const initialState = {
   extra_per_hour: "",
   extra_per_km: "",
   tolls: "",
+  bata: "",
   notes: "",
 };
 
@@ -111,6 +112,7 @@ export default function ClientEditEntryPage() {
           extra_per_hour: entry.extra_per_hour ?? "",
           extra_per_km: entry.extra_per_km ?? "",
           tolls: entry.tolls ?? "",
+          bata: entry.bata ?? "",
           notes: entry.notes || "",
         });
         setLoadError("");
@@ -247,6 +249,7 @@ export default function ClientEditEntryPage() {
         buffer_time: resolvedBufferTime,
         buffer_kms: resolvedBufferKms,
         tolls: form.tolls,
+        bata: form.bata,
         start_time: form.start_time,
         end_time: form.end_time,
         odometer_start: form.odometer_start,
@@ -260,6 +263,7 @@ export default function ClientEditEntryPage() {
       form.slot,
       form.start_time,
       form.tolls,
+      form.bata,
       resolvedExtraPerHour,
       resolvedExtraPerKm,
       resolvedBufferTime,
@@ -337,6 +341,7 @@ export default function ClientEditEntryPage() {
         extra_time_cost: billingPreview.extra_time_cost,
         extra_kms_cost: billingPreview.extra_kms_cost,
         tolls: billingPreview.tolls,
+        bata: billingPreview.bata,
         total: billingPreview.total,
         notes: computedNotes,
         user_name: loggedInName || form.user_name,
@@ -593,7 +598,7 @@ export default function ClientEditEntryPage() {
                 />
               </label>
               <label className={styles.field}>
-                Odometer start (optional)
+                Odometer start
                 <input
                   type="number"
                   name="odometer_start"
@@ -617,7 +622,7 @@ export default function ClientEditEntryPage() {
                 />
               </label>
               <label className={styles.field}>
-                Start time (optional)
+                Start time
                 <TimePicker
                   value={form.start_time}
                   onChange={(value) => setForm((prev) => ({ ...prev, start_time: value }))}
@@ -625,11 +630,23 @@ export default function ClientEditEntryPage() {
                 />
               </label>
               <label className={styles.field}>
-                End time (optional)
+                End time
                 <TimePicker
                   value={form.end_time}
                   onChange={(value) => setForm((prev) => ({ ...prev, end_time: value }))}
                   placeholder="Select end time"
+                />
+              </label>
+              <label className={styles.field}>
+                Bata
+                <input
+                  type="number"
+                  name="bata"
+                  value={form.bata}
+                  onChange={updateField}
+                  min="0"
+                  step="1"
+                  placeholder="e.g. 300"
                 />
               </label>
               <label className={styles.field}>

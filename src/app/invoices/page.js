@@ -541,7 +541,7 @@ export default function InvoicePage() {
                                 {!isVehicleInvoice && (
                                   <span className={styles.column}>Vehicle</span>
                                 )}
-                                <span className={styles.column}>Extras (K/H/T)</span>
+                                <span className={styles.column}>Extras (K/H/T/B)</span>
                                 <span className={styles.column}>Amount</span>
                               </div>
                               {invoice.line_items?.map((item, idx) => (
@@ -558,7 +558,7 @@ export default function InvoicePage() {
                                     <span className={styles.column}>{item.vehicle_number}</span>
                                   )}
                                   <span className={styles.column}>
-                                    {`${Number(item.extra_kms) || 0}/${Number(item.extra_hours) || 0}/${Number(item.tolls) || 0}`}
+                                    {`${Number(item.extra_kms) || 0}/${Number(item.extra_hours) || 0}/${Number(item.tolls) || 0}/${Number(item.bata) || 0}`}
                                   </span>
                                   <span className={styles.column}>₹{item.amount ?? item.rate ?? 0}</span>
                                 </div>
