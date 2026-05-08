@@ -6,6 +6,7 @@ import MonthPicker from "./MonthPicker";
 import CustomDropdown from "./CustomDropdown";
 import DatePicker from "./DatePicker";
 import NotesPreview from "@/components/NotesPreview";
+import { ENTRIES_CSV_COLUMNS } from "@/config/entriesCsvHeaders";
 import { usePermissions } from "@/lib/usePermissions";
 import { canAccessBackofficeDashboard } from "@/lib/roleRouting";
 import {
@@ -318,33 +319,14 @@ export default function EntriesPage() {
   const handleDownloadCsv = () => {
     if (!filteredEntries.length || typeof window === "undefined") return;
 
-    const billingKeys = [
-      "entry_date",
-      "guest_name",
-      "user_name",
-      "vehicle_number",
-      "cab_type",
-      "slot",
-      "start_time",
-      "end_time",
-      "kms",
-      "hours",
-      "extra_per_hour",
-      "extra_per_km",
-      "extra_time_cost",
-      "extra_kms_cost",
-      "rate",
-      "tolls",
-      "bata",
-      "total",
-    ];
-
-    const headers = [...billingKeys, "time_taken"];
+    const headers = ENTRIES_CSV_COLUMNS.map((column) => column.header);
     const rows = filteredEntries.map((entry) => {
-      const values = billingKeys.map((key) => entry?.[key]);
-      values.push(
-        computeTimeTaken(entry) ?? ""
-      );
+      const values = ENTRIES_CSV_COLUMNS.map((column) => {
+        if (column.key === "time_taken") {
+          return computeTimeTaken(entry) ?? "";
+        }
+        return entry?.[column.key];
+      });
       return values.map(escapeCsvCell).join(",");
     });
 
