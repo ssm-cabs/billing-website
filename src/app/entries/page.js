@@ -92,6 +92,26 @@ const computeTimeTaken = (entry) => {
   return `${minutes}m`;
 };
 
+const escapeCsvCell = (value) => {
+  if (value === null || value === undefined) return "";
+  const str = String(value);
+  if (/[",\n]/.test(str)) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+};
+
+const buildTimestampForFilename = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hour = String(now.getHours()).padStart(2, "0");
+  const minute = String(now.getMinutes()).padStart(2, "0");
+  const second = String(now.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day}_${hour}-${minute}-${second}`;
+};
+
 export default function EntriesPage() {
   const { canView, canEdit, loading: permissionsLoading } = usePermissions("entries");
   const [entries, setEntries] = useState([]);
@@ -295,6 +315,50 @@ export default function EntriesPage() {
     }
   };
 
+  const handleDownloadCsv = () => {
+    if (!filteredEntries.length || typeof window === "undefined") return;
+
+    const billingKeys = [
+      "entry_date",
+      "guest_name",
+      "user_name",
+      "vehicle_number",
+      "cab_type",
+      "slot",
+      "start_time",
+      "end_time",
+      "kms",
+      "hours",
+      "extra_per_hour",
+      "extra_per_km",
+      "extra_time_cost",
+      "extra_kms_cost",
+      "rate",
+      "tolls",
+      "total",
+    ];
+
+    const headers = [...billingKeys, "time_taken"];
+    const rows = filteredEntries.map((entry) => {
+      const values = billingKeys.map((key) => entry?.[key]);
+      values.push(
+        computeTimeTaken(entry) ?? ""
+      );
+      return values.map(escapeCsvCell).join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `entries_${buildTimestampForFilename()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   if (permissionsLoading) {
     return (
       <div className={styles.page}>
@@ -466,15 +530,29 @@ export default function EntriesPage() {
         </label>
         <label className={styles.field}>
           User
-          <CustomDropdown
-            options={userOptions}
-            value={userFilter}
-            onChange={setUserFilter}
-            getLabel={(userName) => userName}
-            getValue={(userName) => userName}
-            placeholder="Select user"
-            defaultOption={{ label: "All Users", value: "all" }}
-          />
+          <div className={styles.userFilterRow}>
+            <CustomDropdown
+              options={userOptions}
+              value={userFilter}
+              onChange={setUserFilter}
+              getLabel={(userName) => userName}
+              getValue={(userName) => userName}
+              placeholder="Select user"
+              defaultOption={{ label: "All Users", value: "all" }}
+            />
+            <button
+              type="button"
+              className={styles.downloadBtn}
+              onClick={handleDownloadCsv}
+              title="Download filtered entries as CSV"
+              aria-label="Download filtered entries as CSV"
+              disabled={filteredEntries.length === 0}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v11M8 10l4 4 4-4M4 17h16v4H4z" />
+              </svg>
+            </button>
+          </div>
         </label>
       </section>
 

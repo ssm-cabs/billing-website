@@ -195,6 +195,51 @@
   color: var(--page-ink);
 }
 
+.userFilterRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.userFilterRow > :first-child {
+  flex: 1;
+}
+
+.downloadBtn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(30, 25, 22, 0.12);
+  background: #fff;
+  color: #ea5a32;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.downloadBtn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.downloadBtn:hover:not(:disabled) {
+  background: #ea5a32;
+  color: #fff;
+  border-color: #ea5a32;
+}
+
+.downloadBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .tableWrap {
   background: #fff;
   border-radius: 18px;
