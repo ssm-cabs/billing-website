@@ -62,6 +62,8 @@ export function computeExtraUsage({
   end_time = "",
   odometer_start = null,
   odometer_end = null,
+  buffer_time = 0,
+  buffer_kms = 0,
 } = {}) {
   const limits = getSlotLimits(slot);
 
@@ -82,20 +84,27 @@ export function computeExtraUsage({
       ? odometerEnd - odometerStart
       : null;
 
-  const extraHours =
+  const bufferHours = Math.max(0, toNumber(buffer_time) ?? 0);
+  const bufferKms = Math.max(0, toNumber(buffer_kms) ?? 0);
+
+  const rawExtraHours =
     limits && travelledHours !== null
       ? Math.max(0, Math.ceil(travelledHours - limits.hours))
       : 0;
-  const extraKms =
+  const rawExtraKms =
     limits && travelledKms !== null
       ? Math.max(0, Math.ceil(travelledKms - limits.kms))
       : 0;
+  const extraHours = Math.max(0, rawExtraHours - bufferHours);
+  const extraKms = Math.max(0, rawExtraKms - bufferKms);
 
   return {
     limits,
     travelledMinutes,
     travelledHours,
     travelledKms,
+    bufferHours,
+    bufferKms,
     extraHours,
     extraKms,
   };
@@ -111,6 +120,8 @@ export function computeEntryBilling({
   end_time = "",
   odometer_start = null,
   odometer_end = null,
+  buffer_time = 0,
+  buffer_kms = 0,
 } = {}) {
   const usage = computeExtraUsage({
     slot,
@@ -118,6 +129,8 @@ export function computeEntryBilling({
     end_time,
     odometer_start,
     odometer_end,
+    buffer_time,
+    buffer_kms,
   });
 
   const baseRate = Math.max(0, toNumber(rate) ?? 0);
@@ -189,8 +202,8 @@ export function composeEntryNotes({
     AUTO_MARKER,
     `slot: ${slot || "-"}${limits ? ` (limit ${limits.hours}h / ${limits.kms}km)` : ""}`,
     `base_rate: ${roundCurrency(billing?.rate)} | tolls: ${roundCurrency(billing?.tolls)}`,
-    `time: ${start} -> ${end} (${formatDurationMinutes(billing?.travelledMinutes)}) | extra_hours: ${billing?.extraHours ?? 0} | extra_time_cost: ${roundCurrency(billing?.extra_time_cost)}`,
-    `kms: ${odoStart} -> ${odoEnd} (${billing?.travelledKms ?? "N/A"}) | extra_kms: ${billing?.extraKms ?? 0} | extra_kms_cost: ${roundCurrency(billing?.extra_kms_cost)}`,
+    `time: ${start} -> ${end} (${formatDurationMinutes(billing?.travelledMinutes)}) | extra_hours: ${billing?.extraHours ?? 0} (buffer ${billing?.bufferHours ?? 0}) | extra_time_cost: ${roundCurrency(billing?.extra_time_cost)}`,
+    `kms: ${odoStart} -> ${odoEnd} (${billing?.travelledKms ?? "N/A"}) | extra_kms: ${billing?.extraKms ?? 0} (buffer ${billing?.bufferKms ?? 0}) | extra_kms_cost: ${roundCurrency(billing?.extra_kms_cost)}`,
     `total: ${roundCurrency(billing?.total)}`,
     AUTO_MARKER,
   ];

@@ -428,7 +428,7 @@
 
 .pricingForm {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) 96px;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) 96px;
   gap: 12px;
   align-items: end;
 }
@@ -441,7 +441,7 @@
 .pricingHeader,
 .pricingRow {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) 96px;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) 96px;
   gap: 12px;
   font-size: 13px;
   align-items: center;
@@ -578,7 +578,7 @@
 
   .pricingHeader,
   .pricingRow {
-    min-width: 760px;
+    min-width: 1040px;
   }
 }
 

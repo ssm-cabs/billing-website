@@ -142,6 +142,8 @@ export default function NewEntryPage() {
   const resolvedRate = matchingPrice?.rate || 0;
   const resolvedExtraPerHour = Number(matchingPrice?.extra_per_hour) || 0;
   const resolvedExtraPerKm = Number(matchingPrice?.extra_per_km) || 0;
+  const resolvedBufferTime = Number(matchingPrice?.buffer_time) || 0;
+  const resolvedBufferKms = Number(matchingPrice?.buffer_kms) || 0;
   const effectiveRate =
     form.rate === "" || form.rate === null ? resolvedRate : Number(form.rate) || 0;
   const billingPreview = useMemo(
@@ -151,6 +153,8 @@ export default function NewEntryPage() {
         rate: effectiveRate,
         extra_per_hour: resolvedExtraPerHour,
         extra_per_km: resolvedExtraPerKm,
+        buffer_time: resolvedBufferTime,
+        buffer_kms: resolvedBufferKms,
         tolls: form.tolls,
         start_time: form.start_time,
         end_time: form.end_time,
@@ -167,6 +171,8 @@ export default function NewEntryPage() {
       form.tolls,
       resolvedExtraPerHour,
       resolvedExtraPerKm,
+      resolvedBufferTime,
+      resolvedBufferKms,
     ]
   );
 
@@ -237,6 +243,8 @@ export default function NewEntryPage() {
         kms: billingPreview.extraKms,
         extra_per_hour: billingPreview.extra_per_hour,
         extra_per_km: billingPreview.extra_per_km,
+        buffer_time: billingPreview.bufferHours,
+        buffer_kms: billingPreview.bufferKms,
         extra_time_cost: billingPreview.extra_time_cost,
         extra_kms_cost: billingPreview.extra_kms_cost,
         tolls: billingPreview.tolls,
