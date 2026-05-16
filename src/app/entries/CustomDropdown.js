@@ -16,6 +16,8 @@ export default function CustomDropdown({
   searchable = false,
   searchPlaceholder = "Search...",
   searchKeywords,
+  allowCustomValue = false,
+  customValueLabel = "Use",
 }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -54,7 +56,11 @@ export default function CustomDropdown({
       return defaultOption.label;
     }
     const selected = options.find((option) => getValue(option) === value);
-    return selected ? getLabel(selected) : placeholder;
+    if (selected) return getLabel(selected);
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value);
+    }
+    return placeholder;
   };
 
   const normalizeForSearch = (text) =>
@@ -79,6 +85,9 @@ export default function CustomDropdown({
           })
         )
       : options;
+  const trimmedSearchText = searchText.trim();
+  const canUseCustomValue =
+    allowCustomValue && searchable && trimmedSearchText && filteredOptions.length === 0;
 
   return (
     <div
@@ -145,8 +154,22 @@ export default function CustomDropdown({
                 {getLabel(option)}
               </button>
             ))}
+            {canUseCustomValue && (
+              <button
+                type="button"
+                className={styles.option}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  handleSelect(trimmedSearchText);
+                }}
+              >
+                {customValueLabel} "{trimmedSearchText}"
+              </button>
+            )}
             {filteredOptions.length === 0 && (
-              <div className={styles.emptyState}>No options found</div>
+              <div className={styles.emptyState}>
+                {canUseCustomValue ? "No matches in vehicle list" : "No options found"}
+              </div>
             )}
           </div>
         </div>

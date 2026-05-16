@@ -74,7 +74,6 @@ export default function NewEntryPage() {
   const [vehicleStatus, setVehicleStatus] = useState("idle");
   const [pricing, setPricing] = useState([]);
   const [pricingStatus, setPricingStatus] = useState("idle");
-  const [useCustomVehicle, setUseCustomVehicle] = useState(false);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -131,11 +130,10 @@ export default function NewEntryPage() {
     loadPricing();
   }, [form.company_name, companies]);
 
-  const selectedVehicle = useCustomVehicle
-    ? null
-    : vehicles.find((v) => v.vehicle_number === form.vehicle_number);
+  const selectedVehicle = vehicles.find((v) => v.vehicle_number === form.vehicle_number);
+  const isTemporaryVehicle = Boolean(form.vehicle_number) && !selectedVehicle;
   const selectedCompany = companies.find((c) => c.name === form.company_name);
-  const resolvedCabType = useCustomVehicle
+  const resolvedCabType = isTemporaryVehicle
     ? String(form.cab_type || "").trim()
     : selectedVehicle?.cab_type || "";
   const matchingPrice = pricing.find(
@@ -235,7 +233,7 @@ export default function NewEntryPage() {
       await createEntry({
         ...form,
         company_id: selectedCompany?.company_id || "",
-        vehicle_id: useCustomVehicle ? "" : selectedVehicle?.vehicle_id || "",
+        vehicle_id: isTemporaryVehicle ? "" : selectedVehicle?.vehicle_id || "",
         vehicle_number: String(form.vehicle_number || "").trim(),
         cab_type: resolvedCabType,
         rate: billingPreview.rate,
@@ -343,58 +341,32 @@ export default function NewEntryPage() {
             </label>
             <label className={styles.field}>
               Vehicle
-              <div className={styles.toggleRow}>
-                <button
-                  type="button"
-                  className={`${styles.modeToggle} ${!useCustomVehicle ? styles.modeToggleActive : ""}`.trim()}
-                  onClick={() => {
-                    setUseCustomVehicle(false);
-                    setForm((prev) => ({ ...prev, cab_type: "" }));
-                  }}
-                >
-                  From vehicle list
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.modeToggle} ${useCustomVehicle ? styles.modeToggleActive : ""}`.trim()}
-                  onClick={() => {
-                    setUseCustomVehicle(true);
-                    setForm((prev) => ({ ...prev, vehicle_number: "", cab_type: "" }));
-                  }}
-                >
-                  Temporary vehicle
-                </button>
-              </div>
-              {useCustomVehicle ? (
-                <input
-                  type="text"
-                  name="vehicle_number"
-                  value={form.vehicle_number}
-                  onChange={updateField}
-                  placeholder="Enter vehicle number"
-                />
-              ) : (
-                <CustomDropdown
-                  options={vehicles}
-                  value={form.vehicle_number}
-                  onChange={(value) =>
-                    setForm((prev) => ({ ...prev, vehicle_number: value, cab_type: "" }))
-                  }
-                  status={vehicleStatus}
-                  getLabel={(v) =>
-                    `${v.vehicle_number} · ${v.driver_name || "Driver"} · ${v.cab_type}`
-                  }
-                  getValue={(v) => v.vehicle_number}
-                  placeholder="Select vehicle"
-                  searchable
-                  searchPlaceholder="Search vehicle"
-                />
-              )}
+              <CustomDropdown
+                options={vehicles}
+                value={form.vehicle_number}
+                onChange={(value) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    vehicle_number: value,
+                    cab_type: vehicles.find((v) => v.vehicle_number === value)?.cab_type || "",
+                  }))
+                }
+                status={vehicleStatus}
+                getLabel={(v) =>
+                  `${v.vehicle_number} · ${v.driver_name || "Driver"} · ${v.cab_type}`
+                }
+                getValue={(v) => v.vehicle_number}
+                placeholder="Select or search vehicle"
+                searchable
+                searchPlaceholder="Search vehicle"
+                allowCustomValue
+                customValueLabel="Use temporary vehicle"
+              />
             </label>
             {form.vehicle_number && (
               <label className={styles.field}>
                 Cab type
-                {useCustomVehicle ? (
+                {isTemporaryVehicle ? (
                   <CustomDropdown
                     options={CAB_TYPE_OPTIONS}
                     value={form.cab_type}
