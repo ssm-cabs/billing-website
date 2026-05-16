@@ -22,6 +22,7 @@ import styles from "../edit.module.css";
 
 const initialState = {
   entry_date: "",
+  trip_sheet_no: "",
   company_id: "",
   company_name: "",
   slot: "",
@@ -92,6 +93,7 @@ export default function ClientEditEntryPage() {
         setIsBilled(entry.billed || false);
         setForm({
           entry_date: entry.entry_date || "",
+          trip_sheet_no: entry.trip_sheet_no || "",
           company_id: entry.company_id || "",
           company_name: entry.company_name || "",
           slot: entry.slot || "",
@@ -566,6 +568,16 @@ export default function ClientEditEntryPage() {
                 {pricingStatus === "loading" && (
                   <span className={styles.helper}>Loading pricing...</span>
                 )}
+              </label>
+              <label className={styles.field}>
+                Trip Sheet No
+                <input
+                  type="text"
+                  name="trip_sheet_no"
+                  value={form.trip_sheet_no ?? ""}
+                  onChange={updateField}
+                  placeholder="Enter trip sheet number"
+                />
               </label>
             </div>
           </section>

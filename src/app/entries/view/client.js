@@ -9,6 +9,7 @@ import styles from "../edit.module.css";
 
 const initialState = {
   entry_date: "",
+  trip_sheet_no: "",
   company_name: "",
   slot: "",
   start_time: "",
@@ -51,6 +52,7 @@ export default function ClientViewEntryPage() {
         const data = await fetchEntryById(id);
         setEntry({
           entry_date: data.entry_date || "",
+          trip_sheet_no: data.trip_sheet_no || "",
           company_name: data.company_name || "",
           slot: data.slot || "",
           start_time: data.start_time || "",
@@ -157,6 +159,10 @@ export default function ClientViewEntryPage() {
             <label className={styles.field}>
               Slot
               <input type="text" value={entry.slot} disabled readOnly />
+            </label>
+            <label className={styles.field}>
+              Trip Sheet No
+              <input type="text" value={entry.trip_sheet_no} disabled readOnly />
             </label>
           </div>
         </section>

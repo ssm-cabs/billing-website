@@ -41,6 +41,7 @@ const getLoggedInUserName = () => {
 
 const initialState = {
   entry_date: getToday(),
+  trip_sheet_no: "",
   company_name: "",
   slot: "",
   start_time: "",
@@ -423,6 +424,16 @@ export default function NewEntryPage() {
               {pricingStatus === "error" && (
                 <span className={styles.helperError}>Unable to load pricing.</span>
               )}
+            </label>
+            <label className={styles.field}>
+              Trip Sheet No
+              <input
+                type="text"
+                name="trip_sheet_no"
+                value={form.trip_sheet_no ?? ""}
+                onChange={updateField}
+                placeholder="Enter trip sheet number"
+              />
             </label>
           </div>
         </section>
